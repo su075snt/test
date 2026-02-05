@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数字の学習 - ボード日本語化</title>
+    <style>
+        body { font-family: 'Hiragino Sans', sans-serif; background: #fff9e6; text-align: center; margin: 0; }
+        .container { max-width: 750px; margin: 20px auto; background: white; padding: 30px; border-radius: 30px; box-shadow: 0 15px 30px rgba(0,0,0,0.1); position: relative; min-height: 600px; border: 8px solid #ffeb3b; }
+        
+        /* Furigana Styling */
+        ruby { ruby-align: center; }
+        rt { font-size: 0.45em; color: #666; font-weight: normal; }
+
+        /* Stats Corner - CHUYỂN SANG TIẾNG NHẬT */
+        #stats { 
+            position: absolute; 
+            top: 15px; 
+            right: 20px; 
+            text-align: right; 
+            font-weight: bold; 
+            font-size: 17px; 
+            z-index: 5; 
+            line-height: 1.6;
+            background: rgba(255,255,255,0.8);
+            padding: 10px;
+            border-radius: 10px;
+        }
+        
+        /* 3D Effects */
+        #effect-layer { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 180px; pointer-events: none; z-index: 100; opacity: 0; }
+        @keyframes pop3d { 0% { opacity:0; transform: translate(-50%,-50%) scale(0.3); } 50% { opacity:1; transform: translate(-50%,-50%) scale(1.3); } 100% { opacity:0; transform: translate(-50%,-50%) scale(1); } }
+        @keyframes shake3d { 0%, 100% { transform: translate(-50%,-50%) rotate(0deg); opacity:0; } 10%, 90% { opacity:1; } 20%, 60% { transform: translate(-55%,-50%) rotate(-10deg); } 40%, 80% { transform: translate(-45%,-50%) rotate(10deg); } }
+        .pop { animation: pop3d 0.8s forwards; }
+        .shake { animation: shake3d 0.8s forwards; }
+
+        /* Buttons & Layout */
+        .choice-btn { padding: 12px 20px; border: 2px solid #ddd; border-radius: 25px; background: white; cursor: pointer; transition: 0.3s; margin: 5px; }
+        .choice-btn.active { background: #ffeb3b; border-color: #fbc02d; font-weight: bold; }
+        .option-btn { padding: 25px; font-size: 38px; font-weight: bold; border-radius: 20px; border: 4px solid #eee; cursor: pointer; background: #fff; box-shadow: 0 8px 0 #ddd; transition: 0.1s; }
+        .option-btn:active { box-shadow: 0 2px 0 #ddd; transform: translateY(6px); }
+        #settings { position: fixed; bottom: 15px; right: 15px; background: white; border: 2px solid #4CAF50; padding: 10px; border-radius: 15px; text-align: left; width: 230px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); font-size: 11px; }
+        select { width: 100%; margin-bottom: 5px; font-size: 11px; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- BỘ ĐẾM TIẾNG NHẬT GÓC TRÊN BÊN PHẢI -->
+    <div id="stats">
+        <div><ruby>合計<rt>ごうけい</rt></ruby>: <span id="total-count">0</span></div>
+        <div style="color: #28a745;"><ruby>正解<rt>せいかい</rt></ruby>: <span id="correct-count">0</span></div>
+        <div style="color: #dc3545;"><ruby>間違い<rt>まちがい</rt></ruby>: <span id="wrong-count">0</span></div>
+    </div>
+
+    <div id="effect-layer"></div>
+
+    <div id="setup-screen">
+        <h1><ruby>数字<rt>すうじ</rt></ruby>の<ruby>学習<rt>がくしゅう</rt></ruby></h1>
+        <div style="margin-bottom:20px">
+            <strong>❶ <ruby>問題数<rt>もんだいすう</rt></ruby> (Số câu)</strong><br>
+            <div id="q-group">
+                <button class="choice-btn active" onclick="setQ(10, this)">10</button>
+                <button class="choice-btn" onclick="setQ(20, this)">20</button>
+                <button class="choice-btn" onclick="setQ(30, this)">30</button>
+                <button class="choice-btn" onclick="setQ(50, this)">50</button>
+            </div>
+        </div>
+        <div style="margin-bottom:20px">
+            <strong>❷ <ruby>範囲<rt>はんい</rt></ruby> (Phạm vi)</strong><br>
+            <div id="r-group">
+                <button class="choice-btn active" onclick="setR(1, 10, this)">1-10</button>
+                <button class="choice-btn" onclick="setR(10, 100, this)">10-100</button>
+                <button class="choice-btn" onclick="setR(100, 1000, this)">100-1k</button>
+                <button class="choice-btn" onclick="setR(1000, 10000, this)">1k-1万</button>
+                <button class="choice-btn" onclick="setR(10000, 1000000, this)">1万-100万</button>
+            </div>
+        </div>
+        <button onclick="startGame()" style="background:#4CAF50; color:white; padding:15px 50px; font-size:24px; border-radius:50px; cursor:pointer; border:none; font-weight:bold;">スタート！</button>
+    </div>
+
+    <div id="game-screen" class="hidden">
+        <div id="play-btn" style="font-size:80px; cursor:pointer;" onclick="speakTarget()">🔊</div>
+        <div id="feedback-text" style="font-size:32px; font-weight:bold; height:50px; color:#ff5722; margin-top:10px;"></div>
+        <div class="options-grid" id="options" style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-top:20px;"></div>
+    </div>
+
+    <div id="end-screen" class="hidden">
+        <h1><ruby>結果発表<rt>けっかはっぴょう</rt></ruby></h1>
+        <div id="result-summary" style="font-size:30px; margin:30px; padding:20px; background:#fffde7; border-radius:20px;"></div>
+        <h2 style="color:#E91E63; font-size:35px;"><ruby>お疲れ様<rt>おつかれさま</rt></ruby>でした！</h2>
+        <button onclick="location.reload()" style="background:#2196F3; color:white; padding:15px 40px; border-radius:50px; border:none; cursor:pointer; font-size:20px;">もういちど遊ぶ</button>
+    </div>
+</div>
+
+<div id="settings">
+    <strong>⚙ <ruby>設定<rt>せってい</rt></ruby> (Cài đặt)</strong><br>
+    モード (Chế độ):
+    <select id="voice-mode">
+        <option value="jp">にほんご</option>
+        <option value="vi">ベトナムご</option>
+        <option value="jp-vi">にほんご ＋ ベトナムご</option>
+    </select>
+    にほんごの声 (Giọng Nhật):
+    <select id="voice-jp"></select>
+    ベトナムごの声 (Giọng Việt):
+    <select id="voice-vi"></select>
+    スピード (Tốc độ):
+    <input type="range" id="speed" min="0.5" max="1.5" step="0.1" value="1" style="width:100%">
+</div>
+
+<script>
+    let correctCount = 0, wrongCount = 0, currentQ = 0;
+    let maxQ = 10, rangeMin = 1, rangeMax = 10, targetNum = 0;
+    let allVoices = [];
+
+    const goodMsgs = [
+        {k:"<ruby>正解<rt>せいかい</rt></ruby>！", r:"せいかい"},
+        {k:"<ruby>素晴らしい<rt>すばらしい</rt></ruby>！", r:"すばらしい"},
+        {k:"やったね！", r:"やったね"},
+        {k:"すごい！", r:"すごい"},
+        {k:"その<ruby>調子<rt>ちょうし</rt></ruby>！", r:"そのちょうし"}
+    ];
+    const badMsgs = [
+        {k:"おしい！", r:"おしい"},
+        {k:"ブーブー", r:"ブーブー"},
+        {k:"ちがうよ", r:"ちがうよ"},
+        {k:"<ruby>次<rt>つぎ</rt></ruby>は<ruby>頑張<rt>がんば</rt></ruby>ろう", r:"つぎはがんばろう"},
+        {k:"どんまい！", r:"どんまい"}
+    ];
+
+    function loadVoices() {
+        allVoices = window.speechSynthesis.getVoices();
+        const jpSelect = document.getElementById('voice-jp');
+        const viSelect = document.getElementById('voice-vi');
+        jpSelect.innerHTML = ''; viSelect.innerHTML = '';
+        allVoices.forEach((v, i) => {
+            if (v.lang.includes('ja')) jpSelect.add(new Option(v.name, i));
+            if (v.lang.includes('vi')) viSelect.add(new Option(v.name, i));
+        });
+    }
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+
+    function setQ(v, b) { maxQ = v; setActive('q-group', b); }
+    function setR(min, max, b) { rangeMin = min; rangeMax = max; setActive('r-group', b); }
+    function setActive(id, b) {
+        document.querySelectorAll(`#${id} button`).forEach(btn => btn.classList.remove('active'));
+        b.classList.add('active');
+    }
+
+    function startGame() {
+        document.getElementById('setup-screen').classList.add('hidden');
+        document.getElementById('game-screen').classList.remove('hidden');
+        nextQuestion();
+    }
+
+    function nextQuestion() {
+        if (currentQ >= maxQ) return endGame();
+        currentQ++;
+        updateStats();
+        targetNum = Math.floor(Math.random() * (rangeMax - rangeMin + 1)) + rangeMin;
+        const container = document.getElementById('options');
+        container.innerHTML = "";
+        let choices = [targetNum];
+        while(choices.length < 4) {
+            let fake = targetNum + (Math.floor(Math.random()*11) - 5);
+            if (fake > 0 && !choices.includes(fake)) choices.push(fake);
+        }
+        choices.sort(() => Math.random() - 0.5);
+        choices.forEach(num => {
+            let b = document.createElement('button');
+            b.className = 'option-btn';
+            b.innerText = num.toLocaleString();
+            b.onclick = () => check(num, b);
+            container.appendChild(b);
+        });
+        setTimeout(speakTarget, 500);
+    }
+
+    function speakTarget() {
+        const mode = document.getElementById('voice-mode').value;
+        const rate = parseFloat(document.getElementById('speed').value);
+        const jpV = allVoices[document.getElementById('voice-jp').value];
+        const viV = allVoices[document.getElementById('voice-vi').value];
+        if (mode === 'jp') speak(targetNum, jpV, rate);
+        else if (mode === 'vi') speak(targetNum, viV, rate);
+        else speak(targetNum, jpV, rate, () => speak(targetNum, viV, rate));
+    }
+
+    function speak(text, voice, rate, callback) {
+        if (!voice) return callback ? callback() : null;
+        const ut = new SpeechSynthesisUtterance(text);
+        ut.voice = voice; ut.rate = rate;
+        if (callback) ut.onend = callback;
+        window.speechSynthesis.speak(ut);
+    }
+
+    function check(sel, btn) {
+        const effect = document.getElementById('effect-layer');
+        const feed = document.getElementById('feedback-text');
+        const jpV = allVoices[document.getElementById('voice-jp').value];
+        effect.className = "";
+        if (sel === targetNum) {
+            correctCount++;
+            effect.innerText = "⭕";
+            void effect.offsetWidth;
+            effect.classList.add('pop');
+            const m = goodMsgs[Math.floor(Math.random()*5)];
+            feed.innerHTML = m.k;
+            speak(m.r, jpV, 1.2);
+            setTimeout(nextQuestion, 1800);
+        } else {
+            wrongCount++;
+            effect.innerText = "❌";
+            void effect.offsetWidth;
+            effect.classList.add('shake');
+            const m = badMsgs[Math.floor(Math.random()*5)];
+            feed.innerHTML = m.k;
+            speak(m.r, jpV, 1.2);
+            btn.style.background = "#ffcdd2";
+        }
+        updateStats();
+    }
+
+    function updateStats() {
+        document.getElementById('total-count').innerText = currentQ;
+        document.getElementById('correct-count').innerText = correctCount;
+        document.getElementById('wrong-count').innerText = wrongCount;
+    }
+
+    function endGame() {
+        document.getElementById('game-screen').classList.add('hidden');
+        document.getElementById('end-screen').classList.remove('hidden');
+        document.getElementById('result-summary').innerHTML = 
+            `<ruby>正解<rt>せいかい</rt></ruby>: ${correctCount} <br> ` +
+            `<ruby>間違い<rt>まちがい</rt></ruby>: ${wrongCount}`;
+    }
+</script>
+</body>
+</html>

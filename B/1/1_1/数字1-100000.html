@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日本語数字学習システム</title>
+    <link href="https://fonts.googleapis.com" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #e67e22;
+            --success: #27ae60;
+            --vi-color: #c0392b;
+            --bg: #f4f7f9;
+        }
+        body {
+            font-family: 'Kosugi+Maru', sans-serif;
+            background-color: var(--bg);
+            margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh;
+        }
+
+        /* 学習カウンター */
+        .score-board {
+            position: fixed; top: 20px; right: 20px;
+            background: white; padding: 10px 25px; border-radius: 30px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1); font-weight: bold; border: 2px solid var(--accent);
+        }
+
+        h1 { margin-top: 30px; color: var(--primary); font-size: 26px; letter-spacing: 2px; }
+
+        .main-card {
+            background: white; padding: 35px; border-radius: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08); text-align: center;
+            width: 92%; max-width: 800px; margin-top: 20px;
+        }
+
+        /* 範囲選択 */
+        .range-selector { margin-bottom: 25px; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+        .range-selector button {
+            padding: 10px 15px; border: 1px solid #ddd; background: white; border-radius: 8px; cursor: pointer; font-family: inherit;
+        }
+        .range-selector button.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+        .display-container {
+            background: #fff; padding: 25px; border-radius: 20px; border: 2px solid #edf2f7; cursor: pointer; margin-bottom: 20px;
+            transition: all 0.2s;
+        }
+        .display-container:hover { border-color: var(--accent); background: #fffdfa; }
+
+        .boxes-row { display: flex; justify-content: center; align-items: flex-end; gap: 12px; margin-bottom: 20px; }
+
+        .digit-group { display: flex; flex-direction: column; align-items: center; }
+
+        .unit-label { font-size: 18px; color: #e74c3c; font-weight: bold; margin-bottom: 8px; height: 24px; }
+
+        .digit-box {
+            width: 65px; height: 85px; border: 3px solid var(--primary); border-radius: 12px;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 48px; font-weight: bold; background: white;
+        }
+
+        /* 回答エリア */
+        .result-box {
+            opacity: 0; transition: opacity 0.3s;
+            border-top: 2px solid #f0f0f0; padding-top: 20px;
+        }
+        #hiragana-result { font-size: 28px; color: var(--success); font-weight: bold; margin-bottom: 10px; }
+        #vietnamese-result { font-size: 22px; color: var(--vi-color); font-weight: bold; }
+
+        .next-btn {
+            background: var(--primary); color: white; border: none; padding: 15px 70px;
+            font-size: 20px; border-radius: 50px; cursor: pointer; font-family: inherit; font-weight: bold;
+        }
+        .next-btn:active { transform: scale(0.98); }
+
+        /* 右下の設定パネル */
+        .settings {
+            position: fixed; bottom: 20px; right: 20px; background: white;
+            padding: 15px; border-radius: 15px; box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            font-size: 12px; display: flex; flex-direction: column; gap: 10px; width: 240px;
+        }
+        .voice-mode { display: flex; flex-direction: column; gap: 6px; border-top: 1px solid #eee; padding-top: 10px; }
+        .voice-mode label { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; }
+        select, input[type="range"] { width: 100%; }
+    </style>
+</head>
+<body>
+
+    <div class="score-board">
+        学習済み: <span id="counter">0</span>
+    </div>
+
+    <h1>数字の読み方練習</h1>
+
+    <div class="main-card">
+        <div class="range-selector">
+            <button onclick="setRange(1, 10, this)">1 - 10</button>
+            <button onclick="setRange(10, 100, this)">10 - 100</button>
+            <button onclick="setRange(100, 1000, this)" class="active">100 - 1,000</button>
+            <button onclick="setRange(1000, 10000, this)">1,000 - 10,000</button>
+            <button onclick="setRange(10000, 1000000, this)">10,000 - 1,000,000</button>
+        </div>
+
+        <div class="display-container" onclick="revealAndSpeak()">
+            <div class="boxes-row" id="boxesRow"></div>
+            <div class="result-box" id="resultBox">
+                <div id="hiragana-result"></div>
+                <div id="vietnamese-result"></div>
+            </div>
+        </div>
+
+        <button class="next-btn" onclick="generateNext()">次へ進む</button>
+    </div>
+
+    <div class="settings">
+        <strong>⚙️ 音声設定 (Settings)</strong>
+        <div class="voice-mode">
+            <label><input type="radio" name="mode" value="ja" checked> 日本語のみ (Chỉ Nhật)</label>
+            <label><input type="radio" name="mode" value="vi"> ベトナム語のみ (Chỉ Việt)</label>
+            <label><input type="radio" name="mode" value="both"> 日本語 → ベトナム語 (Nhật-Việt)</label>
+        </div>
+        <hr>
+        <label>速度 (Speed): <input type="range" id="rate" min="0.5" max="1.5" step="0.1" value="1.0"></label>
+        
+        <div>日本語音声 (Japanese Voice):</div>
+        <select id="voiceJa"></select>
+        
+        <div>ベトナム語音声 (Vietnamese Voice):</div>
+        <select id="voiceVi"></select>
+    </div>
+
+    <script>
+        let min = 100, max = 1000, currentNum = 0, solvedCount = 0;
+        const synth = window.speechSynthesis;
+
+        function getUnitLabel(digit, pos) {
+            if (digit === 0) return "";
+            if (pos === 1) return "じゅう";
+            if (pos === 2) {
+                if (digit === 3) return "びゃく";
+                if (digit === 6 || digit === 8) return "ぴゃく";
+                return "ひゃく";
+            }
+            if (pos === 3) {
+                if (digit === 3) return "ぜん";
+                return "せん";
+            }
+            if (pos === 4) return "まん";
+            return "";
+        }
+
+        function toHiragana(n) {
+            if (n === 0) return "れい";
+            const kbase = ["", "いち", "に", "さん", "よん", "ご", "ろく", "なな", "はち", "きゅう"];
+            const hyaku = {1:"ひゃく", 3:"さんびゃく", 6:"ろっぴゃく", 8:"はっぴゃく"};
+            const sen = {1:"せん", 3:"さんぜん", 8:"はっせん"};
+            let res = ""; let s = n.toString(); let len = s.length;
+            for(let i=0; i<len; i++) {
+                let d = parseInt(s[i]); let p = len - i - 1;
+                if(d === 0) continue;
+                if(p === 0) res += kbase[d];
+                else if(p === 1) res += (d===1?"":kbase[d]) + "じゅう";
+                else if(p === 2) res += (hyaku[d] || kbase[d]+"ひゃく");
+                else if(p === 3) res += (sen[d] || kbase[d]+"せん");
+                else if(p === 4) res += kbase[d] + "まん";
+            }
+            return res;
+        }
+
+        function setRange(nMin, nMax, btn) {
+            min = nMin; max = nMax;
+            document.querySelectorAll('.range-selector button').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            generateNext();
+        }
+
+        function generateNext() {
+            currentNum = Math.floor(Math.random() * (max - min)) + min;
+            const row = document.getElementById('boxesRow');
+            const resBox = document.getElementById('resultBox');
+            
+            row.innerHTML = '';
+            resBox.style.opacity = "0";
+            resBox.dataset.counted = "false";
+
+            document.getElementById('hiragana-result').innerText = toHiragana(currentNum);
+            document.getElementById('vietnamese-result').innerText = "意味: " + currentNum.toLocaleString('vi-VN');
+
+            const sNum = currentNum.toString();
+            for(let i=0; i<sNum.length; i++) {
+                const pos = sNum.length - i - 1;
+                const digit = parseInt(sNum[i]);
+                row.innerHTML += `
+                    <div class="digit-group">
+                        <div class="unit-label">${getUnitLabel(digit, pos)}</div>
+                        <div class="digit-box" style="${digit===0?'color:#ccc;border-color:#ccc':''}">${digit}</div>
+                    </div>
+                `;
+            }
+        }
+
+        function revealAndSpeak() {
+            document.getElementById('resultBox').style.opacity = "1";
+            synth.cancel();
+
+            const mode = document.querySelector('input[name="mode"]:checked').value;
+            const rate = document.getElementById('rate').value;
+            
+            const speakJa = () => {
+                const msg = new SpeechSynthesisUtterance(currentNum.toString());
+                msg.lang = 'ja-JP';
+                msg.rate = rate;
+                msg.voice = synth.getVoices().find(v => v.name === document.getElementById('voiceJa').value);
+                return msg;
+            };
+
+            const speakVi = () => {
+                const msg = new SpeechSynthesisUtterance(currentNum.toString());
+                msg.lang = 'vi-VN';
+                msg.rate = rate;
+                msg.voice = synth.getVoices().find(v => v.name === document.getElementById('voiceVi').value);
+                return msg;
+            };
+
+            if (mode === 'ja') {
+                synth.speak(speakJa());
+            } else if (mode === 'vi') {
+                synth.speak(speakVi());
+            } else {
+                let jaMsg = speakJa();
+                jaMsg.onend = () => { setTimeout(() => synth.speak(speakVi()), 400); };
+                synth.speak(jaMsg);
+            }
+
+            if (document.getElementById('resultBox').dataset.counted !== "true") {
+                solvedCount++;
+                document.getElementById('counter').innerText = solvedCount;
+                document.getElementById('resultBox').dataset.counted = "true";
+            }
+        }
+
+        function loadVoices() {
+            const voices = synth.getVoices();
+            const selectJa = document.getElementById('voiceJa');
+            const selectVi = document.getElementById('voiceVi');
+            
+            selectJa.innerHTML = voices.filter(v => v.lang.includes('ja')).map(v => `<option value="${v.name}">${v.name}</option>`).join('');
+            selectVi.innerHTML = voices.filter(v => v.lang.includes('vi')).map(v => `<option value="${v.name}">${v.name}</option>`).join('');
+        }
+
+        synth.onvoiceschanged = loadVoices;
+        loadVoices();
+        generateNext();
+    </script>
+</body>
+</html>

@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>タヌキ日本語</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 2000px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e0e6ed;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+        }
+        
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+        }
+        
+        .content-wrapper {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        @media (max-width: 1600px) {
+            .content-wrapper {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 900px) {
+            .content-wrapper {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .panel {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            padding: 20px;
+            overflow: hidden;
+        }
+        
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #eef2f7;
+        }
+        
+        .panel-title {
+            font-size: 1.5rem;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .panel-title i {
+            color: #3498db;
+        }
+        
+        .folder-count {
+            background-color: #3498db;
+            color: white;
+            border-radius: 20px;
+            padding: 3px 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        .directory-tree {
+            max-height: 700px;
+            overflow-y: auto;
+            padding-right: 8px;
+        }
+        
+        .directory-tree::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .directory-tree::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 10px;
+        }
+        
+        .directory-tree::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+        
+        .directory-tree::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        
+        .tree {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .tree ul {
+            list-style: none;
+            padding-left: 20px;
+            margin-left: 12px;
+            border-left: 1px dashed #d1d9e6;
+        }
+        
+        .tree li {
+            margin: 6px 0;
+            position: relative;
+        }
+        
+        .folder {
+            font-weight: 600;
+            color: #2c3e50;
+            padding: 6px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            transition: all 0.2s;
+            user-select: none;
+        }
+        
+        .folder:hover {
+            background-color: #f0f7ff;
+        }
+        
+        .folder i {
+            margin-right: 8px;
+            font-size: 1rem;
+            width: 18px;
+            text-align: center;
+        }
+        
+        .folder .fa-folder {
+            color: #f39c12;
+        }
+        
+        .folder .fa-folder-open {
+            color: #f39c12;
+        }
+        
+        .folder .fa-file {
+            color: #3498db;
+            font-size: 0.85rem;
+        }
+        
+        .file {
+            color: #4a5568;
+            padding: 5px 10px 5px 35px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+        
+        .file:hover {
+            background-color: #f8fafc;
+            color: #2d3748;
+        }
+        
+        .file i {
+            margin-right: 6px;
+            font-size: 0.85rem;
+        }
+        
+        .collapsed > ul {
+            display: none;
+        }
+        
+        .collapsed > .folder .fa-folder-open {
+            display: none;
+        }
+        
+        .expanded > .folder .fa-folder {
+            display: none;
+        }
+        
+        .file-link {
+            color: #3498db;
+            text-decoration: none;
+            font-weight: 500;
+            display: block;
+            width: 100%;
+        }
+        
+        .file-link:hover {
+            text-decoration: underline;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(52, 152, 219, 0.3);
+        }
+        
+        button#expandAll {
+            background-color: #2ecc71;
+        }
+        
+        button#expandAll:hover {
+            background-color: #27ae60;
+            box-shadow: 0 4px 8px rgba(46, 204, 113, 0.3);
+        }
+        
+        button#collapseAll {
+            background-color: #e74c3c;
+        }
+        
+        button#collapseAll:hover {
+            background-color: #c0392b;
+            box-shadow: 0 4px 8px rgba(231, 76, 60, 0.3);
+        }
+        
+        @media (max-width: 768px) {
+            .panel {
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            button {
+                width: 100%;
+                max-width: 300px;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><!--<i class="fas fa-folder-tree">--></i> タヌキ日本語　学-練</h1>
+            <p class="subtitle">継続は力なり---------努力は必ず報われる</p>
+        </header>
+        
+        <div class="content-wrapper">
+            <!-- Cột A -->
+            <div class="panel">
+                <div class="panel-header">
+                    <h2 class="panel-title"><i class="fas fa-folder"></i> 国語</h2>
+                    <span class="folder-count">お知らせ</span>
+                </div>
+                <div class="directory-tree">
+                    <ul class="tree">
+                        <!-- Thư mục con 1 -->
+                        <li class="expanded">
+                            <div class="folder">
+                                <i class="fas fa-folder-open"></i><i class="fas fa-folder"></i> ひらがな
+                            </div>
+                            <ul>
+                                <!-- Thư mục nhỏ 1_1 -->
+                                <li class="collapsed">
+                                    <div class="folder">
+                                        <i class="fas fa-folder-open"></i><i class="fas fa-folder"></i> ひらがな表
+                                    </div>
+                                    <ul>
+                                        <li><a href="A/1/1_1/104ひらがな表.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> 104ひらがな表.html</div></a></li>
+                                       <!-- <li><a href="A/1/1_1/A_1_1_index.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> A_1_1_index.html</div></a></li>
+                                        <li><a href="A/1/1_1/A_1_1_main.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> A_1_1_main.html</div></a></li>
+                                        <li><a href="A/1/1_1/A_1_1_style.css" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> A_1_1_style.css</div></a></li>
+                                        <li><a href="A/1/1_1/A_1_1_script.js" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> A_1_1_script.js</div></a></li>-->
+                                    </ul>
+                                </li>
+                                <!-- Thư mục nhỏ 1_2 -->
+                                <li class="collapsed">
+                                    <div class="folder">
+                                        <i class="fas fa-folder-open"></i><i class="fas fa-folder"></i> ひらがなテスト
+                                    </div>
+                                    <ul>
+                                        <li><a href="A/1/1_2/ひらがな104テスト.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> ひらがな104テスト</div></a></li>
+                                  <!--      <li><a href="A/1/1_2/A_1_2_index.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> A_1_2_index.html</div></a></li>
+                                        <li><a href="A/1/1_2/A_1_2_main.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> A_1_2_main.html</div></a></li>
+                                        <li><a href="A/1/1_2/A_1_2_style.css" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> A_1_2_style.css</div></a></li>
+                                        <li><a href="A/1/1_2/A_1_2_script.js" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> A_1_2_script.js</div></a></li> -->
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                        
+                        <!-- Thư mục con 2 -->
+                        <li class="collapsed">
+                            <div class="folder">
+                                <i class="fas fa-folder-open"></i><i class="fas fa-folder"></i> カタカナ
+                            </div>
+                            <ul>
+                                <!-- Thư mục nhỏ 2_1 -->
+                                <li class="collapsed">
+                                    <div class="folder">
+                                        <i class="fas fa-folder-open"></i><i class="fas fa-folder"></i> カタカナ表
+                                    </div>
+                                    <ul>
+                                        <li><a href="A/2/2_1/A_2_1_text.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> A_2_1_text.html</div></a></li>
+                                    <!--    <li><a href="A/2/2_1/A_2_1_index.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> A_2_1_index.html</div></a></li>
+                                        <li><a href="A/2/2_1/A_2_1_main.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> A_2_1_main.html</div></a></li>
+                                        <li><a href="A/2/2_1/A_2_1_style.css" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> A_2_1_style.css</div></a></li>
+                                        <li><a href="A/2/2_1/A_2_1_script.js" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> A_2_1_script.js</div></a></li> -->
+                                    </ul>
+                                </li>
+                                <!-- Thư mục nhỏ 2_2 -->
+                                <li class="collapsed">
+                                    <div class="folder">
+                                        <i class="fas fa-folder-open"></i><i class="fas fa-folder"></i> カタカナ宿題
+                                    </div>
+                                    <ul>
+                                        <li><a href="A/2/2_2/カタカナ104テスト.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> カタカナ104テスト.html</div></a></li>
+                                   <!--     <li><a href="A/2/2_2/A_2_2_index.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> A_2_2_index.html</div></a></li>
+                                        <li><a href="A/2/2_2/A_2_2_main.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> A_2_2_main.html</div></a></li>
+                                        <li><a href="A/2/2_2/A_2_2_style.css" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> A_2_2_style.css</div></a></li>
+                                        <li><a href="A/2/2_2/A_2_2_script.js" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> A_2_2_script.js</div></a></li> -->
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                        
+                        <!-- Thư mục con 3 -->
+                        <li class="collapsed">
+                            <div class="folder">
+                                <i class="fas fa-folder-open"></i><i class="fas fa-folder"></i> 漢字
+                            </div>
+                            <ul>
+                                <!-- Thư mục nhỏ 3_1 -->
+                                <li class="collapsed">
+                                    <div class="folder">
+                                        <i class="fas fa-folder-open"></i><i class="fas fa-folder"></i> 漢字リスト
+                                    </div>
+                                    <ul>
+                                        <li><a href="A/3/3_1/A_3_1_text.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> A_3_1_text.html</div></a></li>
+                                <!--         <li><a href="A/3/3_1/A_3_1_index.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> A_3_1_index.html</div></a></li>
+                                        <li><a href="A/3/3_1/A_3_1_main.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> A_3_1_main.html</div></a></li>
+                                        <li><a href="A/3/3_1/A_3_1_style.css" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> A_3_1_style.css</div></a></li>
+                                        <li><a href="A/3/3_1/A_3_1_script.js" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> A_3_1_script.js</div></a></li> -->
+                                    </ul>
+                                </li>
+                                <!-- Thư mục nhỏ 3_2 -->
+                                <li class="collapsed">
+                                    <div class="folder">
+                                        <i class="fas fa-folder-open"></i><i class="fas fa-folder"></i> 漢字宿題
+                                    </div>
+                                    <ul>
+                                        <li><a href="A/3/3_2/A_3_2_text.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> A_3_2_text.html</div></a></li>
+                              <!--           <li><a href="A/3/3_2/A_3_2_index.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> A_3_2_index.html</div></a></li>
+                                        <li><a href="A/3/3_2/A_3_2_main.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> A_3_2_main.html</div></a></li>
+                                        <li><a href="A/3/3_2/A_3_2_style.css" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> A_3_2_style.css</div></a></li>
+                                        <li><a href="A/3/3_2/A_3_2_script.js" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> A_3_2_script.js</div></a></li> -->
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                        
+                        <!-- Thư mục con 4 -->
+                        <li class="collapsed">
+                            <div class="folder">
+                                <i class="fas fa-folder-open"></i><i class="fas fa-folder"></i> アルファベット
+                            </div>
+                            <ul>
+                                <!-- Thư mục nhỏ 4_1 -->
+                                <li class="collapsed">
+                                    <div class="folder">
+                                        <i class="fas fa-folder-open"></i><i class="fas fa-folder"></i> アルファベット表
+                                    </div>
+                                    <ul>
+                                        <li><a href="A/4/4_1/A_4_1_text.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> A_4_1_text.html</div></a></li>
+                              <!--           <li><a href="A/4/4_1/A_4_1_index.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> A_4_1_index.html</div></a></li>
+                                        <li><a href="A/4/4_1/A_4_1_main.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> A_4_1_main.html</div></a></li>
+                                        <li><a href="A/4/4_1/A_4_1_style.css" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> A_4_1_style.css</div></a></li>
+                                        <li><a href="A/4/4_1/A_4_1_script.js" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> A_4_1_script.js</div></a></li> -->
+                                    </ul>
+                                </li>
+                                <!-- Thư mục nhỏ 4_2 -->
+                                <li class="collapsed">
+                                    <div class="folder">
+                                        <i class="fas fa-folder-open"></i><i class="fas fa-folder"></i> アルファベット宿題
+                                    </div>
+                                    <ul>
+                                        <li><a href="A/4/4_2/A_4_2_text.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> A_4_2_text.html</div></a></li>
+                                <!--         <li><a href="A/4/4_2/A_4_2_index.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> A_4_2_index.html</div></a></li>
+                                        <li><a href="A/4/4_2/A_4_2_main.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> A_4_2_main.html</div></a></li>
+                                        <li><a href="A/4/4_2/A_4_2_style.css" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> A_4_2_style.css</div></a></li>
+                                        <li><a href="A/4/4_2/A_4_2_script.js" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> A_4_2_script.js</div></a></li> -->
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                        
+                        <!-- Thư mục con 5 -->
+                 <!--        <li class="collapsed">
+                            <div class="folder">
+                                <i class="fas fa-folder-open"></i><i class="fas fa-folder"></i> 5
+                            </div>
+                            <ul>
+                                <!-- Thư mục nhỏ 5_1 -->
+                    <!--             <li class="collapsed">
+                                    <div class="folder">
+                                        <i class="fas fa-folder-open"></i><i class="fas fa-folder"></i> 5_1
+                                    </div>
+                                    <ul>
+                                        <li><a href="A/5/5_1/A_5_1_text.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> A_5_1_text.html</div></a></li>
+                                        <li><a href="A/5/5_1/A_5_1_index.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> A_5_1_index.html</div></a></li>
+                                        <li><a href="A/5/5_1/A_5_1_main.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> A_5_1_main.html</div></a></li>
+                                        <li><a href="A/5/5_1/A_5_1_style.css" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> A_5_1_style.css</div></a></li>
+                                        <li><a href="A/5/5_1/A_5_1_script.js" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> A_5_1_script.js</div></a></li>
+                                    </ul>
+                                </li>
+                                <!-- Thư mục nhỏ 5_2 -->
+                     <!--            <li class="collapsed">
+                                    <div class="folder">
+                                        <i class="fas fa-folder-open"></i><i class="fas fa-folder"></i> 5_2
+                                    </div>
+                                    <ul>
+                                        <li><a href="A/5/5_2/A_5_2_text.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> A_5_2_text.html</div></a></li>
+                                        <li><a href="A/5/5_2/A_5_2_index.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> A_5_2_index.html</div></a></li>
+                                        <li><a href="A/5/5_2/A_5_2_main.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> A_5_2_main.html</div></a></li>
+                                        <li><a href="A/5/5_2/A_5_2_style.css" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> A_5_2_style.css</div></a></li>
+                                        <li><a href="A/5/5_2/A_5_2_script.js" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> A_5_2_script.js</div></a></li>
+                                    </ul>
+                                </li> -->
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Cột B -->
+            <div class="panel">
+                <div class="panel-header">
+                    <h2 class="panel-title"><i class="fas fa-folder"></i> 算数</h2>
+                    <span class="folder-count">お知らせ!</span>
+                </div>
+                <div class="directory-tree">
+                    <ul class="tree">
+                        <!-- Thư mục con 1 -->
+                        <li class="expanded">
+                            <div class="folder">
+                                <i class="fas fa-folder-open"></i><i class="fas fa-folder"></i> 数字
+                            </div>
+                            <ul>
+                                <!-- Thư mục nhỏ 1_1 -->
+                                <li class="collapsed">
+                                    <div class="folder">
+                                        <i class="fas fa-folder-open"></i><i class="fas fa-folder"></i> 数字
+                                    </div>
+                                    <ul>
+                                        <li><a href="B/1/1_1/数字1-100000.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> 数字1-100000.html</div></a></li>
+                                 <!--       <li><a href="B/1/1_1/B_1_1_index.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> B_1_1_index.html</div></a></li>
+                                        <li><a href="B/1/1_1/B_1_1_main.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> B_1_1_main.html</div></a></li>
+                                        <li><a href="B/1/1_1/B_1_1_style.css" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> B_1_1_style.css</div></a></li>
+                                        <li><a href="B/1/1_1/B_1_1_script.js" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> B_1_1_script.js</div></a></li>　 -->
+                                    </ul>
+                                </li>
+                                <!-- Thư mục nhỏ 1_2 -->
+                                <li class="collapsed">
+                                    <div class="folder">
+                                        <i class="fas fa-folder-open"></i><i class="fas fa-folder"></i> 数字テスト
+                                    </div>
+                                    <ul>
+                                        <li><a href="B/1/1_2/数字1-100000テスト.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> 数字1-100000テスト</div></a></li>
+                                <!--        <li><a href="B/1/1_2/B_1_2_index.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> B_1_2_index.html</div></a></li>
+                                        <li><a href="B/1/1_2/B_1_2_main.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> B_1_2_main.html</div></a></li>
+                                        <li><a href="B/1/1_2/B_1_2_style.css" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> B_1_2_style.css</div></a></li>
+                                        <li><a href="B/1/1_2/B_1_2_script.js" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> B_1_2_script.js</div></a></li>-->
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                        
+                        <!-- Thư mục con 2 -->
+                        <li class="collapsed">
+                            <div class="folder">
+                                <i class="fas fa-folder-open"></i><i class="fas fa-folder"></i> たすひく算
+                            </div>
+                            <ul>
+                                <!-- Thư mục nhỏ 2_1 -->
+                                <li class="collapsed">
+                                    <div class="folder">
+                                        <i class="fas fa-folder-open"></i><i class="fas fa-folder"></i> 2_1
+                                    </div>
+                                    <ul>
+                                        <li><a href="B/2/2_1/B_2_1_text.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> B_2_1_text.html</div></a></li>
+                                  <!--      <li><a href="B/2/2_1/B_2_1_index.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> B_2_1_index.html</div></a></li>
+                                        <li><a href="B/2/2_1/B_2_1_main.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> B_2_1_main.html</div></a></li>
+                                        <li><a href="B/2/2_1/B_2_1_style.css" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> B_2_1_style.css</div></a></li>
+                                        <li><a href="B/2/2_1/B_2_1_script.js" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> B_2_1_script.js</div></a></li> -->
+                                    </ul>
+                                </li>
+                                <!-- Thư mục nhỏ 2_2 -->
+                                <li class="collapsed">
+                                    <div class="folder">
+                                        <i class="fas fa-folder-open"></i><i class="fas fa-folder"></i> たすひく算テスト
+                                    </div>
+                                    <ul>
+                                        <li><a href="B/2/2_2/B_2_2_text.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> B_2_2_text.html</div></a></li>
+                                 <!--       <li><a href="B/2/2_2/B_2_2_index.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> B_2_2_index.html</div></a></li>
+                                        <li><a href="B/2/2_2/B_2_2_main.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> B_2_2_main.html</div></a></li>
+                                        <li><a href="B/2/2_2/B_2_2_style.css" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> B_2_2_style.css</div></a></li>
+                                        <li><a href="B/2/2_2/B_2_2_script.js" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> B_2_2_script.js</div></a></li> -->
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                        
+                        <!-- Thư mục con 3 -->
+                        <li class="collapsed">
+                            <div class="folder">
+                                <i class="fas fa-folder-open"></i><i class="fas fa-folder"></i> かけわけ算
+                            </div>
+                            <ul>
+                                <!-- Thư mục nhỏ 3_1 -->
+                                <li class="collapsed">
+                                    <div class="folder">
+                                        <i class="fas fa-folder-open"></i><i class="fas fa-folder"></i> 3_1
+                                    </div>
+                                    <ul>
+                                        <li><a href="B/3/3_1/B_3_1_text.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> B_3_1_text.html</div></a></li>
+                             <!--           <li><a href="B/3/3_1/B_3_1_index.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> B_3_1_index.html</div></a></li>
+                                        <li><a href="B/3/3_1/B_3_1_main.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> B_3_1_main.html</div></a></li>
+                                        <li><a href="B/3/3_1/B_3_1_style.css" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> B_3_1_style.css</div></a></li>
+                                        <li><a href="B/3/3_1/B_3_1_script.js" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> B_3_1_script.js</div></a></li> -->
+                                    </ul>
+                                </li>
+                                <!-- Thư mục nhỏ 3_2 -->
+                                <li class="collapsed">
+                                    <div class="folder">
+                                        <i class="fas fa-folder-open"></i><i class="fas fa-folder"></i> かけわけ算
+                                    </div>
+                                    <ul>
+                                        <li><a href="B/3/3_2/B_3_2_text.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> B_3_2_text.html</div></a></li>
+                                <!--        <li><a href="B/3/3_2/B_3_2_index.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> B_3_2_index.html</div></a></li>
+                                        <li><a href="B/3/3_2/B_3_2_main.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> B_3_2_main.html</div></a></li>
+                                        <li><a href="B/3/3_2/B_3_2_style.css" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> B_3_2_style.css</div></a></li>
+                                        <li><a href="B/3/3_2/B_3_2_script.js" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> B_3_2_script.js</div></a></li>-->
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                        
+                        <!-- Thư mục con 4 -->
+                  <!--      <li class="collapsed">
+                            <div class="folder">
+                                <i class="fas fa-folder-open"></i><i class="fas fa-folder"></i> 算数パズル
+                            </div>
+                            <ul>
+                                <!-- Thư mục nhỏ 4_1 -->
+                   <!--              <li class="collapsed">
+                                    <div class="folder">
+                                        <i class="fas fa-folder-open"></i><i class="fas fa-folder"></i> 4_1
+                                    </div>
+                                    <ul>
+                                        <li><a href="B/4/4_1/B_4_1_text.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> B_4_1_text.html</div></a></li>
+                                        <li><a href="B/4/4_1/B_4_1_index.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> B_4_1_index.html</div></a></li>
+                                        <li><a href="B/4/4_1/B_4_1_main.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> B_4_1_main.html</div></a></li>
+                                        <li><a href="B/4/4_1/B_4_1_style.css" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> B_4_1_style.css</div></a></li>
+                                        <li><a href="B/4/4_1/B_4_1_script.js" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> B_4_1_script.js</div></a></li>
+                                    </ul>
+                                </li>
+                                <!-- Thư mục nhỏ 4_2 -->
+                      <!--           <li class="collapsed">
+                                    <div class="folder">
+                                        <i class="fas fa-folder-open"></i><i class="fas fa-folder"></i> 4_2
+                                    </div>
+                                    <ul>
+                                        <li><a href="B/4/4_2/B_4_2_text.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> B_4_2_text.html</div></a></li>
+                                        <li><a href="B/4/4_2/B_4_2_index.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> B_4_2_index.html</div></a></li>
+                                        <li><a href="B/4/4_2/B_4_2_main.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> B_4_2_main.html</div></a></li>
+                                        <li><a href="B/4/4_2/B_4_2_style.css" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> B_4_2_style.css</div></a></li>
+                                        <li><a href="B/4/4_2/B_4_2_script.js" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> B_4_2_script.js</div></a></li>
+                                    </ul>
+                                </li> -->
+                            </ul>
+                        </li>
+                        
+                        <!-- Thư mục con 5 -->
+                 <!--        <li class="collapsed">
+                            <div class="folder">
+                                <i class="fas fa-folder-open"></i><i class="fas fa-folder"></i> 5
+                            </div>
+                            <ul>
+                                <!-- Thư mục nhỏ 5_1 -->
+                      <!--           <li class="collapsed">
+                                    <div class="folder">
+                                        <i class="fas fa-folder-open"></i><i class="fas fa-folder"></i> 5_1
+                                    </div>
+                                    <ul>
+                                        <li><a href="B/5/5_1/B_5_1_text.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> B_5_1_text.html</div></a></li>
+                                        <li><a href="B/5/5_1/B_5_1_index.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> B_5_1_index.html</div></a></li>
+                                        <li><a href="B/5/5_1/B_5_1_main.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> B_5_1_main.html</div></a></li>
+                                        <li><a href="B/5/5_1/B_5_1_style.css" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> B_5_1_style.css</div></a></li>
+                                        <li><a href="B/5/5_1/B_5_1_script.js" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> B_5_1_script.js</div></a></li>
+                                    </ul>
+                                </li>
+                                <!-- Thư mục nhỏ 5_2 -->
+                        <!--         <li class="collapsed">
+                                    <div class="folder">
+                                        <i class="fas fa-folder-open"></i><i class="fas fa-folder"></i> 5_2
+                                    </div>
+                                    <ul>
+                                        <li><a href="B/5/5_2/B_5_2_text.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> B_5_2_text.html</div></a></li>
+                                        <li><a href="B/5/5_2/B_5_2_index.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> B_5_2_index.html</div></a></li>
+                                        <li><a href="B/5/5_2/B_5_2_main.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> B_5_2_main.html</div></a></li>
+                                        <li><a href="B/5/5_2/B_5_2_style.css" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> B_5_2_style.css</div></a></li>
+                                        <li><a href="B/5/5_2/B_5_2_script.js" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> B_5_2_script.js</div></a></li>
+                                    </ul> -->
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Cột C -->
+            <div class="panel">
+                <div class="panel-header">
+                    <h2 class="panel-title"><i class="fas fa-folder"></i> 英語</h2>
+                    <span class="folder-count">Comming soon!</span>
+                </div>
+                <div class="directory-tree">
+                    <ul class="tree">
+                        <!-- Thư mục con 1 -->
+                        <li class="expanded">
+                            <div class="folder">
+                                <i class="fas fa-folder-open"></i><i class="fas fa-folder"></i> Alphabet
+                            </div>
+                            <ul>
+                                <!-- Thư mục nhỏ 1_1 -->
+                                <li class="collapsed">
+                                    <div class="folder">
+                                        <i class="fas fa-folder-open"></i><i class="fas fa-folder"></i> Alphabet
+                                    </div>
+                                    <ul>
+                                        <li><a href="C/1/1_1/C_1_1_text.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> C_1_1_text.html</div></a></li>
+                                 <!--       <li><a href="C/1/1_1/C_1_1_index.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> C_1_1_index.html</div></a></li>
+                                        <li><a href="C/1/1_1/C_1_1_main.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> C_1_1_main.html</div></a></li>
+                                        <li><a href="C/1/1_1/C_1_1_style.css" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> C_1_1_style.css</div></a></li>
+                                        <li><a href="C/1/1_1/C_1_1_script.js" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> C_1_1_script.js</div></a></li>   -->
+									
+                                    </ul>
+                                </li>
+                                <!-- Thư mục nhỏ 1_2 -->
+                                <li class="collapsed">
+                                    <div class="folder">
+                                        <i class="fas fa-folder-open"></i><i class="fas fa-folder"></i> Alphabet Test
+                                    </div>
+                                    <ul>
+                                        <li><a href="C/1/1_2/C_1_2_text.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> C_1_2_text.html</div></a></li>
+                                 <!--       <li><a href="C/1/1_2/C_1_2_index.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> C_1_2_index.html</div></a></li>
+                                        <li><a href="C/1/1_2/C_1_2_main.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> C_1_2_main.html</div></a></li>
+                                        <li><a href="C/1/1_2/C_1_2_style.css" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> C_1_2_style.css</div></a></li>
+                                        <li><a href="C/1/1_2/C_1_2_script.js" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> C_1_2_script.js</div></a></li>  -->
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                        
+                        <!-- Thư mục con 2 -->
+                    <!--    <li class="collapsed">
+                            <div class="folder">
+                                <i class="fas fa-folder-open"></i><i class="fas fa-folder"></i> 2
+                            </div>
+                            <ul>
+                                <!-- Thư mục nhỏ 2_1 -->
+                         <!--       <li class="collapsed">
+                                    <div class="folder">
+                                        <i class="fas fa-folder-open"></i><i class="fas fa-folder"></i> 2_1
+                                    </div>
+                                    <ul>
+                                        <li><a href="C/2/2_1/C_2_1_text.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> C_2_1_text.html</div></a></li>
+                                        <li><a href="C/2/2_1/C_2_1_index.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> C_2_1_index.html</div></a></li>
+                                        <li><a href="C/2/2_1/C_2_1_main.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> C_2_1_main.html</div></a></li>
+                                        <li><a href="C/2/2_1/C_2_1_style.css" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> C_2_1_style.css</div></a></li>
+                                        <li><a href="C/2/2_1/C_2_1_script.js" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> C_2_1_script.js</div></a></li>
+                                    </ul>
+                                </li> 
+                                <!-- Thư mục nhỏ 2_2 -->
+                          <!--      <li class="collapsed">
+                                    <div class="folder">
+                                        <i class="fas fa-folder-open"></i><i class="fas fa-folder"></i> 2_2
+                                    </div>
+                                    <ul>
+                                        <li><a href="C/2/2_2/C_2_2_text.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> C_2_2_text.html</div></a></li>
+                                        <li><a href="C/2/2_2/C_2_2_index.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> C_2_2_index.html</div></a></li>
+                                        <li><a href="C/2/2_2/C_2_2_main.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> C_2_2_main.html</div></a></li>
+                                        <li><a href="C/2/2_2/C_2_2_style.css" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> C_2_2_style.css</div></a></li>
+                                        <li><a href="C/2/2_2/C_2_2_script.js" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> C_2_2_script.js</div></a></li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                        
+                        <!-- Thư mục con 3 -->
+                 <!--       <li class="collapsed">
+                            <div class="folder">
+                                <i class="fas fa-folder-open"></i><i class="fas fa-folder"></i> 3
+                            </div>
+                            <ul>
+                                <!-- Thư mục nhỏ 3_1 -->
+                     <!--           <li class="collapsed">
+                                    <div class="folder">
+                                        <i class="fas fa-folder-open"></i><i class="fas fa-folder"></i> 3_1
+                                    </div>
+                                    <ul>
+                                        <li><a href="C/3/3_1/C_3_1_text.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> C_3_1_text.html</div></a></li>
+                                        <li><a href="C/3/3_1/C_3_1_index.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> C_3_1_index.html</div></a></li>
+                                        <li><a href="C/3/3_1/C_3_1_main.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> C_3_1_main.html</div></a></li>
+                                        <li><a href="C/3/3_1/C_3_1_style.css" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> C_3_1_style.css</div></a></li>
+                                        <li><a href="C/3/3_1/C_3_1_script.js" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> C_3_1_script.js</div></a></li>
+                                    </ul>
+                                </li>
+                                <!-- Thư mục nhỏ 3_2 -->
+                       <!--         <li class="collapsed">
+                                    <div class="folder">
+                                        <i class="fas fa-folder-open"></i><i class="fas fa-folder"></i> 3_2
+                                    </div>
+                                    <ul>
+                                        <li><a href="C/3/3_2/C_3_2_text.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> C_3_2_text.html</div></a></li>
+                                        <li><a href="C/3/3_2/C_3_2_index.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> C_3_2_index.html</div></a></li>
+                                        <li><a href="C/3/3_2/C_3_2_main.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> C_3_2_main.html</div></a></li>
+                                        <li><a href="C/3/3_2/C_3_2_style.css" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> C_3_2_style.css</div></a></li>
+                                        <li><a href="C/3/3_2/C_3_2_script.js" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> C_3_2_script.js</div></a></li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                        
+                        <!-- Thư mục con 4 -->
+                  <!--      <li class="collapsed">
+                            <div class="folder">
+                                <i class="fas fa-folder-open"></i><i class="fas fa-folder"></i> 4
+                            </div>
+                            <ul>
+                                <!-- Thư mục nhỏ 4_1 -->
+                      <!--          <li class="collapsed">
+                                    <div class="folder">
+                                        <i class="fas fa-folder-open"></i><i class="fas fa-folder"></i> 4_1
+                                    </div>
+                                    <ul>
+                                        <li><a href="C/4/4_1/C_4_1_text.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> C_4_1_text.html</div></a></li>
+                                        <li><a href="C/4/4_1/C_4_1_index.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> C_4_1_index.html</div></a></li>
+                                        <li><a href="C/4/4_1/C_4_1_main.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> C_4_1_main.html</div></a></li>
+                                        <li><a href="C/4/4_1/C_4_1_style.css" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> C_4_1_style.css</div></a></li>
+                                        <li><a href="C/4/4_1/C_4_1_script.js" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> C_4_1_script.js</div></a></li>
+                                    </ul>
+                                </li>
+                                <!-- Thư mục nhỏ 4_2 -->
+                    <!--            <li class="collapsed">
+                                    <div class="folder">
+                                        <i class="fas fa-folder-open"></i><i class="fas fa-folder"></i> 4_2
+                                    </div>
+                                    <ul>
+                                        <li><a href="C/4/4_2/C_4_2_text.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> C_4_2_text.html</div></a></li>
+                                        <li><a href="C/4/4_2/C_4_2_index.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> C_4_2_index.html</div></a></li>
+                                        <li><a href="C/4/4_2/C_4_2_main.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> C_4_2_main.html</div></a></li>
+                                        <li><a href="C/4/4_2/C_4_2_style.css" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> C_4_2_style.css</div></a></li>
+                                        <li><a href="C/4/4_2/C_4_2_script.js" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> C_4_2_script.js</div></a></li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                        
+                        <!-- Thư mục con 5 -->
+                <!--        <li class="collapsed">
+                            <div class="folder">
+                                <i class="fas fa-folder-open"></i><i class="fas fa-folder"></i> 5
+                            </div>
+                            <ul>
+                                <!-- Thư mục nhỏ 5_1 -->
+                  <!--              <li class="collapsed">
+                                    <div class="folder">
+                                        <i class="fas fa-folder-open"></i><i class="fas fa-folder"></i> 5_1
+                                    </div>
+                                    <ul>
+                                        <li><a href="C/5/5_1/C_5_1_text.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> C_5_1_text.html</div></a></li>
+                                        <li><a href="C/5/5_1/C_5_1_index.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> C_5_1_index.html</div></a></li>
+                                        <li><a href="C/5/5_1/C_5_1_main.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> C_5_1_main.html</div></a></li>
+                                        <li><a href="C/5/5_1/C_5_1_style.css" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> C_5_1_style.css</div></a></li>
+                                        <li><a href="C/5/5_1/C_5_1_script.js" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> C_5_1_script.js</div></a></li>
+                                    </ul>
+                                </li>
+                                <!-- Thư mục nhỏ 5_2 -->
+                        <!--        <li class="collapsed">
+                                    <div class="folder">
+                                        <i class="fas fa-folder-open"></i><i class="fas fa-folder"></i> 5_2
+                                    </div>
+                                    <ul>
+                                        <li><a href="C/5/5_2/C_5_2_text.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> C_5_2_text.html</div></a></li>
+                                        <li><a href="C/5/5_2/C_5_2_index.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> C_5_2_index.html</div></a></li>
+                                        <li><a href="C/5/5_2/C_5_2_main.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> C_5_2_main.html</div></a></li>
+                                        <li><a href="C/5/5_2/C_5_2_style.css" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> C_5_2_style.css</div></a></li>
+                                        <li><a href="C/5/5_2/C_5_2_script.js" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> C_5_2_script.js</div></a></li>
+                                    </ul>
+                                </li>  -->
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Cột D -->
+            <div class="panel">
+                <div class="panel-header">
+                    <h2 class="panel-title"><i class="fas fa-folder"></i> ベトナム語</h2>
+                    <span class="folder-count">Sắp ra mắt！！</span>
+         <!--       </div>
+                <div class="directory-tree">
+                    <ul class="tree">
+                        <!-- Thư mục con 1 -->
+         <!--               <li class="expanded">
+                            <div class="folder">
+                                <i class="fas fa-folder-open"></i><i class="fas fa-folder"></i> 1
+                            </div>
+                            <ul>
+                                <!-- Thư mục nhỏ 1_1 -->
+         <!--                       <li class="collapsed">
+                                    <div class="folder">
+                                        <i class="fas fa-folder-open"></i><i class="fas fa-folder"></i> 1_1
+                                    </div>
+                                    <ul>
+                                        <li><a href="D/1/1_1/D_1_1_text.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> D_1_1_text.html</div></a></li>
+                                        <li><a href="D/1/1_1/D_1_1_index.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> D_1_1_index.html</div></a></li>
+                                        <li><a href="D/1/1_1/D_1_1_main.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> D_1_1_main.html</div></a></li>
+                                        <li><a href="D/1/1_1/D_1_1_style.css" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> D_1_1_style.css</div></a></li>
+                                        <li><a href="D/1/1_1/D_1_1_script.js" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> D_1_1_script.js</div></a></li>
+                                    </ul>
+                                </li>
+                                <!-- Thư mục nhỏ 1_2 -->
+              <!--                  <li class="collapsed">
+                                    <div class="folder">
+                                        <i class="fas fa-folder-open"></i><i class="fas fa-folder"></i> 1_2
+                                    </div>
+                                    <ul>
+                                        <li><a href="D/1/1_2/D_1_2_text.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> D_1_2_text.html</div></a></li>
+                                        <li><a href="D/1/1_2/D_1_2_index.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> D_1_2_index.html</div></a></li>
+                                        <li><a href="D/1/1_2/D_1_2_main.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> D_1_2_main.html</div></a></li>
+                                        <li><a href="D/1/1_2/D_1_2_style.css" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> D_1_2_style.css</div></a></li>
+                                        <li><a href="D/1/1_2/D_1_2_script.js" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> D_1_2_script.js</div></a></li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                        
+                        <!-- Thư mục con 2 -->
+               <!--         <li class="collapsed">
+                            <div class="folder">
+                                <i class="fas fa-folder-open"></i><i class="fas fa-folder"></i> 2
+                            </div>
+                            <ul>
+                                <!-- Thư mục nhỏ 2_1 -->
+                 <!--               <li class="collapsed">
+                                    <div class="folder">
+                                        <i class="fas fa-folder-open"></i><i class="fas fa-folder"></i> 2_1
+                                    </div>
+                                    <ul>
+                                        <li><a href="D/2/2_1/D_2_1_text.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> D_2_1_text.html</div></a></li>
+                                        <li><a href="D/2/2_1/D_2_1_index.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> D_2_1_index.html</div></a></li>
+                                        <li><a href="D/2/2_1/D_2_1_main.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> D_2_1_main.html</div></a></li>
+                                        <li><a href="D/2/2_1/D_2_1_style.css" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> D_2_1_style.css</div></a></li>
+                                        <li><a href="D/2/2_1/D_2_1_script.js" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> D_2_1_script.js</div></a></li>
+                                    </ul>
+                                </li>
+                                <!-- Thư mục nhỏ 2_2 -->
+                   <!--             <li class="collapsed">
+                                    <div class="folder">
+                                        <i class="fas fa-folder-open"></i><i class="fas fa-folder"></i> 2_2
+                                    </div>
+                                    <ul>
+                                        <li><a href="D/2/2_2/D_2_2_text.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> D_2_2_text.html</div></a></li>
+                                        <li><a href="D/2/2_2/D_2_2_index.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> D_2_2_index.html</div></a></li>
+                                        <li><a href="D/2/2_2/D_2_2_main.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> D_2_2_main.html</div></a></li>
+                                        <li><a href="D/2/2_2/D_2_2_style.css" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> D_2_2_style.css</div></a></li>
+                                        <li><a href="D/2/2_2/D_2_2_script.js" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> D_2_2_script.js</div></a></li>
+                                    </ul>
+                                </li> 
+                            </ul>
+                        </li>
+                        
+                        <!-- Thư mục con 3 -->
+                 <!--       <li class="collapsed">
+                            <div class="folder">
+                                <i class="fas fa-folder-open"></i><i class="fas fa-folder"></i> 3
+                            </div>
+                            <ul>
+                                <!-- Thư mục nhỏ 3_1 -->
+                   <!--             <li class="collapsed">
+                                    <div class="folder">
+                                        <i class="fas fa-folder-open"></i><i class="fas fa-folder"></i> 3_1
+                                    </div>
+                                    <ul>
+                                        <li><a href="D/3/3_1/D_3_1_text.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> D_3_1_text.html</div></a></li>
+                                        <li><a href="D/3/3_1/D_3_1_index.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> D_3_1_index.html</div></a></li>
+                                        <li><a href="D/3/3_1/D_3_1_main.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> D_3_1_main.html</div></a></li>
+                                        <li><a href="D/3/3_1/D_3_1_style.css" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> D_3_1_style.css</div></a></li>
+                                        <li><a href="D/3/3_1/D_3_1_script.js" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> D_3_1_script.js</div></a></li>
+                                    </ul>
+                                </li>
+                                <!-- Thư mục nhỏ 3_2 -->
+                  <!--              <li class="collapsed">
+                                    <div class="folder">
+                                        <i class="fas fa-folder-open"></i><i class="fas fa-folder"></i> 3_2
+                                    </div>
+                                    <ul>
+                                        <li><a href="D/3/3_2/D_3_2_text.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> D_3_2_text.html</div></a></li>
+                                        <li><a href="D/3/3_2/D_3_2_index.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> D_3_2_index.html</div></a></li>
+                                        <li><a href="D/3/3_2/D_3_2_main.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> D_3_2_main.html</div></a></li>
+                                        <li><a href="D/3/3_2/D_3_2_style.css" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> D_3_2_style.css</div></a></li>
+                                        <li><a href="D/3/3_2/D_3_2_script.js" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> D_3_2_script.js</div></a></li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                        
+                        <!-- Thư mục con 4 -->
+                 <!--       <li class="collapsed">
+                            <div class="folder">
+                                <i class="fas fa-folder-open"></i><i class="fas fa-folder"></i> 4
+                            </div>
+                            <ul>
+                                <!-- Thư mục nhỏ 4_1 -->
+                  <!--              <li class="collapsed">
+                                    <div class="folder">
+                                        <i class="fas fa-folder-open"></i><i class="fas fa-folder"></i> 4_1
+                                    </div>
+                                    <ul>
+                                        <li><a href="D/4/4_1/D_4_1_text.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> D_4_1_text.html</div></a></li>
+                                        <li><a href="D/4/4_1/D_4_1_index.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> D_4_1_index.html</div></a></li>
+                                        <li><a href="D/4/4_1/D_4_1_main.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> D_4_1_main.html</div></a></li>
+                                        <li><a href="D/4/4_1/D_4_1_style.css" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> D_4_1_style.css</div></a></li>
+                                        <li><a href="D/4/4_1/D_4_1_script.js" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> D_4_1_script.js</div></a></li>
+                                    </ul>
+                                </li>
+                                <!-- Thư mục nhỏ 4_2 -->
+                  <!--              <li class="collapsed">
+                                    <div class="folder">
+                                        <i class="fas fa-folder-open"></i><i class="fas fa-folder"></i> 4_2
+                                    </div>
+                                    <ul>
+                                        <li><a href="D/4/4_2/D_4_2_text.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> D_4_2_text.html</div></a></li>
+                                        <li><a href="D/4/4_2/D_4_2_index.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> D_4_2_index.html</div></a></li>
+                                        <li><a href="D/4/4_2/D_4_2_main.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> D_4_2_main.html</div></a></li>
+                                        <li><a href="D/4/4_2/D_4_2_style.css" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> D_4_2_style.css</div></a></li>
+                                        <li><a href="D/4/4_2/D_4_2_script.js" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> D_4_2_script.js</div></a></li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                        
+                        <!-- Thư mục con 5 -->
+                <!--        <li class="collapsed">
+                            <div class="folder">
+                                <i class="fas fa-folder-open"></i><i class="fas fa-folder"></i> 5
+                            </div>
+                            <ul>
+                                <!-- Thư mục nhỏ 5_1 -->
+                 <!--               <li class="collapsed">
+                                    <div class="folder">
+                                        <i class="fas fa-folder-open"></i><i class="fas fa-folder"></i> 5_1
+                                    </div>
+                                    <ul>
+                                        <li><a href="D/5/5_1/D_5_1_text.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> D_5_1_text.html</div></a></li>
+                                        <li><a href="D/5/5_1/D_5_1_index.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> D_5_1_index.html</div></a></li>
+                                        <li><a href="D/5/5_1/D_5_1_main.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> D_5_1_main.html</div></a></li>
+                                        <li><a href="D/5/5_1/D_5_1_style.css" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> D_5_1_style.css</div></a></li>
+                                        <li><a href="D/5/5_1/D_5_1_script.js" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> D_5_1_script.js</div></a></li>
+                                    </ul>
+                                </li>
+                                <!-- Thư mục nhỏ 5_2 -->
+                  <!--              <li class="collapsed">
+                                    <div class="folder">
+                                        <i class="fas fa-folder-open"></i><i class="fas fa-folder"></i> 5_2
+                                    </div>
+                                    <ul>
+                                        <li><a href="D/5/5_2/D_5_2_text.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> D_5_2_text.html</div></a></li>
+                                        <li><a href="D/5/5_2/D_5_2_index.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> D_5_2_index.html</div></a></li>
+                                        <li><a href="D/5/5_2/D_5_2_main.html" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> D_5_2_main.html</div></a></li>
+                                        <li><a href="D/5/5_2/D_5_2_style.css" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> D_5_2_style.css</div></a></li>
+                                        <li><a href="D/5/5_2/D_5_2_script.js" class="file-link" target="_blank"><div class="file"><i class="fas fa-file"></i> D_5_2_script.js</div></a></li>
+                                    </ul>
+                                </li>   -->
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button id="expandAll">
+                <i class="fas fa-expand-alt"></i> Mở Rộng Tất Cả
+            </button>
+            <button id="collapseAll">
+                <i class="fas fa-compress-alt"></i> Thu Gọn Tất Cả
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // JavaScript để xử lý mở/đóng thư mục
+        document.addEventListener('DOMContentLoaded', function() {
+            // Thêm sự kiện click cho tất cả các thư mục
+            const folders = document.querySelectorAll('.folder');
+            folders.forEach(folder => {
+                folder.addEventListener('click', function(e) {
+                    // Ngăn sự kiện click lan ra thẻ a
+                    if (e.target.tagName === 'A' || e.target.parentElement.tagName === 'A') {
+                        return;
+                    }
+                    
+                    e.stopPropagation();
+                    const parentLi = this.parentNode;
+                    parentLi.classList.toggle('collapsed');
+                    parentLi.classList.toggle('expanded');
+                });
+            });
+            
+            // Xử lý các nút điều khiển
+            document.getElementById('expandAll').addEventListener('click', expandAll);
+            document.getElementById('collapseAll').addEventListener('click', collapseAll);
+            
+            // Mở thư mục đầu tiên của mỗi panel khi khởi động
+            const firstFolders = document.querySelectorAll('.panel .tree > li:first-child');
+            firstFolders.forEach(folder => {
+                folder.classList.remove('collapsed');
+                folder.classList.add('expanded');
+            });
+        });
+        
+        function expandAll() {
+            const allFolders = document.querySelectorAll('.tree li');
+            allFolders.forEach(folder => {
+                folder.classList.remove('collapsed');
+                folder.classList.add('expanded');
+            });
+        }
+        
+        function collapseAll() {
+            const allFolders = document.querySelectorAll('.tree li');
+            allFolders.forEach(folder => {
+                folder.classList.remove('expanded');
+                folder.classList.add('collapsed');
+            });
+            
+            // Mở lại thư mục đầu tiên của mỗi panel
+            const firstFolders = document.querySelectorAll('.panel .tree > li:first-child');
+            firstFolders.forEach(folder => {
+                folder.classList.remove('collapsed');
+                folder.classList.add('expanded');
+            });
+        }
+    </script>
+</body>
+</html>
