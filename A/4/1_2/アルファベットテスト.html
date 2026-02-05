@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>アルファベットクイズ - プロ</title>
+    <link href="https://fonts.googleapis.com" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #F0F4F8;
+            --correct-color: #2ED573;
+            --wrong-color: #FF4757;
+            --primary: #1E90FF;
+        }
+
+        body { 
+            font-family: 'M PLUS Rounded 1c', sans-serif; 
+            background: var(--bg); margin: 0; display: flex; height: 100vh; overflow: hidden;
+        }
+
+        /* Khu vực chính */
+        .main-game {
+            flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px;
+        }
+
+        /* Bộ đếm điểm */
+        .score-board {
+            display: flex; gap: 30px; margin-bottom: 20px; font-size: 1.5rem;
+            background: white; padding: 10px 40px; border-radius: 50px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .question-box {
+            background: white; border-radius: 40px; padding: 20px 50px;
+            box-shadow: 0 10px 0 #D1D9E6; border: 5px solid var(--primary);
+            margin-bottom: 25px; text-align: center;
+        }
+
+        .btn-speak { font-size: 5rem; cursor: pointer; background: none; border: none; transition: 0.2s; }
+        .btn-speak:hover { transform: scale(1.1); }
+
+        .options-grid {
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;
+            width: 100%; max-width: 450px;
+        }
+
+        .option-card {
+            background: white; border-radius: 20px; height: 100px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 3rem; cursor: pointer; border: 3px solid #E2E8F0;
+            box-shadow: 0 6px 0 #E2E8F0; transition: 0.2s;
+        }
+
+        .option-card.correct-anim { background: #DFF9FB; border-color: var(--correct-color); pointer-events: none; }
+        .option-card.wrong-anim { background: #FFEBEE; border-color: var(--wrong-color); pointer-events: none; }
+
+        .feedback { font-size: 1.8rem; margin-top: 20px; height: 40px; font-weight: bold; }
+
+        /* Màn hình kết thúc */
+        #finish-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.95); display: none;
+            flex-direction: column; align-items: center; justify-content: center; z-index: 100;
+        }
+
+        /* Sidebar bên phải */
+        .sidebar {
+            width: 250px; background: white; border-left: 2px solid #D1D9E6;
+            padding: 20px; display: flex; flex-direction: column; gap: 20px;
+        }
+        .control-group { background: #F1F2F6; padding: 15px; border-radius: 15px; }
+        select, input { width: 100%; margin-top: 10px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <div id="finish-screen">
+        <h1 style="font-size: 4rem; color: var(--primary);">お疲れ様でした！</h1>
+        <p style="font-size: 2rem;">よくがんばったね！🌟</p>
+        <div id="final-score" style="font-size: 1.5rem; margin: 20px;"></div>
+        <button onclick="location.reload()" style="padding: 15px 40px; font-size: 1.5rem; border-radius: 50px; background: var(--correct-color); color: white; border: none; cursor: pointer;">もういちど あそぶ</button>
+    </div>
+
+    <div class="main-game">
+        <div class="score-board">
+            <div style="color: var(--correct-color);">⭕ <span id="correct-count">0</span></div>
+            <div style="color: var(--wrong-color);">❌ <span id="wrong-count">0</span></div>
+            <div style="color: #666; font-size: 1rem; align-self: center;">のこり: <span id="remaining-count">26</span></div>
+        </div>
+
+        <div class="question-box">
+            <button class="btn-speak" id="play-btn">🔊</button>
+            <div style="color: #999;">きいてね</div>
+        </div>
+
+        <div class="options-grid" id="options"></div>
+        <div id="feedback" class="feedback"></div>
+    </div>
+
+    <div class="sidebar">
+        <h2 style="text-align: center; color: var(--primary);">せってい</h2>
+        <div class="control-group">
+            <label>🎙️ こえ</label>
+            <select id="voice-select"></select>
+        </div>
+        <div class="control-group">
+            <label>🐢 はやさ: <span id="rate-val">1.0</span></label>
+            <input type="range" id="rate-range" min="0.4" max="1.3" step="0.1" value="1.0">
+        </div>
+    </div>
+
+    <script>
+        const synth = window.speechSynthesis;
+        let alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+        let quizList = [];
+        let currentIdx = 0;
+        let correctScore = 0;
+        let wrongScore = 0;
+
+        const successMsgs = ["すごい！", "やったね！", "正解！", "すばらしい！"];
+        const failMsgs = ["おしい！", "ちがうよ", "ざんねん", "ぶーぶー"];
+
+        // Xáo trộn mảng
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function loadVoices() {
+            const voices = synth.getVoices().filter(v => v.lang.includes('ja'));
+            document.getElementById('voice-select').innerHTML = voices.map(v => `<option value="${v.voiceURI}">${v.name}</option>`).join('');
+        }
+        speechSynthesis.onvoiceschanged = loadVoices;
+
+        function speak(text) {
+            synth.cancel();
+            const utter = new SpeechSynthesisUtterance(text);
+            utter.voice = synth.getVoices().find(v => v.voiceURI === document.getElementById('voice-select').value);
+            utter.rate = document.getElementById('rate-range').value;
+            synth.speak(utter);
+        }
+
+        function startNewRound() {
+            if (currentIdx >= quizList.length) {
+                showFinish();
+                return;
+            }
+
+            document.getElementById('feedback').textContent = "";
+            document.getElementById('remaining-count').textContent = quizList.length - currentIdx;
+            
+            const currentLetter = quizList[currentIdx];
+            let choices = [currentLetter];
+            while(choices.length < 4) {
+                let rand = alphabet[Math.floor(Math.random() * 26)];
+                if(!choices.includes(rand)) choices.push(rand);
+            }
+            shuffle(choices);
+
+            const optionsDiv = document.getElementById('options');
+            optionsDiv.innerHTML = "";
+            choices.forEach(letter => {
+                const card = document.createElement('div');
+                card.className = 'option-card';
+                card.textContent = `${letter}${letter.toLowerCase()}`;
+                card.onclick = () => checkAnswer(letter, currentLetter, card);
+                optionsDiv.appendChild(card);
+            });
+
+            document.getElementById('play-btn').onclick = () => speak(currentLetter);
+            setTimeout(() => speak(currentLetter), 500);
+        }
+
+        function checkAnswer(selected, correct, element) {
+            const feedback = document.getElementById('feedback');
+            // Vô hiệu hóa các thẻ khác để tránh bấm nhiều lần
+            document.querySelectorAll('.option-card').forEach(c => c.style.pointerEvents = 'none');
+
+            if(selected === correct) {
+                correctScore++;
+                document.getElementById('correct-count').textContent = correctScore;
+                const msg = successMsgs[Math.floor(Math.random() * successMsgs.length)];
+                feedback.textContent = "⭕ " + msg;
+                feedback.style.color = "var(--correct-color)";
+                element.classList.add('correct-anim');
+                speak(msg);
+                
+                currentIdx++;
+                setTimeout(startNewRound, 1800); // Tự động chuyển câu sau 1.8s
+            } else {
+                wrongScore++;
+                document.getElementById('wrong-count').textContent = wrongScore;
+                const msg = failMsgs[Math.floor(Math.random() * failMsgs.length)];
+                feedback.textContent = "❌ " + msg;
+                feedback.style.color = "var(--wrong-color)";
+                element.classList.add('wrong-anim');
+                speak(msg);
+                
+                // Cho phép bấm lại nếu sai
+                setTimeout(() => {
+                    document.querySelectorAll('.option-card').forEach(c => {
+                        if(!c.classList.contains('wrong-anim')) c.style.pointerEvents = 'auto';
+                    });
+                }, 1000);
+            }
+        }
+
+        function showFinish() {
+            document.getElementById('finish-screen').style.display = 'flex';
+            document.getElementById('final-score').textContent = `⭕せいかい: ${correctScore}  /  ❌まちがい: ${wrongScore}`;
+            speak("お疲れ様でした。よくがんばったね！");
+        }
+
+        document.getElementById('rate-range').oninput = (e) => document.getElementById('rate-val').textContent = e.target.value;
+
+        // Bắt đầu game
+        window.onload = () => {
+            loadVoices();
+            quizList = shuffle([...alphabet]); // Tạo danh sách câu hỏi không trùng
+            startNewRound();
+        };
+    </script>
+</body>
+</html>
