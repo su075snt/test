@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bảng Số 1-100 Đa Ngôn Ngữ</title>
+    <style>
+        :root {
+            --bg-body: #0f172a;
+            --bg-card: #1e293b;
+            --num-color: #fde047; /* Màu số mặc định */
+            --accent: #38bdf8;
+            --text-en: #f8fafc;
+            --text-ja: #fb7185;
+            --text-vi: #94a3b8;
+        }
+
+        body { 
+            font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg-body); color: #fff;
+            margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center;
+        }
+
+        /* Menu điều khiển bên phải */
+        .controls {
+            position: fixed; top: 20px; right: 20px; background: #1e293b;
+            padding: 15px; border-radius: 15px; border: 1px solid var(--accent);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 1000; width: 240px;
+            transition: 0.3s ease;
+        }
+        .controls.hidden { transform: translateX(320px); opacity: 0; }
+        
+        .toggle-btn {
+            position: fixed; top: 20px; right: 20px; z-index: 1001;
+            background: var(--accent); color: #0f172a; border: none;
+            padding: 10px 18px; border-radius: 8px; cursor: pointer; font-weight: bold;
+        }
+
+        .group { margin-bottom: 15px; border-bottom: 1px solid #334155; padding-bottom: 10px; }
+        .group:last-child { border-bottom: none; }
+        
+        label.title { display: block; font-size: 10px; text-transform: uppercase; margin-bottom: 8px; color: #64748b; font-weight: bold; }
+        
+        .check-item { display: flex; align-items: center; gap: 8px; font-size: 13px; margin-bottom: 5px; cursor: pointer; }
+        input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; }
+
+        input[type="color"], input[type="range"] { width: 100%; background: #0f172a; border: 1px solid #334155; border-radius: 6px; }
+
+        /* Lưới 10 cột ngang */
+        .grid {
+            display: grid; 
+            grid-template-columns: repeat(10, 1fr); 
+            gap: 10px; width: 100%; max-width: 1200px; margin-top: 60px;
+        }
+
+        @media (max-width: 1024px) { .grid { grid-template-columns: repeat(5, 1fr); } }
+        @media (max-width: 600px) { .grid { grid-template-columns: repeat(3, 1fr); } }
+
+        .card {
+            background: var(--bg-card); border-radius: 12px; padding: 15px 0;
+            text-align: center; cursor: pointer; transition: all 0.2s;
+            border: 1px solid #334155;
+        }
+        .card:hover { transform: translateY(-4px); border-color: var(--num-color); background: #334155; }
+
+        .num { 
+            font-size: 28px; font-weight: 900; 
+            color: var(--num-color); 
+            display: block; transition: color 0.3s;
+        }
+        
+        .en-txt { font-size: 11px; font-weight: 600; color: var(--text-en); margin-top: 4px; }
+        .ja-txt { font-size: 11px; color: var(--text-ja); font-weight: bold; }
+        .vi-txt { font-size: 10px; color: var(--text-vi); }
+
+        /* Logic ẩn hiển chữ */
+        body:not(.show-en) .en-txt, 
+        body:not(.show-ja) .ja-txt, 
+        body:not(.show-vi) .vi-txt { display: none; }
+
+        h1 span { color: var(--num-color); transition: color 0.3s; }
+    </style>
+</head>
+<body class="show-en show-ja show-vi">
+
+    <button class="toggle-btn" onclick="document.getElementById('pnl').classList.toggle('hidden')">⚙️ MENU</button>
+
+    <div class="controls" id="pnl">
+        <div class="group">
+            <label class="title">🎨 MÀU SỐ</label>
+            <input type="color" value="#fde047" oninput="document.documentElement.style.setProperty('--num-color', this.value)">
+        </div>
+
+        <div class="group">
+            <label class="title">🗣️ GIỌNG SẼ ĐỌC</label>
+            <label class="check-item"><input type="checkbox" id="vEn" checked> Tiếng Anh</label>
+            <label class="check-item"><input type="checkbox" id="vJa" checked> Tiếng Nhật</label>
+            <label class="check-item"><input type="checkbox" id="vVi" checked> Tiếng Việt</label>
+        </div>
+
+        <div class="group">
+            <label class="title">⏩ TỐC ĐỘ: <span id="spdLab">1</span></label>
+            <input type="range" id="spd" min="0.4" max="1.2" step="0.1" value="1">
+        </div>
+
+        <div class="group">
+            <label class="title">🖼️ HIỂN THỊ CHỮ</label>
+            <label class="check-item"><input type="checkbox" checked onchange="toggleView('show-en')"> Hiện Anh</label>
+            <label class="check-item"><input type="checkbox" checked onchange="toggleView('show-ja')"> Hiện Nhật</label>
+            <label class="check-item"><input type="checkbox" checked onchange="toggleView('show-vi')"> Hiện Việt</label>
+        </div>
+        <button onclick="document.getElementById('pnl').classList.add('hidden')" style="width:100%; background:transparent; color:#64748b; border:none; cursor:pointer; font-size:11px;">Đóng menu</button>
+    </div>
+
+    <h1>NUMBERS <span id="title">1 - 100</span></h1>
+    
+    <div class="grid" id="numberGrid"></div>
+
+    <script>
+        const synth = window.speechSynthesis;
+
+        function toEn(n) {
+            const units = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+            const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+            if (n < 20) return units[n];
+            if (n === 100) return "One Hundred";
+            return tens[Math.floor(n/10)] + (n%10 !== 0 ? " " + units[n%10] : "");
+        }
+
+        function toJa(n) {
+            const units = ['', 'いち', 'に', 'さん', 'よん', 'ご', 'ろく', 'なな', 'はち', 'きゅう'];
+            const tens = ['', 'じゅう', 'にじゅう', 'さんじゅう', 'よんじゅう', 'ごじゅう', 'ろくじゅう', 'ななじゅう', 'はちじゅう', 'きゅうじゅう'];
+            if (n === 100) return "ひゃく";
+            if (n < 10) return units[n];
+            return tens[Math.floor(n/10)] + units[n%10];
+        }
+
+        function toVi(n) {
+            const dv = ['', 'một', 'hai', 'ba', 'bốn', 'năm', 'sáu', 'bảy', 'tám', 'chín'];
+            if (n === 100) return "Một trăm";
+            if (n < 10) return dv[n];
+            if (n < 20) return "Mười " + (n%10 === 5 ? "lăm" : (n%10 === 1 ? "một" : dv[n%10]));
+            let chuc = (Math.floor(n/10) === 1 ? "Mười" : dv[Math.floor(n/10)] + " mươi");
+            let dvi = n%10;
+            return chuc + (dvi === 0 ? "" : (dvi === 1 ? " mốt" : (dvi === 5 ? " lăm" : " " + dv[dvi])));
+        }
+
+        const grid = document.getElementById('numberGrid');
+
+        for (let i = 1; i <= 100; i++) {
+            const en = toEn(i), ja = toJa(i), vi = toVi(i);
+            const div = document.createElement('div');
+            div.className = 'card';
+            div.innerHTML = `<span class="num">${i}</span><div class="en-txt">${en}</div><div class="ja-txt">${ja}</div><div class="vi-txt">${vi}</div>`;
+            div.onclick = () => playAll(en, ja, vi);
+            grid.appendChild(div);
+        }
+
+        function playAll(en, ja, vi) {
+            synth.cancel();
+            const rate = document.getElementById('spd').value;
+
+            const speak = (txt, lang) => {
+                const u = new SpeechSynthesisUtterance(txt);
+                u.lang = lang; u.rate = rate;
+                synth.speak(u);
+            };
+
+            if (document.getElementById('vEn').checked) speak(en, 'en-US');
+            if (document.getElementById('vJa').checked) speak(ja, 'ja-JP');
+            if (document.getElementById('vVi').checked) speak(vi, 'vi-VN');
+        }
+
+        function toggleView(cls) { document.body.classList.toggle(cls); }
+        document.getElementById('spd').oninput = function() { document.getElementById('spdLab').innerText = this.value; }
+    </script>
+</body>
+</html>

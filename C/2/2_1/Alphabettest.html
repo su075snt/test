@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Alphabet - Kiểm tra năng lực</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --accent: #38bdf8;
+            --correct: #22c55e;
+            --wrong: #ef4444;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white;
+            margin: 0; display: flex; align-items: center; justify-content: center;
+            min-height: 100vh;
+        }
+
+        .quiz-container {
+            text-align: center; width: 90%; max-width: 500px;
+            background: var(--card); padding: 30px; border-radius: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); position: relative;
+        }
+
+        /* Thanh trạng thái */
+        .status-bar {
+            display: flex; justify-content: space-between; margin-bottom: 20px;
+            font-size: 14px; color: #94a3b8; border-bottom: 1px solid #334155; padding-bottom: 10px;
+        }
+
+        .speaker-btn {
+            background: var(--accent); border: none; width: 80px; height: 80px;
+            border-radius: 50%; cursor: pointer; font-size: 35px; margin: 20px 0;
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.4); transition: 0.2s;
+        }
+        .speaker-btn:hover { transform: scale(1.1); }
+
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+
+        .option {
+            background: #334155; border: 2px solid transparent; padding: 25px;
+            font-size: 40px; font-weight: 900; border-radius: 15px; cursor: pointer;
+            transition: 0.3s; color: white;
+        }
+        
+        .correct { background: var(--correct) !important; border-color: white; }
+        .wrong { background: var(--wrong) !important; animation: shake 0.3s; }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        /* Bảng tổng kết */
+        #resultScreen {
+            display: none; position: absolute; top:0; left:0; width:100%; height:100%;
+            background: var(--card); border-radius: 25px; z-index: 10;
+            flex-direction: column; align-items: center; justify-content: center;
+        }
+        .res-title { font-size: 28px; color: var(--accent); margin-bottom: 20px; }
+        .res-stat { font-size: 20px; margin: 5px; }
+        .restart-btn {
+            margin-top: 30px; padding: 12px 40px; border-radius: 50px;
+            background: var(--accent); border:none; color: #0f172a; font-weight: bold; cursor:pointer;
+        }
+
+        #nextBtn {
+            margin-top: 20px; padding: 10px 30px; border-radius: 50px;
+            border: 2px solid white; background: transparent; color: white;
+            cursor: pointer; display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="quiz-container">
+        <!-- Thanh thông tin -->
+        <div class="status-bar">
+            <span>Còn lại: <b id="remCount">26</b></span>
+            <span>Đúng: <b id="correctCount" style="color:var(--correct)">0</b></span>
+            <span>Sai: <b id="wrongCount" style="color:var(--wrong)">0</b></span>
+        </div>
+
+        <div id="quizContent">
+            <div style="color: #94a3b8;">Nghe và chọn chữ cái:</div>
+            <button class="speaker-btn" onclick="playQuestion()">🔊</button>
+            <div class="options-grid" id="options"></div>
+            <button id="nextBtn" onclick="initQuiz()">Tiếp theo ➔</button>
+        </div>
+
+        <!-- Màn hình kết quả -->
+        <div id="resultScreen">
+            <div class="res-title">🎉 HOÀN THÀNH!</div>
+            <div class="res-stat">Tổng số câu: <b>26</b></div>
+            <div class="res-stat" style="color:var(--correct)">Số câu đúng: <b id="finalCorrect">0</b></div>
+            <div class="res-stat" style="color:var(--wrong)">Số câu sai: <b id="finalWrong">0</b></div>
+            <div class="res-stat" style="margin-top:20px">Độ chính xác: <b id="finalPercent">0%</b></div>
+            <button class="restart-btn" onclick="resetGame()">LÀM LẠI</button>
+        </div>
+    </div>
+
+    <script>
+        const allLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+        let pool = [];
+        let currentLetter = "";
+        let stats = { correct: 0, wrong: 0, total: 26 };
+        const synth = window.speechSynthesis;
+
+        function resetGame() {
+            pool = [...allLetters];
+            stats.correct = 0;
+            stats.wrong = 0;
+            document.getElementById('resultScreen').style.display = 'none';
+            updateUI();
+            initQuiz();
+        }
+
+        function initQuiz() {
+            if (pool.length === 0) {
+                showResult();
+                return;
+            }
+
+            document.getElementById('nextBtn').style.display = 'none';
+            // Lấy ngẫu nhiên 1 chữ từ pool và xóa nó khỏi pool
+            const randomIndex = Math.floor(Math.random() * pool.length);
+            currentLetter = pool.splice(randomIndex, 1)[0];
+
+            // Tạo 4 đáp án
+            let choices = [currentLetter];
+            while(choices.length < 4) {
+                let randomL = allLetters[Math.floor(Math.random() * allLetters.length)];
+                if(!choices.includes(randomL)) choices.push(randomL);
+            }
+            choices.sort(() => Math.random() - 0.5);
+
+            // Hiển thị
+            const optionsDiv = document.getElementById('options');
+            optionsDiv.innerHTML = "";
+            choices.forEach(letter => {
+                const btn = document.createElement('button');
+                btn.className = 'option';
+                btn.innerText = letter;
+                btn.onclick = () => checkAnswer(btn, letter);
+                optionsDiv.appendChild(btn);
+            });
+
+            updateUI();
+            setTimeout(playQuestion, 500);
+        }
+
+        function playQuestion() {
+            synth.cancel();
+            const utter = new SpeechSynthesisUtterance(currentLetter);
+            utter.lang = 'en-US';
+            utter.rate = 0.8;
+            synth.speak(utter);
+        }
+
+        function checkAnswer(btn, selected) {
+            const allBtns = document.querySelectorAll('.option');
+            allBtns.forEach(b => b.style.pointerEvents = 'none');
+
+            if(selected === currentLetter) {
+                btn.classList.add('correct');
+                stats.correct++;
+                setTimeout(initQuiz, 1000);
+            } else {
+                btn.classList.add('wrong');
+                stats.wrong++;
+                document.getElementById('nextBtn').style.display = 'inline-block';
+                allBtns.forEach(b => {
+                    if(b.innerText === currentLetter) b.classList.add('correct');
+                });
+            }
+            updateUI();
+        }
+
+        function updateUI() {
+            document.getElementById('remCount').innerText = pool.length;
+            document.getElementById('correctCount').innerText = stats.correct;
+            document.getElementById('wrongCount').innerText = stats.wrong;
+        }
+
+        function showResult() {
+            document.getElementById('resultScreen').style.display = 'flex';
+            document.getElementById('finalCorrect').innerText = stats.correct;
+            document.getElementById('finalWrong').innerText = stats.wrong;
+            const percent = Math.round((stats.correct / stats.total) * 100);
+            document.getElementById('finalPercent').innerText = percent + "%";
+        }
+
+        // Bắt đầu game
+        resetGame();
+    </script>
+</body>
+</html>

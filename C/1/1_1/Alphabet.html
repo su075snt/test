@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alphabet Đa Ngôn Ngữ - Custom Voice</title>
+    <style>
+        :root {
+            --bg-body: #0f172a;
+            --bg-card: #1e293b;
+            --main-color: #fde047;
+            --accent: #38bdf8;
+            --text-en: #f8fafc;
+            --text-ja: #fb7185;
+            --text-vi: #94a3b8;
+        }
+
+        body { 
+            font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg-body); color: #fff;
+            margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center;
+        }
+
+        /* Menu điều khiển */
+        .controls {
+            position: fixed; top: 20px; right: 20px; background: #1e293b;
+            padding: 15px; border-radius: 15px; border: 1px solid var(--accent);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 1000; width: 240px;
+            transition: 0.3s ease;
+        }
+        .controls.hidden { transform: translateX(320px); opacity: 0; }
+        
+        .toggle-btn {
+            position: fixed; top: 20px; right: 20px; z-index: 1001;
+            background: var(--accent); color: #0f172a; border: none;
+            padding: 10px 18px; border-radius: 8px; cursor: pointer; font-weight: bold;
+        }
+
+        .group { margin-bottom: 15px; border-bottom: 1px solid #334155; padding-bottom: 10px; }
+        .group:last-child { border-bottom: none; }
+        
+        label.title { display: block; font-size: 10px; text-transform: uppercase; margin-bottom: 8px; color: #64748b; font-weight: bold; }
+        
+        /* Checkbox style */
+        .check-item { display: flex; align-items: center; gap: 8px; font-size: 13px; margin-bottom: 5px; cursor: pointer; }
+        input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; }
+
+        input[type="color"], input[type="range"] { width: 100%; background: #0f172a; border: 1px solid #334155; border-radius: 6px; }
+
+        /* Lưới bảng chữ cái */
+        .grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 15px; width: 100%; max-width: 1100px; margin-top: 60px;
+        }
+
+        .card {
+            background: var(--bg-card); border-radius: 15px; padding: 20px 10px;
+            text-align: center; cursor: pointer; transition: all 0.2s;
+            border: 2px solid #334155;
+        }
+        .card:hover { transform: translateY(-4px); border-color: var(--main-color); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+
+        .letter { font-size: 45px; font-weight: 900; color: var(--main-color); display: block; transition: color 0.3s; }
+        .emoji { font-size: 40px; margin: 10px 0; display: block; }
+        .en-txt { font-size: 16px; font-weight: bold; color: var(--text-en); }
+        .ja-txt { font-size: 13px; color: var(--text-ja); font-weight: bold; }
+        .vi-txt { font-size: 12px; color: var(--text-vi); font-style: italic; }
+
+        /* Logic ẩn hiển chữ */
+        body:not(.show-en) .en-txt, 
+        body:not(.show-ja) .ja-txt, 
+        body:not(.show-vi) .vi-txt { display: none; }
+
+        h1 span { color: var(--main-color); }
+    </style>
+</head>
+<body class="show-en show-ja show-vi">
+
+    <button class="toggle-btn" onclick="document.getElementById('pnl').classList.toggle('hidden')">⚙️ MENU</button>
+
+    <div class="controls" id="pnl">
+        <div class="group">
+            <label class="title">🎨 MÀU CHỮ CÁI</label>
+            <input type="color" value="#fde047" oninput="document.documentElement.style.setProperty('--main-color', this.value)">
+        </div>
+
+        <!-- PHẦN CHỌN GIỌNG ĐỌC BẰNG CHECKBOX -->
+        <div class="group">
+            <label class="title">🗣️ GIỌNG SẼ ĐỌC</label>
+            <label class="check-item"><input type="checkbox" id="vEn" checked> Tiếng Anh</label>
+            <label class="check-item"><input type="checkbox" id="vJa" checked> Tiếng Nhật</label>
+            <label class="check-item"><input type="checkbox" id="vVi" checked> Tiếng Việt</label>
+        </div>
+
+        <div class="group">
+            <label class="title">⏩ TỐC ĐỘ: <span id="spdLab">1</span></label>
+            <input type="range" id="spd" min="0.4" max="1.2" step="0.1" value="1">
+        </div>
+
+        <div class="group">
+            <label class="title">🖼️ HIỂN THỊ CHỮ</label>
+            <label class="check-item"><input type="checkbox" checked onchange="toggleView('show-en')"> Hiện Anh</label>
+            <label class="check-item"><input type="checkbox" checked onchange="toggleView('show-ja')"> Hiện Nhật</label>
+            <label class="check-item"><input type="checkbox" checked onchange="toggleView('show-vi')"> Hiện Việt</label>
+        </div>
+        <button onclick="document.getElementById('pnl').classList.add('hidden')" style="width:100%; background:transparent; color:#64748b; border:none; cursor:pointer; font-size:11px;">Đóng menu</button>
+    </div>
+
+    <h1>ALPHABET <span id="title">MULTILINGUAL</span></h1>
+    
+    <div class="grid" id="alphabetGrid"></div>
+
+    <script>
+        const alphabetData = [
+            {l:'A', i:'🍎', e:'Apple', j:'りんご', v:'Quả táo'},
+            {l:'B', i:'🐝', e:'Bee', j:'はち', v:'Con ong'},
+            {l:'C', i:'🐱', e:'Cat', j:'ねこ', v:'Con mèo'},
+            {l:'D', i:'🐶', e:'Dog', j:'いぬ', v:'Con chó'},
+            {l:'E', i:'🥚', e:'Egg', j:'たまご', v:'Quả trứng'},
+            {l:'F', i:'🐟', e:'Fish', j:'さかな', v:'Con cá'},
+            {l:'G', i:'🦒', e:'Giraffe', j:'きりん', v:'Hươu cao cổ'},
+            {l:'H', i:'🏠', e:'House', j:'いえ', v:'Ngôi nhà'},
+            {l:'I', i:'🍦', e:'Ice Cream', j:'アイスクリーム', v:'Kem'},
+            {l:'J', i:'🚗', e:'Jet', j:'じぇっとき', v:'Phản lực'},
+            {l:'K', i:'🪁', e:'Kite', j:'たこ', v:'Cái diều'},
+            {l:'L', i:'🦁', e:'Lion', j:'らいおん', v:'Sư tử'},
+            {l:'M', i:'🐒', e:'Monkey', j:'さる', v:'Con khỉ'},
+            {l:'N', i:'🌲', e:'Nature', j:'しぜん', v:'Tự nhiên'},
+            {l:'O', i:'🐙', e:'Octopus', j:'たこ', v:'Bạch tuộc'},
+            {l:'P', i:'🐧', e:'Penguin', j:'ぺんぎん', v:'Chim cánh cụt'},
+            {l:'Q', i:'👸', e:'Queen', j:'じょおう', v:'Nữ hoàng'},
+            {l:'R', i:'🤖', e:'Robot', j:'ろぼっと', v:'Người máy'},
+            {l:'S', i:'☀️', e:'Sun', j:'たいよう', v:'Mặt trời'},
+            {l:'T', i:'🐯', e:'Tiger', j:'とら', v:'Con hổ'},
+            {l:'U', i:'☂️', e:'Umbrella', j:'かさ', v:'Cái ô'},
+            {l:'V', i:'🎻', e:'Violin', j:'ばいおりん', v:'Đàn vĩ cầm'},
+            {l:'W', i:'🐳', e:'Whale', j:'くじら', v:'Cá voi'},
+            {l:'X', i:'❌', e:'X-ray', j:'れんとげん', v:'Tia X'},
+            {l:'Y', i:'⛵', e:'Yacht', j:'よっと', v:'Du thuyền'},
+            {l:'Z', i:'🦓', e:'Zebra', j:'しまうま', v:'Ngựa vằn'}
+        ];
+
+        const synth = window.speechSynthesis;
+        const grid = document.getElementById('alphabetGrid');
+
+        alphabetData.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.innerHTML = `
+                <span class="letter">${item.l}</span>
+                <span class="emoji">${item.i}</span>
+                <div class="en-txt">${item.e}</div>
+                <div class="ja-txt">${item.j}</div>
+                <div class="vi-txt">${item.v}</div>
+            `;
+            card.onclick = () => speak(item);
+            grid.appendChild(card);
+        });
+
+        function speak(item) {
+            synth.cancel();
+            const rate = document.getElementById('spd').value;
+
+            const queueSpeak = (text, lang) => {
+                const u = new SpeechSynthesisUtterance(text);
+                u.lang = lang; u.rate = rate;
+                synth.speak(u);
+            };
+
+            // Mặc định luôn đọc tên chữ cái A, B, C...
+            queueSpeak(item.l, 'en-US');
+
+            // Kiểm tra các ô checkbox để đọc từ vựng
+            if (document.getElementById('vEn').checked) queueSpeak(item.e, 'en-US');
+            if (document.getElementById('vJa').checked) queueSpeak(item.j, 'ja-JP');
+            if (document.getElementById('vVi').checked) queueSpeak(item.v, 'vi-VN');
+        }
+
+        function toggleView(cls) { document.body.classList.toggle(cls); }
+        document.getElementById('spd').oninput = function() { document.getElementById('spdLab').innerText = this.value; }
+    </script>
+</body>
+</html>

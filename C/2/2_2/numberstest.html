@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>英語数字クイズ - 20問テスト</title>
+    <style>
+        :root {
+            --bg-color: #000000;
+            --container-bg: #111111;
+            --text-color: #ffffff;
+            --accent-color: #00e676;
+            --custom-color: #ffeb3b;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* Menu */
+        #settings-menu {
+            position: fixed;
+            top: 0;
+            right: -280px;
+            width: 250px;
+            height: 100%;
+            background: #222;
+            padding: 20px;
+            transition: 0.4s;
+            box-shadow: -5px 0 15px rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+        #settings-menu.active { right: 0; }
+
+        .toggle-btn {
+            position: absolute;
+            left: -60px;
+            top: 20px;
+            background: #333;
+            color: white;
+            border: 1px solid #444;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            border-radius: 10px 0 0 10px;
+            font-size: 24px;
+        }
+
+        /* Quiz Container */
+        .quiz-container {
+            width: 90%;
+            max-width: 500px;
+            background: var(--container-bg);
+            padding: 30px 20px;
+            border-radius: 30px;
+            text-align: center;
+            border: 1px solid #222;
+        }
+
+        /* Progress Bar */
+        .progress-text { font-size: 1.2rem; color: #aaa; margin-bottom: 10px; }
+        
+        #display-number {
+            font-size: 6rem;
+            font-weight: bold;
+            color: var(--custom-color);
+            margin: 15px 0;
+            min-height: 100px;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        button.option {
+            background: #222;
+            color: var(--custom-color) !important;
+            border: 2px solid #333;
+            padding: 25px 5px;
+            font-size: 2rem;
+            font-weight: bold;
+            border-radius: 15px;
+            cursor: pointer;
+        }
+        
+        /* Màu khi chọn đúng/sai */
+        button.option.correct { background: #1b5e20 !important; border-color: #00e676 !important; color: white !important; }
+        button.option.wrong { background: #b71c1c !important; border-color: #ff5252 !important; color: white !important; }
+
+        .tab-container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-bottom: 20px;
+        }
+        .tab {
+            background: #333; color: white; border: none; padding: 8px 10px; border-radius: 5px; cursor: pointer; font-size: 0.8rem;
+        }
+        .tab.active { background: var(--accent-color); color: black; }
+
+        .audio-btn {
+            background: #333; border: 1px solid #444; width: 70px; height: 70px; border-radius: 50%; font-size: 28px; color: white; cursor: pointer;
+        }
+
+        label { display: block; margin: 20px 0 5px; color: #bbb; text-align: left; }
+    </style>
+</head>
+<body>
+
+    <div id="settings-menu">
+        <button class="toggle-btn" onclick="toggleMenu()">⚙️</button>
+        <h3 style="margin:0">設定 (Cài đặt)</h3>
+        <label>数字の色:</label>
+        <input type="color" id="colorPicker" value="#ffeb3b" onchange="updateColors(this.value)" style="width:100%; height:45px;">
+        <label>再生速度: <span id="speedVal">1.0</span>x</label>
+        <input type="range" id="speedRange" min="0.3" max="1.5" step="0.1" value="1" style="width:100%">
+    </div>
+
+    <div class="quiz-container" id="quiz-box">
+        <div class="progress-text">問題: <span id="current-q">1</span> / 20</div>
+        
+        <div class="tab-container">
+            <button class="tab active" onclick="changeTab(0, 20, this)">0-20</button>
+            <button class="tab" onclick="changeTab(21, 40, this)">21-40</button>
+            <button class="tab" onclick="changeTab(41, 60, this)">41-60</button>
+            <button class="tab" onclick="changeTab(61, 80, this)">61-80</button>
+            <button class="tab" onclick="changeTab(81, 100, this)">81-100</button>
+        </div>
+
+        <button class="audio-btn" onclick="playAudio()">🔊</button>
+        <div id="display-number">?</div>
+
+        <div class="options-grid" id="options"></div>
+        <div id="feedback" style="height: 30px; font-weight: bold; font-size: 1.2rem;"></div>
+    </div>
+
+    <script>
+        let currentNumber = 0;
+        let minRange = 0;
+        let maxRange = 20;
+        let questionCount = 0;
+        let correctCount = 0;
+        let isProcessing = false;
+
+        function toggleMenu() { document.getElementById('settings-menu').classList.toggle('active'); }
+        function updateColors(color) { document.documentElement.style.setProperty('--custom-color', color); }
+        document.getElementById('speedRange').addEventListener('input', function() {
+            document.getElementById('speedVal').innerText = parseFloat(this.value).toFixed(1);
+        });
+
+        function changeTab(min, max, btn) {
+            minRange = min; maxRange = max;
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            btn.classList.add('active');
+            resetQuiz();
+        }
+
+        function playAudio() {
+            window.speechSynthesis.cancel();
+            const msg = new SpeechSynthesisUtterance(currentNumber.toString());
+            msg.lang = 'en-US';
+            msg.rate = parseFloat(document.getElementById('speedRange').value);
+            window.speechSynthesis.speak(msg);
+        }
+
+        function nextQuestion() {
+            if (questionCount >= 20) {
+                showResult();
+                return;
+            }
+            
+            isProcessing = false;
+            questionCount++;
+            document.getElementById('current-q').innerText = questionCount;
+            currentNumber = Math.floor(Math.random() * (maxRange - minRange + 1)) + minRange;
+            
+            document.getElementById('display-number').innerText = "?";
+            document.getElementById('feedback').innerText = "";
+            
+            const optionsContainer = document.getElementById('options');
+            optionsContainer.innerHTML = "";
+
+            let answers = [currentNumber];
+            while(answers.length < 4) {
+                let rand = Math.floor(Math.random() * (maxRange - minRange + 1)) + minRange;
+                if(!answers.includes(rand)) answers.push(rand);
+            }
+            answers.sort(() => Math.random() - 0.5);
+
+            answers.forEach(num => {
+                const btn = document.createElement('button');
+                btn.className = 'option';
+                btn.innerText = num;
+                btn.onclick = () => handleChoice(num, btn);
+                optionsContainer.appendChild(btn);
+            });
+            playAudio();
+        }
+
+        function handleChoice(selected, btn) {
+            if (isProcessing) return;
+            isProcessing = true;
+
+            const feedback = document.getElementById('feedback');
+            document.getElementById('display-number').innerText = currentNumber;
+
+            if (selected === currentNumber) {
+                correctCount++;
+                btn.classList.add('correct');
+                feedback.innerText = "正解！";
+                feedback.style.color = "#00e676";
+            } else {
+                btn.classList.add('wrong');
+                feedback.innerText = "不正解";
+                feedback.style.color = "#ff5252";
+            }
+
+            // Tự động chuyển câu sau 1 giây
+            setTimeout(nextQuestion, 1000);
+        }
+
+        function showResult() {
+            const box = document.getElementById('quiz-box');
+            box.innerHTML = `
+                <h2 style="color:var(--accent-color)">終了！ (Kết thúc)</h2>
+                <p style="font-size:1.5rem">スコア: ${correctCount} / 20</p>
+                <button onclick="location.reload()" style="padding:15px 30px; background:var(--accent-color); border:none; border-radius:10px; font-weight:bold; cursor:pointer;">もう一度挑戦 (Làm lại)</button>
+            `;
+        }
+
+        function resetQuiz() {
+            questionCount = 0;
+            correctCount = 0;
+            nextQuestion();
+        }
+
+        // Kích hoạt lần đầu
+        window.addEventListener('click', function init() {
+            nextQuestion();
+            window.removeEventListener('click', init);
+        }, {once: true});
+    </script>
+</body>
+</html>
