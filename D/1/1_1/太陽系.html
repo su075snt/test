@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Mặt Trời & Mặt Trăng - Tương Tác Toàn Diện</title>
+    <style>
+        :root { --speed-factor: 1; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; color: white; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
+        
+        #space { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at center, #0d1a2d 0%, #000 100%); z-index: -1; }
+
+        /* Sidebar bên phải */
+        .sidebar {
+            position: fixed; top: 0; right: 0; height: 100%; width: 100px;
+            background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px);
+            display: flex; flex-direction: column; align-items: center;
+            padding: 10px 0; gap: 8px; z-index: 1000; border-left: 1px solid rgba(255, 255, 255, 0.1);
+            overflow-y: auto;
+        }
+        .side-item { text-align: center; cursor: pointer; transition: 0.2s; width: 100%; flex-shrink: 0; }
+        .side-ball {
+            width: 40px; height: 40px; border-radius: 50%; margin: 0 auto;
+            border: 2px solid rgba(255,255,255,0.2); transition: 0.3s;
+            box-shadow: inset -4px -4px 8px rgba(0,0,0,0.5);
+        }
+        .side-item:hover .side-ball { transform: scale(1.15); border-color: #00ccff; box-shadow: 0 0 12px #00ccff; }
+        .side-item p { margin: 3px 0 0; font-size: 9px; color: #ccc; font-weight: bold; }
+
+        /* Bảng điều khiển bên trái */
+        .controls { position: fixed; top: 20px; left: 20px; z-index: 1000; background: rgba(0,0,0,0.8); padding: 15px; border-radius: 12px; border: 1px solid #333; }
+        .btn-group { display: flex; gap: 5px; margin-bottom: 10px; }
+        button { padding: 6px 10px; cursor: pointer; background: #222; color: #fff; border: 1px solid #444; border-radius: 5px; font-size: 11px; }
+        button.active { background: #00ccff; color: #000; font-weight: bold; }
+
+        .universe { position: relative; width: calc(100vw - 100px); height: 100vh; display: flex; align-items: center; justify-content: center; }
+
+        /* Đồ họa trung tâm */
+        .sun { width: 85px; height: 85px; background: radial-gradient(circle, #fff, #ffcc00 80%); border-radius: 50%; box-shadow: 0 0 50px #ff4d00; z-index: 10; cursor: pointer; }
+        .orbit { position: absolute; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 50%; animation: rotate linear infinite; animation-duration: calc(var(--base-speed) / var(--speed-factor)); }
+        .planet { position: absolute; top: 0; left: 50%; transform: translate(-50%, -50%); border-radius: 50%; box-shadow: inset -5px -5px 10px #000; cursor: pointer; }
+        .label { position: absolute; top: -35px; left: 50%; transform: translateX(-50%); font-size: 12px; font-weight: bold; display: none; text-shadow: 0 0 5px #000; }
+        .show-labels .label { display: block; }
+
+        /* MẶT TRĂNG (Trong mô hình) */
+        .moon-o { width: 7vmin; height: 7vmin; position: absolute; top: 50%; left: 50%; margin: -3.5vmin 0 0 -3.5vmin; animation: rotate linear infinite; animation-duration: calc(4s / var(--speed-factor)); }
+        .moon { width: 1vmin; height: 1vmin; background: #ccc; border-radius: 50%; box-shadow: inset -2px -2px 4px #000; position: absolute; top: 0; left: 50%; cursor: pointer; }
+
+        /* Bảng màu Gradient cho các hành tinh */
+        .mercury-c { background: radial-gradient(circle at 30% 30%, #bbb, #444); }
+        .venus-c { background: radial-gradient(circle at 30% 30%, #e3bb76, #8b5e1e); }
+        .earth-c { background: radial-gradient(circle at 30% 30%, #2271b3, #0d2c47); }
+        .moon-c { background: radial-gradient(circle at 30% 30%, #eee, #666); }
+        .mars-c { background: radial-gradient(circle at 30% 30%, #e27b58, #6e2e1a); }
+        .jupiter-c { background: radial-gradient(circle at 30% 30%, #d39c7e, #5e3f30); }
+        .saturn-c { background: radial-gradient(circle at 30% 30%, #c5ab6e, #5a4b2a); }
+        .uranus-c { background: radial-gradient(circle at 30% 30%, #b5e1e1, #3e6161); }
+        .neptune-c { background: radial-gradient(circle at 30% 30%, #3454df, #0a144d); }
+
+        /* Quỹ đạo & Kích thước */
+        .mercury-o { --base-speed: 8s; width: 18vmin; height: 18vmin; } .mercury { width: 2.2vmin; height: 2.2vmin; }
+        .venus-o { --base-speed: 12s; width: 28vmin; height: 28vmin; } .venus { width: 3.2vmin; height: 3.2vmin; }
+        .earth-o { --base-speed: 18s; width: 42vmin; height: 42vmin; } .earth { width: 3.8vmin; height: 3.8vmin; }
+        .mars-o { --base-speed: 25s; width: 55vmin; height: 55vmin; } .mars { width: 2.8vmin; height: 2.8vmin; }
+        .jupiter-o { --base-speed: 45s; width: 72vmin; height: 72vmin; } .jupiter { width: 8vmin; height: 8vmin; }
+        .saturn-o { --base-speed: 65s; width: 90vmin; height: 90vmin; } .saturn { width: 6.5vmin; height: 6.5vmin; }
+        .saturn::after { content: ""; position: absolute; top: 50%; left: 50%; width: 11vmin; height: 2.5vmin; border: 2px solid rgba(197,171,110,0.3); border-radius: 50%; transform: translate(-50%, -50%) rotateX(75deg); }
+        .uranus-o { --base-speed: 90s; width: 105vmin; height: 105vmin; } .uranus { width: 5vmin; height: 5vmin; }
+        .neptune-o { --base-speed: 120s; width: 118vmin; height: 118vmin; } .neptune { width: 4.8vmin; height: 4.8vmin; }
+
+        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="show-labels">
+    <div id="space"></div>
+
+    <!-- Sidebar bên phải -->
+    <div class="sidebar">
+        <div class="side-item" onclick="speak('Mặt Trời', '太陽')"><div class="side-ball" style="background: radial-gradient(circle, #fff, #ffcc00);"></div><p>SUN</p></div>
+        <div class="side-item" onclick="speak('Thủy Tinh', '水星')"><div class="side-ball mercury-c"></div><p>MERCURY</p></div>
+        <div class="side-item" onclick="speak('Kim Tinh', '金星')"><div class="side-ball venus-c"></div><p>VENUS</p></div>
+        <div class="side-item" onclick="speak('Trái Đất', '地球')"><div class="side-ball earth-c"></div><p>EARTH</p></div>
+        <div class="side-item" onclick="speak('Mặt Trăng', '月')"><div class="side-ball moon-c"></div><p>MOON</p></div>
+        <div class="side-item" onclick="speak('Hỏa Tinh', '火星')"><div class="side-ball mars-c"></div><p>MARS</p></div>
+        <div class="side-item" onclick="speak('Mộc Tinh', '木星')"><div class="side-ball jupiter-c"></div><p>JUPITER</p></div>
+        <div class="side-item" onclick="speak('Thổ Tinh', '土星')"><div class="side-ball saturn-c"></div><p>SATURN</p></div>
+        <div class="side-item" onclick="speak('Thiên Vương Tinh', '天王星')"><div class="side-ball uranus-c"></div><p>URANUS</p></div>
+        <div class="side-item" onclick="speak('Hải Vương Tinh', '海王星')"><div class="side-ball neptune-c"></div><p>NEPTUNE</p></div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls">
+        <div class="btn-group">
+            <button id="btn-vi" class="active" onclick="changeLang('vi')">VN</button>
+            <button id="btn-jp" onclick="changeLang('jp')">JP</button>
+            <button onclick="toggleLabels()">Tên</button>
+        </div>
+        <input type="range" min="0" max="10" step="0.1" value="1" oninput="updateSpeed(this.value)">
+        <div style="font-size: 10px; color: #00ccff; margin-top: 5px;">Tốc độ: <span id="spText">1</span>x</div>
+    </div>
+
+    <div class="universe">
+        <div class="sun" onclick="speak('Mặt Trời', '太陽')"></div>
+
+        <div class="orbit mercury-o"><div class="planet mercury mercury-c" onclick="speak('Thủy Tinh', '水星')"><span class="label" data-vi="Thủy Tinh" data-jp="水星"></span></div></div>
+        <div class="orbit venus-o"><div class="planet venus venus-c" onclick="speak('Kim Tinh', '金星')"><span class="label" data-vi="Kim Tinh" data-jp="金星"></span></div></div>
+        
+        <div class="orbit earth-o">
+            <div class="planet earth earth-c" onclick="speak('Trái Đất', '地球')">
+                <span class="label" data-vi="Trái Đất" data-jp="地球"></span>
+                <!-- MẶT TRĂNG QUAY QUANH TRÁI ĐẤT -->
+                <div class="moon-o"><div class="moon moon-c" onclick="event.stopPropagation(); speak('Mặt Trăng', '月')"></div></div>
+            </div>
+        </div>
+
+        <div class="orbit mars-o"><div class="planet mars mars-c" onclick="speak('Hỏa Tinh', '火星')"><span class="label" data-vi="Hỏa Tinh" data-jp="火星"></span></div></div>
+        <div class="orbit jupiter-o"><div class="planet jupiter jupiter-c" onclick="speak('Mộc Tinh', '木星')"><span class="label" data-vi="Mộc Tinh" data-jp="木星"></span></div></div>
+        <div class="orbit saturn-o"><div class="planet saturn saturn-c" onclick="speak('Thổ Tinh', '土星')"><span class="label" data-vi="Thổ Tinh" data-jp="土星"></span></div></div>
+        <div class="orbit uranus-o"><div class="planet uranus uranus-c" onclick="speak('Thiên Vương Tinh', '天王星')"><span class="label" data-vi="Thiên Vương Tinh" data-jp="天王星"></span></div></div>
+        <div class="orbit neptune-o"><div class="planet neptune neptune-c" onclick="speak('Hải Vương Tinh', '海王星')"><span class="label" data-vi="Hải Vương Tinh" data-jp="海王星"></span></div></div>
+    </div>
+
+    <script>
+        let currentLang = 'vi';
+        window.utterances = [];
+
+        function changeLang(l) {
+            currentLang = l;
+            document.getElementById('btn-vi').classList.toggle('active', l === 'vi');
+            document.getElementById('btn-jp').classList.toggle('active', l === 'jp');
+            document.querySelectorAll('.label').forEach(el => el.innerText = el.getAttribute(`data-${currentLang}`));
+        }
+
+        function updateSpeed(v) { 
+            document.documentElement.style.setProperty('--speed-factor', v); 
+            document.getElementById('spText').innerText = v;
+        }
+
+        function toggleLabels() { document.body.classList.toggle('show-labels'); }
+
+        function speak(vi, jp) {
+            window.speechSynthesis.cancel();
+            const msg = new SpeechSynthesisUtterance(currentLang === 'vi' ? vi : jp);
+            msg.lang = currentLang === 'vi' ? 'vi-VN' : 'ja-JP';
+            window.utterances.push(msg);
+            if(window.utterances.length > 5) window.utterances.shift();
+            window.speechSynthesis.speak(msg);
+        }
+
+        changeLang('vi');
+    </script>
+</body>
+</html>
+Hãy thận trọng khi sử dụng mã.
+
+Các cập nhật ở bản này:
+Mặt Trăng (Moon):
+Trong mô hình: Xuất hiện là một quả cầu nhỏ màu xám sáng quay quanh Trái Đất. Nhấn vào nó cũng sẽ phát âm.
+Trong Sidebar: Thêm mục "MOON" nằm ngay dưới Trái Đất (Earth) để bạn có thể nhấn phát âm nhanh.
+Logic StopPropagation: Khi bạn nhấn vào Mặt Trăng ở mô hình đang quay, nó sẽ không bị kích hoạt nhầm sang Trái Đất (nhờ event.stopPropagation()).
+Tối ưu Sidebar: Khoảng cách được tinh chỉnh lại một chút để hiển thị đủ 10 mục (Mặt Trời + 8 hành tinh + Mặt Trăng) mà không cần cuộn quá nhiều.
+Màu sắc: Mặt Trăng có hiệu ứng radial-gradient màu trắng-xám đặc trưng.
+Would you like me to add anything else, such as more moons for Jupiter or planet rings?
+
+
+
