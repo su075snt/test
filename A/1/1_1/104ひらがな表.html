@@ -3,216 +3,196 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ひらがな学習 - Hiragana Learning</title>
+    <title>Hiragana Mastery</title>
+    <link href="https://cdnjs.cloudflare.com" rel="stylesheet">
     <style>
-        :root {
-            --primary-color: #ff7675; /* Màu chủ đạo Hiragana hơi hồng cam */
-            --bg-color: #fcfcfc;
-            --char-color-1: #6c5ce7; /* Màu xanh tím */
-            --char-color-2: #e84393; /* Màu hồng đậm */
-        }
-        body { font-family: 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif; background-color: var(--bg-color); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        :root { --bg: #0b1120; --card: #1e293b; --accent: #38bdf8; --text: #f1f5f9; --char-c: #38bdf8; }
+        body { margin: 0; font-family: 'Hiragino Sans', sans-serif; background: var(--bg); color: var(--text); -webkit-tap-highlight-color: transparent; }
         
-        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
-        .tab-btn { padding: 12px 25px; cursor: pointer; border: 2px solid #ddd; background: white; border-radius: 12px; font-weight: bold; transition: 0.3s; }
-        .tab-btn.active { background: var(--primary-color); color: white; border-color: var(--primary-color); }
-        
-        .tab-content { display: none; width: 100%; max-width: 850px; }
-        .tab-content.active { display: block; }
+        /* Header & Tabs */
+        .top-bar { display: flex; align-items: center; padding: 10px 15px; background: #0f172a; border-bottom: 1px solid #334155; position: sticky; top: 0; z-index: 1000; height: 50px; }
+        .tabs { display: flex; gap: 8px; position: absolute; left: 50%; transform: translateX(-50%); }
+        .tab-btn { background: none; border: none; color: #94a3b8; padding: 8px 12px; cursor: pointer; font-weight: bold; font-size: 0.9rem; border-radius: 6px; transition: 0.2s; }
+        .tab-btn.active { color: var(--accent); background: rgba(56, 189, 248, 0.1); }
+        .menu-toggle { background: var(--accent); border: none; color: #000; width: 38px; height: 38px; border-radius: 8px; cursor: pointer; margin-left: auto; }
 
-        .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; width: 100%; }
-        .special-grid { grid-template-columns: repeat(3, 1fr) !important; }
-        
-        .card {
-            aspect-ratio: 1 / 1;
-            background: white;
-            border-radius: 12px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            text-align: center;
-            border: 2px solid #eee;
-            position: relative;
-            transition: all 0.1s;
-        }
-        .card:active { transform: scale(0.95); border-color: var(--primary-color); }
+        /* Grid Layouts */
+        .grid-wrapper { padding: 20px; display: flex; justify-content: center; }
+        .grid { display: grid; width: 100%; max-width: 650px; gap: 10px; }
+        .grid-5 { grid-template-columns: repeat(5, 1fr); }
+        .grid-3 { grid-template-columns: repeat(3, 1fr); }
 
-        /* Đổi màu chữ xen kẽ */
-        .card:nth-child(odd) .kana { color: var(--char-color-1); }
-        .card:nth-child(even) .kana { color: var(--char-color-2); }
+        .card { background: var(--card); border-radius: 12px; aspect-ratio: 1/1; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; border: 1px solid rgba(255,255,255,0.05); transition: transform 0.1s; }
+        .card:active { transform: scale(0.95); background: #2d3a4f; }
         
-        .kana { font-size: 2.8rem; font-weight: bold; line-height: 1.1; }
-        .romaji { font-size: 0.9rem; color: #888; font-weight: normal; }
+        .char-txt { font-size: 2.5rem; color: var(--char-c); font-weight: bold; line-height: 1; }
+        .sub-info { font-size: 0.8rem; color: #94a3b8; margin-top: 6px; text-align: center; }
+        .icon { font-size: 1.1rem; margin-bottom: 2px; display: block; }
+
+        /* Slide Menu */
+        #side-menu { position: fixed; top: 0; right: -300px; width: 280px; height: 100%; background: #1e293b; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 2000; padding: 25px; box-sizing: border-box; box-shadow: -5px 0 20px rgba(0,0,0,0.5); }
+        #side-menu.open { right: 0; }
+        .opt-group { margin-bottom: 15px; }
+        label { display: block; font-size: 0.8rem; margin-bottom: 5px; color: #cbd5e1; }
+        select, input[type="range"] { width: 100%; padding: 8px; border-radius: 6px; background: #0f172a; color: #fff; border: 1px solid #475569; }
+        .hidden { display: none !important; }
         
-        .vocab-box { display: none; padding: 5px; animation: fadeIn 0.2s; }
-        .vocab { font-size: 1.2rem; font-weight: bold; color: #333; }
-        .mean { font-size: 0.9rem; color: #666; margin-top: 4px; }
-
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        .settings-panel {
-            position: fixed; bottom: 20px; right: 20px;
-            background: white; padding: 15px; border-radius: 15px;
-            box-shadow: 0 5px 25px rgba(0,0,0,0.1); width: 230px; z-index: 100;
-        }
-        .settings-panel h3 { margin: 0 0 10px 0; font-size: 1rem; border-bottom: 2px solid #eee; padding-bottom: 5px; }
-        .setting-item { margin-bottom: 10px; }
-        label { display: block; font-size: 0.8rem; color: #666; margin-bottom: 3px; }
-        select, input { width: 100%; padding: 5px; border-radius: 6px; border: 1px solid #ddd; font-size: 0.85rem; }
+        @media (max-width: 400px) { .char-txt { font-size: 1.8rem; } .sub-info { font-size: 0.7rem; } }
     </style>
 </head>
 <body>
 
+<div class="top-bar">
     <div class="tabs">
-        <button class="tab-btn active" onclick="openTab(0)">清音（せいおん</button>
-        <button class="tab-btn" onclick="openTab(1)">濁音（だくおん）</button>
-        <button class="tab-btn" onclick="openTab(2)">拗音（ようおん）</button>
+        <button class="tab-btn active" onclick="changeTab('basic', this)">清音</button>
+        <button class="tab-btn" onclick="changeTab('tenten', this)">濁音</button>
+        <button class="tab-btn" onclick="changeTab('combo', this)">拗音</button>
     </div>
+    <button class="menu-toggle" onclick="toggleMenu()"><i class="fas fa-cog"></i></button>
+</div>
 
-    <div id="tab0" class="tab-content active"><div class="grid" id="grid0"></div></div>
-    <div id="tab1" class="tab-content"><div class="grid" id="grid1"></div></div>
-    <div id="tab2" class="tab-content"><div class="grid special-grid" id="grid2"></div></div>
-
-    <div class="settings-panel">
-        <h3>設定 (Cài đặt)</h3>
-        <div class="setting-item">
-            <label>再生モード:</label>
-            <select id="mode">
-                <option value="ja">日本語のみ</option>
-                <option value="ja-vi">日本語 ➔ ベトナム語</option>
-            </select>
-        </div>
-        <div class="setting-item">
-            <label>速度: <span id="speed-val">1</span></label>
-            <input type="range" id="speed" min="0.5" max="1.5" step="0.1" value="1">
-        </div>
-        <div class="setting-item">
-            <label>日本語の声:</label>
-            <select id="voice-ja"></select>
-        </div>
-        <div class="setting-item">
-            <label>ベトナム語の声:</label>
-            <select id="voice-vi"></select>
-        </div>
+<div id="side-menu">
+    <h3 style="margin-top:0; font-size: 1.2rem;">設定 (Settings)</h3>
+    <div class="opt-group"><label>文字の色 (Màu chữ)</label><input type="color" id="colorChar" value="#38bdf8" onchange="updateTheme()"></div>
+    <div class="opt-group"><label>背景色 (Màu nền)</label><input type="color" id="colorBg" value="#0b1120" onchange="updateTheme()"></div>
+    <div class="opt-group"><label>速度 (Tốc độ)</label><input type="range" id="speed" min="0.5" max="1.5" step="0.1" value="1"></div>
+    <div class="opt-group"><label>日本語音声 (Giọng Nhật)</label><select id="vJa"></select></div>
+    <div class="opt-group"><label>ベトナム語音声 (Giọng Việt)</label><select id="vVi"></select></div>
+    <div class="opt-group"><label>再生モード (Chế độ)</label>
+        <select id="mode">
+            <option value="ja">日本語のみ (Chỉ Nhật)</option>
+            <option value="javi">日越両方 (Nhật-Việt)</option>
+        </select>
     </div>
+    <div class="opt-group">
+        <label style="display:flex; align-items:center; gap:8px;">
+            <input type="checkbox" id="showInfo" checked onchange="renderGrid()"> 語彙を表示 (Hiện từ vựng)
+        </label>
+    </div>
+    <button onclick="toggleMenu()" style="width:100%; padding:10px; background:var(--accent); border:none; border-radius:6px; cursor:pointer; font-weight:bold;">閉じる (Đóng)</button>
+</div>
 
-    <script>
-        const data = [
-            // Tab 0: Seion
-            [
-                {k:"あ", r:"a", v:"あり", m:"Con kiến"}, {k:"い", r:"i", v:"いぬ", m:"Con chó"}, {k:"う", r:"u", v:"うし", m:"Con bò"}, {k:"え", r:"e", v:"えんぴつ", m:"Bút chì"}, {k:"お", r:"o", v:"おに", m:"Con quỷ"},
-                {k:"か", r:"ka", v:"かめ", m:"Con rùa"}, {k:"き", r:"ki", v:"きつね", m:"Con cáo"}, {k:"く", r:"ku", v:"くま", m:"Con gấu"}, {k:"け", r:"ke", v:"けむり", m:"Khói"}, {k:"こ", r:"ko", v:"こま", m:"Cái quay"},
-                {k:"さ", r:"sa", v:"さかな", m:"Con cá"}, {k:"し", r:"shi", v:"しか", m:"Con hươu"}, {k:"す", r:"su", v:"すいか", m:"Dưa hấu"}, {k:"せ", r:"se", v:"せみ", m:"Con ve"}, {k:"そ", r:"so", v:"そら", m:"Bầu trời"},
-                {k:"た", r:"ta", v:"たこ", m:"Bạch tuộc"}, {k:"ち", r:"chi", v:"ちず", m:"Bản đồ"}, {k:"つ", r:"tsu", v:"つくえ", m:"Cái bàn"}, {k:"て", r:"te", v:"てがみ", m:"Bức thư"}, {k:"と", r:"to", v:"とら", m:"Con hổ"},
-                {k:"な", r:"na", v:"なす", m:"Cà tím"}, {k:"に", r:"ni", v:"にじ", m:"Cầu vồng"}, {k:"ぬ", r:"nu", v:"ぬの", m:"Vải"}, {k:"ね", r:"ne", v:"ねこ", m:"Con mèo"}, {k:"の", r:"no", v:"のり", m:"Rong biển"},
-                {k:"は", r:"ha", v:"はな", m:"Hoa"}, {k:"ひ", r:"hi", v:"ひこうき", m:"Máy bay"}, {k:"ふ", r:"fu", v:"ふね", m:"Con thuyền"}, {k:"へ", r:"he", v:"へび", m:"Con rắn"}, {k:"ほ", r:"ho", v:"ほし", m:"Ngôi sao"},
-                {k:"ま", r:"ma", v:"まど", m:"Cửa sổ"}, {k:"み", r:"mi", v:"みかん", m:"Quả quýt"}, {k:"む", r:"mu", v:"むし", m:"Côn trùng"}, {k:"め", r:"me", v:"めがね", m:"Mắt kính"}, {k:"も", r:"mo", v:"もち", m:"Bánh dày"},
-                {k:"や", r:"ya", v:"やま", m:"Núi"}, {k:"", r:"", v:"", m:""}, {k:"ゆ", r:"yu", v:"ゆき", m:"Tuyết"}, {k:"", r:"", v:"", m:""}, {k:"よ", r:"yo", v:"よる", m:"Ban đêm"},
-                {k:"ら", r:"ra", v:"らいおん", m:"Sư tử"}, {k:"り", r:"ri", v:"りんご", m:"Quả táo"}, {k:"る", r:"ru", v:"るす", m:"Vắng nhà"}, {k:"れ", r:"re", v:"れいぞうこ", m:"Tủ lạnh"}, {k:"ろ", r:"ro", v:"ろうそく", m:"Nến"},
-                {k:"わ", r:"wa", v:"わに", m:"Cá sấu"}, {k:"", r:"", v:"", m:""}, {k:"", r:"", v:"", m:""}, {k:"", r:"", v:"", m:""}, {k:"を", r:"wo", v:"を", m:"Trợ từ"},
-                {k:"ん", r:"n", v:"きりん", m:"Hươu cao cổ"}
-            ],
-            // Tab 1: Dakuon
-            [
-                {k:"が", r:"ga", v:"がっこう", m:"Trường học"}, {k:"ぎ", r:"gi", v:"ぎんこう", m:"Ngân hàng"}, {k:"ぐ", r:"gu", v:"ぐんて", m:"Găng tay"}, {k:"げ", r:"ge", v:"げんき", m:"Khỏe mạnh"}, {k:"ご", r:"go", v:"ごはん", m:"Cơm"},
-                {k:"ざ", r:"za", v:"ざっし", m:"Tạp chí"}, {k:"じ", r:"ji", v:"じしん", m:"Động đất"}, {k:"ず", r:"zu", v:"ずかん", m:"Sách ảnh"}, {k:"ぜ", r:"ze", v:"ぜんぶ", m:"Tất cả"}, {k:"ぞ", r:"zo", v:"ぞう", m:"Con voi"},
-                {k:"だ", r:"da", v:"だいこん", m:"Củ cải"}, {k:"ぢ", r:"ji", v:"はなぢ", m:"Chảy máu cam"}, {k:"づ", r:"zu", v:"つづく", m:"Tiếp tục"}, {k:"で", r:"de", v:"でんわ", m:"Điện thoại"}, {k:"ど", r:"do", v:"どあ", m:"Cửa"},
-                {k:"ば", r:"ba", v:"ばんごう", m:"Số"}, {k:"び", r:"bi", v:"びん", m:"Cái chai"}, {k:"ぶ", r:"bu", v:"ぶた", m:"Con lợn"}, {k:"べ", r:"be", v:"べんきょう", m:"Học tập"}, {k:"ぼ", r:"bo", v:"ぼうし", m:"Mũ"},
-                {k:"ぱ", r:"pa", v:"ぱん", m:"Bánh mì"}, {k:"ぴ", r:"pi", v:"ぴんせっと", m:"Cái nhíp"}, {k:"ぷ", r:"pu", v:"ぷれぜんと", m:"Quà tặng"}, {k:"ぺ", r:"pe", v:"ぺん", m:"Cái bút"}, {k:"ぽ", r:"po", v:"ぽすと", m:"Hộp thư"}
-            ],
-            // Tab 2: Yoon
-            [
-                {k:"きゃ", r:"kya", v:"きゃく", m:"Khách hàng"}, {k:"きゅ", r:"kyu", v:"きゅうり", m:"Dưa chuột"}, {k:"きょ", r:"kyo", v:"きょねん", m:"Năm ngoái"},
-                {k:"しゃ", r:"sha", v:"しゃしん", m:"Ảnh"}, {k:"しゅ", r:"shu", v:"しゅくだい", m:"Bài tập"}, {k:"しょ", r:"sho", v:"しょくどう", m:"Nhà ăn"},
-                {k:"ちゃ", r:"cha", v:"ちゃわん", m:"Cái bát"}, {k:"ちゅ", r:"chu", v:"ちゅうしゃ", m:"Tiêm"}, {k:"ちょ", r:"cho", v:"ちょきん", m:"Tiết kiệm"},
-                {k:"にゃ", r:"nya", v:"にゃー", m:"Tiếng mèo"}, {k:"にゅ", r:"nyu", v:"にゅうがく", m:"Nhập học"}, {k:"にょ", r:"nyo", v:"にょう", m:"Nước tiểu"},
-                {k:"ひゃ", r:"hya", v:"ひゃく", m:"Một trăm"}, {k:"ひゅ", r:"hyu", v:"ひゅう", m:"Gió thổi"}, {k:"ひょ", r:"hyo", v:"ひょう", m:"Con báo"},
-                {k:"みゃ", r:"mya", v:"みゃく", m:"Mạch đập"}, {k:"みゅ", r:"myu", v:"みゅーじっく", m:"Âm nhạc"}, {k:"みょ", r:"myo", v:"みょうじ", m:"Họ"},
-                {k:"りゃ", r:"rya", v:"りゃく", m:"Lược bớt"}, {k:"りゅ", r:"ryu", v:"りゅう", m:"Con rồng"}, {k:"りょ", r:"ryo", v:"りょこう", m:"Du lịch"},
-                {k:"ぎゃ", r:"gya", v:"ぎゃく", m:"Ngược lại"}, {k:"ぎゅ", r:"gyu", v:"ぎゅうにゅう", m:"Sữa bò"}, {k:"ぎょ", r:"gyo", v:"ぎょぎょう", m:"Ngư nghiệp"},
-                {k:"じゃ", r:"ja", v:"じゃがいも", m:"Khoai tây"}, {k:"じゅ", r:"ju", v:"じゅぎょう", m:"Tiết học"}, {k:"じょ", r:"jo", v:"じょし", m:"Con gái"},
-                {k:"びゃ", r:"bya", v:"びゃくだん", m:"Đàn hương"}, {k:"びゅ", r:"byu", v:"びゅーん", m:"Vút qua"}, {k:"びょ", r:"byo", v:"びょういん", m:"Bệnh viện"},
-                {k:"ぴゃ", r:"pya", v:"ぴゃっと", m:"Đột ngột"}, {k:"ぴゅ", r:"pyu", v:"ぴゅあ", m:"Trong sáng"}, {k:"ぴょ", r:"pyo", v:"ぴょんぴょん", m:"Nhảy"}
-            ]
-        ];
+<div class="grid-wrapper">
+    <div id="grid" class="grid grid-5"></div>
+</div>
 
-        let synth = window.speechSynthesis;
-        let voices = [];
+<script>
+    const chars = {
+        basic: [
+            {h:'あ',i:'🍭',v:'あめ',m:'Kẹo'},{h:'い',i:'🍓',v:'いちご',m:'Quả Dâu'},{h:'う',i:'🐰',v:'うさぎ',m:'con Thỏ'},{h:'え',i:'🖍️',v:'えんぴつ',m:'Bút chì'},{h:'お',i:'🍵',v:'おちゃ',m:'Trà'},
+            {h:'か',i:'🐢',v:'かめ',m:'Con Rùa'},{h:'き',i:'🌳',v:'き',m:'Cây'},{h:'く',i:'🚗',v:'くるま',m:'Xe hơi'},{h:'け',i:'📱',v:'けいたい',m:'Điện thoại'},{h:'こ',i:'🧒',v:'こども',m:'Trẻ em'},
+            {h:'さ',i:'🐟',v:'さかな',m:'Cá'},{h:'し',i:'🧂',v:'しお',m:'Muối'},{h:'す',i:'🍉',v:'すいか',m:'Dưa hấu'},{h:'せ',i:'🧼',v:'せっけん',m:'Xà phòng'},{h:'そ',i:'☁️',v:'そら',m:'Trời'},
+            {h:'た',i:'🥚',v:'たまご',m:'Quả Trứng'},{h:'ち',i:'🗺️',v:'ちず',m:'Bản đồ'},{h:'つ',i:'🌙',v:'つき',m:'mặt Trăng'},{h:'て',i:'🖐️',v:'て',m:'bàn Tay'},{h:'と',i:'🐯',v:'とら',m:'Con Hổ'},
+            {h:'な',i:'🍆',v:'なす',m:'quả Cà tím'},{h:'に',i:'🥩',v:'にく',m:'Thịt'},{h:'ぬ',i:'🐕',v:'いぬ',m:'Con Chó'},{h:'ね',i:'🐈',v:'ねこ',m:'Con Mèo'},{h:'の',i:'🥤',v:'のみもの',m:'Đồ uống'},
+            {h:'は',i:'🌸',v:'はな',m:'Hoa'},{h:'ひ',i:'🔥',v:'ひ',m:'Lửa'},{h:'ふ',i:'🚢',v:'ふね',m:'Tàu'},{h:'へ',i:'🐍',v:'へび',m:'Con Rắn'},{h:'ほ',i:'⭐',v:'ほし',m:'Ngôi Sao'},
+            {h:'ま',i:'🪟',v:'まど',m:'Cửa sổ'},{h:'み',i:'👂',v:'みみ',m:'Tai'},{h:'む',i:'🐞',v:'むし',m:'Sâu bọ'},{h:'め',i:'👁️',v:'め',m:'Mắt'},{h:'も',i:'🍑',v:'もも',m:'Quả Đào'},
+            {h:'や',i:'⛰️',v:'やま',m:'Núi'},{h:'',i:'',v:'',m:''},{h:'ゆ',i:'❄️',v:'ゆき',m:'Tuyết'},{h:'',i:'',v:'',m:''},{h:'よ',i:'🌙',v:'よる',m:'ban Đêm'},
+            {h:'ら',i:'🍜',v:'らーめん',m:'mì ramen'},{h:'り',i:'🍎',v:'りんご',m:'Táo'},{h:'る',i:'🐒',v:'さる',m:'Con Khỉ'},{h:'れ',i:'🍋',v:'れもん',m:'Quả Chanh'},{h:'ろ',i:'🕯️',v:'ろうそく',m:'Nến'},
+            {h:'わ',i:'🐊',v:'わに',m:'Cá sấu'},{h:'',i:'',v:'',m:''},{h:'を',i:'📍',v:'を',m:'Trợ từ ố'},{h:'',i:'',v:'',m:''},{h:'ん',i:'📖',v:'',m:'âm mũi'}
+        ],
+        tenten: [
+            {h:'が',i:'🏫',v:'がっこう',m:'Trường học'},{h:'ぎ',i:'🏦',v:'ぎんこう',m:'Ngân hàng'},{h:'ぐ',i:'🧤',v:'ぐんて',m:'găng tay'},{h:'げ',i:'😊',v:'げんき',m:'Khỏe'},{h:'ご',i:'🍚',v:'ごはん',m:'Cơm'},
+            {h:'ざ',i:'📖',v:'ざっし',m:'Tạp chí'},{h:'じ',i:'🫨',v:'じしん',m:'Động đất'},{h:'ず',i:'↔️',v:'ずっと',m:'Xuyên Suốt'},{h:'ぜ',i:'♾️',v:'ぜんぶ',m:'Tất cả'},{h:'ぞ',i:'🐘',v:'ぞう',m:'Voi'},
+            {h:'だ',i:'🏫',v:'だいがく',m:'Đại học'},{h:'ぢ',i:'🩸',v:'はなぢ',m:'Máu cam'},{h:'づ',i:'➡️',v:'つづく',m:'Tiếp tục'},{h:'で',i:'📞',v:'でんわ',m:'ĐT'},{h:'ど',i:'🚪',v:'どあ',m:'Cửa'},
+            {h:'ば',i:'🔢',v:'ばんごう',m:'Số'},{h:'び',i:'🏥',v:'びょういん',m:'Bệnh viện'},{h:'ぶ',i:'🐷',v:'ぶた',m:'Lợn'},{h:'べ',i:'📚',v:'べんきょう',m:'Học'},{h:'ぼ',i:'🧢',v:'ぼうし',m:'Mũ'},
+            {h:'ぱ',i:'🍞',v:'ぱん',m:'Bánh mì'},{h:'ぴ',i:'✨',v:'ぴかぴか',m:'Lấp lánh'},{h:'ぷ',i:'🌀',v:'せんぷうき',m:'quạt máy'},{h:'ぺ',i:'🖊️',v:'ぺん',m:'Bút'},{h:'ぽ',i:'📮',v:'ぽすと',m:'Hòm thư'}
+        ],
+        combo: [
+            {h:'きゃ',i:'🐱',v:'おきゃくさま',m:'Khách　hàng'},{h:'きゅ',i:'🥒',v:'きゅうり',m:'Dưa chuột'},{h:'きょ',i:'👪',v:'きょうだい',m:'Anh em,'},
+            {h:'しゃ',i:'📷',v:'しゃしん',m:'Ảnh'},{h:'しゅ',i:'🎨',v:'しゅみ',m:'Sở thích'},{h:'しょ',i:'🍱',v:'しょくどう',m:'Nhà ăn'},
+            {h:'ちゃ',i:'🍵',v:'おちゃ',m:'Trà'},{h:'ちゅ',i:'🅿️',v:'ちゅうしゃじょう',m:'Bãi đỗ xe'},{h:'ちょ',i:'🦋',v:'ちょうちょう',m:'con bướm'},
+            {h:'にゃ',i:'🐈',v:'にゃー',m:'Mèo'},{h:'にゅ',i:'🥛',v:'ぎゅうにゅう',m:'Sữa'},{h:'にょ',i:'🌱',v:'にょき',m:'Mọc'},
+            {h:'ひゃ',i:'💯',v:'ひゃく',m:'Trăm'},{h:'ひゅ',i:'🌬️',v:'ひゅう',m:'Gió'},{h:'ひょ',i:'🧊',v:'ひょうざん',m:'Núi băng'},
+            {h:'みゃ',i:'💓',v:'みゃく',m:'Mạch'},{h:'みゅ',i:'🎵',v:'みゅーじっく',m:'Nhạc'},{h:'みょ',i:'🆔',v:'みょうじ',m:'Họ'},
+            {h:'りゃ',i:'📝',v:'りゃく',m:'Viết tắt'},{h:'りゅ',i:'🐲',v:'りゅう',m:'con Rồng'},{h:'りょ',i:'✈️',v:'りょこう',m:'Du lịch'},
+            {h:'ぎゃ',i:'🔄',v:'ぎゃく',m:'đảo Ngược'},{h:'ぎゅ',i:'🥩',v:'ぎゅうにく',m:'Thịt bò'},{h:'ぎょ',i:'🎣',v:'ぎょぎょう',m:'Ngư nghiệp'},
+            {h:'じゃ',i:'🥔',v:'じゃがいも',m:'Khoai tây'},{h:'じゅ',i:'👨‍🏫',v:'じゅぎょう',m:'Tiết học'},{h:'じょ',i:'👩',v:'じょせい',m:'Nữ giới'},
+            {h:'びゃ',i:'🏢',v:'さんびゃく',m:'300'},{h:'びゅ',i:'🏎️',v:'びゅーん',m:'Vèo'},{h:'びょ',i:'🤒',v:'びょうき',m:'Bệnh'},
+            {h:'ぴゃ',i:'🏙️',v:'ろっぴゃく',m:'600'},{h:'ぴゅ',i:'💎',v:'ぴゅあ',m:'Trong sáng'},{h:'ぴょ',i:'🐰',v:'ぴょんぴょん',m:'tiếng thỏ Nhảy'}
+        ]
+    };
 
-        function init() {
-            setTimeout(() => {
-                voices = synth.getVoices();
-                const jaSelect = document.getElementById('voice-ja');
-                const viSelect = document.getElementById('voice-vi');
-                voices.forEach(v => {
-                    if(v.lang.includes('ja')) jaSelect.add(new Option(v.name, v.name));
-                    if(v.lang.includes('vi')) viSelect.add(new Option(v.name, v.name));
-                });
-            }, 500);
+    let currentTab = 'basic';
+    const synth = window.speechSynthesis;
 
-            data.forEach((tabData, tabIdx) => {
-                const grid = document.getElementById(`grid${tabIdx}`);
-                tabData.forEach(item => {
-                    const card = document.createElement('div');
-                    card.className = 'card';
-                    if(!item.k) { card.style.visibility = 'hidden'; }
-                    
-                    card.innerHTML = `
-                        <div class="char-box">
-                            <div class="kana">${item.k}</div>
-                            <div class="romaji">${item.r}</div>
-                        </div>
-                        <div class="vocab-box">
-                            <div class="vocab">${item.v}</div>
-                            <div class="mean">${item.m}</div>
-                        </div>
-                    `;
-                    
-                    card.onclick = () => {
-                        synth.cancel(); // Ngắt ngay để đọc chữ tiếp theo
-                        const charBox = card.querySelector('.char-box');
-                        const vocabBox = card.querySelector('.vocab-box');
-                        charBox.style.display = 'none';
-                        vocabBox.style.display = 'block';
-                        speak(item);
-                        setTimeout(() => {
-                            charBox.style.display = 'block';
-                            vocabBox.style.display = 'none';
-                        }, 2000);
-                    };
-                    grid.appendChild(card);
-                });
-            });
-        }
+    function renderGrid() {
+        const grid = document.getElementById('grid');
+        grid.className = `grid ${currentTab === 'combo' ? 'grid-3' : 'grid-5'}`;
+        grid.innerHTML = '';
+        const show = document.getElementById('showInfo').checked;
 
-        function speak(item) {
-            const mode = document.getElementById('mode').value;
-            const rate = document.getElementById('speed').value;
-            let utterJa = new SpeechSynthesisUtterance(`${item.k}, ${item.v}`);
-            utterJa.voice = voices.find(v => v.name === document.getElementById('voice-ja').value);
-            utterJa.rate = rate;
-            utterJa.lang = 'ja-JP';
-            synth.speak(utterJa);
-
-            if(mode === 'ja-vi') {
-                utterJa.onend = () => {
-                    let utterVi = new SpeechSynthesisUtterance(item.m);
-                    utterVi.voice = voices.find(v => v.name === document.getElementById('voice-vi').value);
-                    utterVi.rate = rate;
-                    utterVi.lang = 'vi-VN';
-                    synth.speak(utterVi);
-                };
+        chars[currentTab].forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            if (item.h === '') {
+                card.style.visibility = 'hidden';
+            } else {
+                card.onclick = () => speak(item);
+                card.innerHTML = `
+                    <span class="char-txt">${item.h}</span>
+                    <div class="sub-info ${show ? '' : 'hidden'}">
+                        <span class="icon">${item.i}</span>
+                        <div>${item.v}</div>
+                        <div style="color:var(--accent); font-weight:bold;">${item.m}</div>
+                    </div>`;
             }
-        }
+            grid.appendChild(card);
+        });
+    }
 
-        function openTab(idx) {
-            document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', i === idx));
-            document.querySelectorAll('.tab-content').forEach((c, i) => c.classList.toggle('active', i === idx));
-        }
+    function changeTab(tab, btn) {
+        currentTab = tab;
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderGrid();
+    }
 
-        document.getElementById('speed').oninput = (e) => document.getElementById('speed-val').innerText = e.target.value;
-        init();
-    </script>
+    function toggleMenu() { document.getElementById('side-menu').classList.toggle('open'); }
+
+    function updateTheme() {
+        document.documentElement.style.setProperty('--char-c', document.getElementById('colorChar').value);
+        document.documentElement.style.setProperty('--bg', document.getElementById('colorBg').value);
+    }
+
+    function speak(item) {
+        synth.cancel();
+        const rate = parseFloat(document.getElementById('speed').value);
+        const mode = document.getElementById('mode').value;
+        const voices = synth.getVoices();
+
+        const uChar = new SpeechSynthesisUtterance(item.h);
+        uChar.voice = voices.find(v => v.name === document.getElementById('vJa').value);
+        uChar.lang = 'ja-JP'; uChar.rate = rate;
+
+        const uVocab = new SpeechSynthesisUtterance(item.v);
+        uVocab.voice = uChar.voice; uVocab.lang = 'ja-JP'; uVocab.rate = rate;
+
+        const uViet = new SpeechSynthesisUtterance(item.m);
+        uViet.voice = voices.find(v => v.name === document.getElementById('vVi').value);
+        uViet.lang = 'vi-VN'; uViet.rate = rate;
+
+        synth.speak(uChar);
+        setTimeout(() => {
+            if(item.v) synth.speak(uVocab);
+            if (mode === 'javi' && item.m) synth.speak(uViet);
+        }, 300);
+    }
+
+    function initVoices() {
+        const voices = synth.getVoices();
+        const sJa = document.getElementById('vJa'), sVi = document.getElementById('vVi');
+        sJa.innerHTML = ''; sVi.innerHTML = '';
+        voices.forEach(v => {
+            if (v.lang.includes('ja')) sJa.add(new Option(v.name, v.name));
+            if (v.lang.includes('vi')) sVi.add(new Option(v.name, v.name));
+        });
+    }
+
+    window.onload = () => {
+        renderGrid();
+        initVoices();
+        if (synth.onvoiceschanged !== undefined) synth.onvoiceschanged = initVoices;
+    };
+</script>
 </body>
 </html>

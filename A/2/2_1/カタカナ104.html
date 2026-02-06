@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Katakana Mastery</title>
+    <link href="https://cdnjs.cloudflare.com" rel="stylesheet">
+    <style>
+        :root { --bg: #0b1120; --card: #1e293b; --accent: #f59e0b; --text: #f1f5f9; --char-c: #f59e0b; }
+        body { margin: 0; font-family: 'Hiragino Sans', sans-serif; background: var(--bg); color: var(--text); -webkit-tap-highlight-color: transparent; }
+        
+        .top-bar { display: flex; align-items: center; padding: 10px 15px; background: #0f172a; border-bottom: 1px solid #334155; position: sticky; top: 0; z-index: 1000; height: 50px; }
+        .tabs { display: flex; gap: 8px; position: absolute; left: 50%; transform: translateX(-50%); }
+        .tab-btn { background: none; border: none; color: #94a3b8; padding: 8px 12px; cursor: pointer; font-weight: bold; font-size: 0.9rem; border-radius: 6px; transition: 0.2s; }
+        .tab-btn.active { color: var(--accent); background: rgba(245, 158, 11, 0.1); }
+        .menu-toggle { background: var(--accent); border: none; color: #000; width: 38px; height: 38px; border-radius: 8px; cursor: pointer; margin-left: auto; }
+
+        .grid-wrapper { padding: 20px; display: flex; justify-content: center; }
+        .grid { display: grid; width: 100%; max-width: 650px; gap: 10px; }
+        .grid-5 { grid-template-columns: repeat(5, 1fr); }
+        .grid-3 { grid-template-columns: repeat(3, 1fr); }
+
+        .card { background: var(--card); border-radius: 12px; aspect-ratio: 1/1; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; border: 1px solid rgba(255,255,255,0.05); transition: transform 0.1s; }
+        .card:active { transform: scale(0.95); background: #2d3a4f; }
+        
+        .char-txt { font-size: 2.5rem; color: var(--char-c); font-weight: bold; line-height: 1; }
+        .sub-info { font-size: 0.8rem; color: #94a3b8; margin-top: 6px; text-align: center; }
+        .icon { font-size: 1.1rem; margin-bottom: 2px; display: block; }
+
+        #side-menu { position: fixed; top: 0; right: -300px; width: 280px; height: 100%; background: #1e293b; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 2000; padding: 25px; box-sizing: border-box; box-shadow: -5px 0 20px rgba(0,0,0,0.5); }
+        #side-menu.open { right: 0; }
+        .opt-group { margin-bottom: 15px; }
+        label { display: block; font-size: 0.8rem; margin-bottom: 5px; color: #cbd5e1; }
+        select, input[type="range"] { width: 100%; padding: 8px; border-radius: 6px; background: #0f172a; color: #fff; border: 1px solid #475569; }
+        .hidden { display: none !important; }
+        
+        @media (max-width: 400px) { .char-txt { font-size: 1.8rem; } .sub-info { font-size: 0.7rem; } }
+    </style>
+</head>
+<body>
+
+<div class="top-bar">
+    <div class="tabs">
+        <button class="tab-btn active" onclick="changeTab('basic', this)">清音（せいおん）</button>
+        <button class="tab-btn" onclick="changeTab('tenten', this)">濁音（だくおん）</button>
+        <button class="tab-btn" onclick="changeTab('combo', this)">拗音（ようおん）</button>
+    </div>
+    <button class="menu-toggle" onclick="toggleMenu()"><i class="fas fa-cog"></i></button>
+</div>
+
+<div id="side-menu">
+    <h3 style="margin-top:0; font-size: 1.2rem;">Katakana 設定</h3>
+    <div class="opt-group"><label>文字の色</label><input type="color" id="colorChar" value="#f59e0b" onchange="updateTheme()"></div>
+    <div class="opt-group"><label>背景色</label><input type="color" id="colorBg" value="#0b1120" onchange="updateTheme()"></div>
+    <div class="opt-group"><label>読み上げ速度</label><input type="range" id="speed" min="0.5" max="1.5" step="0.1" value="1"></div>
+    <div class="opt-group"><label>日本語音声</label><select id="vJa"></select></div>
+    <div class="opt-group"><label>ベトナム語音声</label><select id="vVi"></select></div>
+    <div class="opt-group"><label>再生モード</label>
+        <select id="mode">
+            <option value="ja">日本語のみ</option>
+            <option value="javi">日越両方</option>
+        </select>
+    </div>
+    <div class="opt-group">
+        <label style="display:flex; align-items:center; gap:8px;">
+            <input type="checkbox" id="showInfo" checked onchange="renderGrid()"> 語彙を表示
+        </label>
+    </div>
+    <button onclick="toggleMenu()" style="width:100%; padding:10px; background:var(--accent); border:none; border-radius:6px; cursor:pointer; font-weight:bold;">閉じる</button>
+</div>
+
+<div class="grid-wrapper">
+    <div id="grid" class="grid grid-5"></div>
+</div>
+
+<script>
+    const chars = {
+        basic: [
+            {h:'ア',i:'🍦',v:'アイス',m:'Kem'},{h:'イ',i:'🏠',v:'イエ',m:'Nhà'},{h:'ウ',i:'⌚',v:'ウオッチ',m:'Đồng hồ'},{h:'エ',i:'🖼️',v:'エアコン',m:'Điều hòa'},{h:'オ',i:'🍊',v:'オレンジ',m:'Cam'},
+            {h:'カ',i:'📸',v:'カメラ',m:'Máy ảnh'},{h:'キ',i:'💋',v:'キス',m:'Hôn'},{h:'ク',i:'🎄',v:'クリスマス',m:'Giáng sinh'},{h:'ケ',i:'🍰',v:'ケーキ',m:'Bánh ngọt'},{h:'コ',i:'☕',v:'コーヒー',m:'Cà phê'},
+            {h:'サ',i:'🥪',v:'サンドイッチ',m:'Bánh mì kẹp'},{h:'シ',i:'👕',v:'シャツ',m:'Áo sơ mi'},{h:'ス',i:'🎿',v:'スキー',m:'Trượt tuyết'},{h:'セ',i:'🏮',v:'センター',m:'Trung tâm'},{h:'ソ',i:'🌭',v:'ソーセージ',m:'Xúc xích'},
+            {h:'タ',i:'🚕',v:'タクシー',m:'Taxi'},{h:'チ',i:'🧀',v:'チーズ',m:'Phô mai'},{h:'ツ',i:'🏢',v:'ツアー',m:'Tour'},{h:'テ',i:'📺',v:'テレビ',m:'Tivi'},{h:'ト',i:'🍅',v:'トマト',m:'Cà chua'},
+            {h:'ナ',i:'🔪',v:'ナイフ',m:'Dao'},{h:'ニ',i:'📰',v:'ニュース',m:'Tin tức'},{h:'ヌ',i:'🧸',v:'ヌイグルミ',m:'Thú bông'},{h:'ネ',i:'👔',v:'ネクタイ',m:'Cà vạt'},{h:'ノ',i:'📓',v:'ノート',m:'Vở'},
+            {h:'ハ',i:'🍔',v:'ハンバーガー',m:'Hamburger'},{h:'ヒ',i:'🎹',v:'ピアノ',m:'Piano'},{h:'フ',i:'🍴',v:'フォーク',m:'Nĩa'},{h:'ヘ',i:'🚁',v:'ヘリコプター',m:'Trực thăng'},{h:'ホ',i:'🏨',v:'ホテル',m:'Khách sạn'},
+            {h:'マ',i:'😷',v:'マスク',m:'Khẩu trang'},{h:'ミ',i:'🍼',v:'ミルク',m:'Sữa'},{h:'ム',i:'🎥',v:'ムービー',m:'Phim'},{h:'メ',i:'👓',v:'メガネ',m:'mắt kính'},{h:'モ',i:'🚋',v:'モノレール',m:'Tàu điện treo'},
+            {h:'ヤ',i:'🌴',v:'ヤシ',m:'Cây cọ'},{h:'',i:'',v:'',m:''},{h:'ユ',i:'👨',v:'ユーザー',m:'người dùng'},{h:'',i:'',v:'',m:''},{h:'ヨ',i:'⛵',v:'ヨット',m:'Thuyền buồm'},
+            {h:'ラ',i:'📻',v:'ラジオ',m:'Radio'},{h:'リ',i:'👦',v:'リーダー',m:'Người lảnh đạo'},{h:'ル',i:'📏',v:'ルール',m:'Luật lệ'},{h:'レ',i:'🍋',v:'レモン',m:'Chanh'},{h:'ロ',i:'🤖',v:'ロボット',m:'Robot'},
+            {h:'ワ',i:'🍷',v:'ワイン',m:'Rượu vang'},{h:'',i:'',v:'',m:''},{h:'ヲ',i:'📍',v:'ヲ',m:'Trợ từ'},{h:'',i:'',v:'',m:''},{h:'ン',i:'🍞',v:'パン',m:'Bánh mì'}
+        ],
+        tenten: [
+            {h:'ガ',i:'⛽',v:'ガス',m:'Gas'},{h:'ギ',i:'🎸',v:'ギター',m:'Guitar'},{h:'グ',i:'🥃',v:'グラス',m:'Cái cốc'},{h:'げ',i:'🎮',v:'ゲーム',m:'Trò chơi'},{h:'ゴ',i:'🦍',v:'ゴリラ',m:'khỉ đột　Go　ri　la'},
+            {h:'ザ',i:'🍕',v:'ピザ',m:'bánh piza'},{h:'ジ',i:'👖',v:'ジーンズ',m:'Quần jean'},{h:'ズ',i:'🩳',v:'はんズボン',m:'Quần ngắn'},{h:'ゼ',i:'🍮',v:'ゼリー',m:'Thạch'},{h:'ゾ',i:'🧟 ',v:'ゾンビ',m:'Xác sống '},
+            {h:'ダ',i:'💎',v:'ダイヤ',m:'Kim cương'},{h:'ヂ',i:'🌕',v:'チヂミ',m:'tên Món bánh xèo Triều Tiên'},{h:'ヅ',i:'👃',v:'ハナヅマリ',m:'nghẹt mũi'},{h:'デ',i:'📅',v:'デート',m:'Hẹn hò'},{h:'ド',i:'🚪',v:'ドア',m:'Cửa'},
+            {h:'バ',i:'🍌',v:'バナ',m:'Chuối'},{h:'ビ',i:'🍺',v:'ビール',m:'Bia'},{h:'ブ',i:'🛀',v:'バス',m:'Bồn tắm'},{h:'ベ',i:'🛏️',v:'ベッド',m:'Giường'},{h:'ボ',i:'⚽',v:'ボール',m:'Bóng'},
+            {h:'パ',i:'🥐',v:'パン',m:'Bánh mì'},{h:'ピ',i:'🍕',v:'ピザ',m:'Pizza'},{h:'プ',i:'🎁',v:'プレゼント',m:'Quà'},{h:'ペ',i:'🐧',v:'ペンギン',m:'Chim cánh cụt'},{h:'ポ',i:'🍟',v:'ポテト',m:'Khoai tây'}
+        ],
+        combo: [
+            {h:'キャ',i:'⛺',v:'キャンプ',m:'Cắm trại'},{h:'キュ',i:'🥒',v:'キューリ',m:'Dưa'},{h:'キョ',i:'📏',v:'キョウリ',m:'Khoảng cách'},
+            {h:'シャ',i:'🚿',v:'シャワー',m:'Vòi sen'},{h:'シュ',i:'👟',v:'シューズ',m:'Giày'},{h:'ショ',i:'🛍️',v:'ショップ',m:'Cửa hàng'},
+            {h:'チャ',i:'📉',v:'チャート',m:'Biểu đồ'},{h:'チュ',i:'チューブ',v:'🧪',m:'Ống'},{h:'チョ',i:'🍫',v:'チョコ',m:'Socola'},
+            {h:'ニャ',i:'🐈',v:'ニャー',m:'Mèo'},{h:'ニュ',i:'📰',v:'ニュース',m:'Tin tức'},{h:'ニョ',i:'💦',v:'ニョウ',m:'Nước tiểu'},
+            {h:'ヒャ',i:'💯',v:'ヒャク',m:'một trăm'},{h:'ヒュ',i:'👦',v:'ヒューマン',m:'con người'},{h:'ヒョ',i:'⛈',v:'ヒョウ',m:'mưa đá'},
+            {h:'ミャ',i:'🗺',v:'ミャンマー',m:'nước myanma'},{h:'ミュ',i:'🎵',v:'ミュージック',m:'Nhạc'},{h:'ミョ',i:'🥬',v:'ミョウガ',m:'rau mi o ga'},
+            {h:'リャ',i:'✄',v:'リャク',m:'lược bỏ,rút gọn'},{h:'リュ',i:'🎒',v:'リュック',m:'Ba lô'},{h:'リョ',i:'🫡',v:'リョウカイ',m:'Rõ rồi　Đã hiểu!'},
+            {h:'ギャ',i:'🃏',v:'ギャンブル',m:'Cờ bạc'},{h:'ギュ',i:'🐄',v:'ギュウニュウ',m:'Sữa'},{h:'ギョ',i:'🥟',v:'ギョーザ',m:'sủi cảo'},
+            {h:'ジャ',i:'🍓',v:'ジャム',m:'Mứt'},{h:'ジュ',i:'🥤',v:'ジュース',m:'Nước ép'},{h:'ジョ',i:'🏃',v:'ジョギング',m:'Chạy bộ'},
+            {h:'ビャ',i:'３００',v:'サンビャク',m:'ba trăm'},{h:'ビュ',i:'🍴',v:'ビュッフェ',m:'ăn tự chọn'},{h:'ビョ',i:'⌛',v:'ビョウ',m:'đơn vị giây  '},
+            {h:'ピャ',i:'800',v:'ハッピャク',m:'tám trăm'},{h:'ピュ',i:'💎',v:'ピュア',m:'thuần khiết'},{h:'ピョ',i:'🐸',v:'ピョン',m:'Tiếng thỏ và ếch nhảy'}
+        ]
+    };
+
+    let currentTab = 'basic';
+    const synth = window.speechSynthesis;
+
+    function renderGrid() {
+        const grid = document.getElementById('grid');
+        grid.className = `grid ${currentTab === 'combo' ? 'grid-3' : 'grid-5'}`;
+        grid.innerHTML = '';
+        const show = document.getElementById('showInfo').checked;
+
+        chars[currentTab].forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            if (item.h === '') {
+                card.style.visibility = 'hidden';
+            } else {
+                card.onclick = () => speak(item);
+                card.innerHTML = `
+                    <span class="char-txt">${item.h}</span>
+                    <div class="sub-info ${show ? '' : 'hidden'}">
+                        <span class="icon">${item.i}</span>
+                        <div>${item.v}</div>
+                        <div style="color:var(--accent); font-weight:bold;">${item.m}</div>
+                    </div>`;
+            }
+            grid.appendChild(card);
+        });
+    }
+
+    function changeTab(tab, btn) {
+        currentTab = tab;
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderGrid();
+    }
+
+    function toggleMenu() { document.getElementById('side-menu').classList.toggle('open'); }
+
+    function updateTheme() {
+        document.documentElement.style.setProperty('--char-c', document.getElementById('colorChar').value);
+        document.documentElement.style.setProperty('--bg', document.getElementById('colorBg').value);
+    }
+
+    function speak(item) {
+        synth.cancel();
+        const rate = parseFloat(document.getElementById('speed').value);
+        const mode = document.getElementById('mode').value;
+        const voices = synth.getVoices();
+
+        const uChar = new SpeechSynthesisUtterance(item.h);
+        uChar.voice = voices.find(v => v.name === document.getElementById('vJa').value);
+        uChar.lang = 'ja-JP'; uChar.rate = rate;
+
+        const uVocab = new SpeechSynthesisUtterance(item.v);
+        uVocab.voice = uChar.voice; uVocab.lang = 'ja-JP'; uVocab.rate = rate;
+
+        const uViet = new SpeechSynthesisUtterance(item.m);
+        uViet.voice = voices.find(v => v.name === document.getElementById('vVi').value);
+        uViet.lang = 'vi-VN'; uViet.rate = rate;
+
+        synth.speak(uChar);
+        setTimeout(() => {
+            if(item.v && item.v !== '-') synth.speak(uVocab);
+            if (mode === 'javi' && item.m && item.m !== '-') synth.speak(uViet);
+        }, 300);
+    }
+
+    function initVoices() {
+        const voices = synth.getVoices();
+        const sJa = document.getElementById('vJa'), sVi = document.getElementById('vVi');
+        sJa.innerHTML = ''; sVi.innerHTML = '';
+        voices.forEach(v => {
+            if (v.lang.includes('ja')) sJa.add(new Option(v.name, v.name));
+            if (v.lang.includes('vi')) sVi.add(new Option(v.name, v.name));
+        });
+    }
+
+    window.onload = () => {
+        renderGrid();
+        initVoices();
+        if (synth.onvoiceschanged !== undefined) synth.onvoiceschanged = initVoices;
+    };
+</script>
+</body>
+</html>
