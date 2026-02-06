@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Logic Nhân Chia: Chuyển Vế Tự Do</title>
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #fdf6e3; display: flex; flex-direction: column; align-items: center; padding-top: 30px; }
+        .tabs { margin-bottom: 20px; }
+        .tab-btn { padding: 12px 20px; cursor: pointer; border: none; border-radius: 8px; background: white; font-weight: bold; margin: 0 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: 0.3s; }
+        .tab-btn.active { background: #d33682; color: white; }
+
+        .equation-box { display: flex; align-items: center; gap: 20px; background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .side { display: flex; align-items: center; gap: 10px; min-width: 160px; min-height: 100px; border: 2px dashed #93a1a1; border-radius: 15px; padding: 20px; background: #eee8d5; }
+        
+        .num-card { padding: 15px 25px; border-radius: 10px; color: white; font-size: 2.2rem; font-weight: bold; cursor: grab; transition: 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .mul-style { background: #6c71c4; } 
+        .div-style { background: #cb4b16; } 
+
+        .static-card { padding: 15px 25px; border-radius: 10px; font-size: 2.2rem; font-weight: bold; background: #93a1a1; color: white; border: none; }
+        .unit-card { padding: 10px 15px; font-size: 1.5rem; color: #93a1a1; font-weight: bold; border: 1px solid #93a1a1; border-radius: 5px; }
+
+        .symbol { font-size: 2.5rem; font-weight: bold; color: #586e75; }
+        .refresh-btn { margin-top: 20px; padding: 10px 25px; cursor: pointer; background: #859900; color: white; border: none; border-radius: 5px; font-weight: bold; }
+        .hint { margin-top: 15px; color: #586e75; font-style: italic; }
+    </style>
+</head>
+<body>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="setMode(10)">Bảng 1-10</button>
+        <button class="tab-btn" onclick="setMode(50)">Bảng 1-50</button>
+        <button class="tab-btn" onclick="setMode(100)">Bảng 1-100</button>
+    </div>
+
+    <div class="equation-box">
+        <!-- Vế Trái -->
+        <div id="left" class="side" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+
+        <div class="symbol">=</div>
+
+        <!-- Vế Phải -->
+        <div id="right" class="side" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+    </div>
+
+    <button class="refresh-btn" onclick="generate()">Đổi đề bài mới</button>
+    <p class="hint">Bạn có thể kéo cả hai số sang vế phải!</p>
+
+<script>
+    let currentMax = 10;
+
+    function setMode(max) {
+        currentMax = max;
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        event.target.classList.add('active');
+        generate();
+    }
+
+    function generate() {
+        const leftZone = document.getElementById('left');
+        const rightZone = document.getElementById('right');
+        leftZone.innerHTML = ''; rightZone.innerHTML = '';
+
+        // Random a * b = product
+        let a = Math.floor(Math.random() * 8) + 2;
+        let b = Math.floor(Math.random() * (currentMax / a)) + 1;
+        if (b < 1) b = 1;
+        let sum = a * b;
+
+        // Tạo 2 thẻ số có thể kéo
+        for(let i=0; i<2; i++) {
+            let val = (i === 0) ? a : b;
+            const d = document.createElement('div');
+            d.id = 'draggable-' + i + '-' + Date.now();
+            d.className = 'num-card mul-style';
+            d.draggable = true;
+            d.innerText = val;
+            d.setAttribute('data-val', val);
+            d.ondragstart = (e) => e.dataTransfer.setData("text", e.target.id);
+            leftZone.appendChild(d);
+        }
+
+        // Tạo số tổng cố định bên phải
+        const s = document.createElement('div');
+        s.id = "sum-card";
+        s.className = 'static-card';
+        s.innerText = sum;
+        rightZone.appendChild(s);
+
+        reorganize();
+    }
+
+    function allowDrop(ev) { ev.preventDefault(); }
+
+    function drop(ev) {
+        ev.preventDefault();
+        const id = ev.dataTransfer.getData("text");
+        const el = document.getElementById(id);
+        const target = ev.currentTarget.id;
+
+        // Thay đổi giao diện dựa trên vế
+        if (target === 'right') {
+            el.className = 'num-card div-style';
+            el.innerText = "÷ " + el.getAttribute('data-val');
+        } else {
+            el.className = 'num-card mul-style';
+            el.innerText = el.getAttribute('data-val');
+        }
+
+        ev.currentTarget.appendChild(el);
+        reorganize();
+    }
+
+    function reorganize() {
+        const l = document.getElementById('left');
+        const r = document.getElementById('right');
+        
+        // --- Xử lý vế TRÁI ---
+        const lCards = Array.from(l.querySelectorAll('.num-card'));
+        l.innerHTML = '';
+        if (lCards.length === 0) {
+            // Nếu không còn số nào, hiện số 1 làm gốc của phép nhân
+            l.innerHTML = '<div class="unit-card">1</div>';
+        } else {
+            lCards.forEach((card, i) => {
+                l.appendChild(card);
+                if (i < lCards.length - 1) {
+                    const sym = document.createElement('span');
+                    sym.className = 'symbol'; sym.innerText = '×';
+                    l.appendChild(sym);
+                }
+            });
+        }
+
+        // --- Xử lý vế PHẢI ---
+        const rCards = Array.from(r.querySelectorAll('.num-card'));
+        const sumCard = document.getElementById('sum-card');
+        r.innerHTML = '';
+        r.appendChild(sumCard); // Số tổng luôn đứng đầu
+        rCards.forEach(card => r.appendChild(card));
+    }
+
+    generate();
+</script>
+</body>
+</html>

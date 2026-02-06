@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Hệ thống Bóng - Full Settings & Mute</title>
+    <style>
+        :root {
+            --circle-size: 600px;
+            --ball-size: 80px;
+            --neon-blue: #00d2ff;
+            --neon-green: #00ff88;
+            --bg-dark: #050505;
+            --ball-color: #ff5f6d;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: var(--bg-dark);
+            font-family: 'Segoe UI', sans-serif;
+            color: white;
+            overflow-x: hidden;
+            transition: background 0.4s ease;
+        }
+
+        /* MENU GÓC PHẢI */
+        .settings-panel {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            width: 350px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 15px;
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            z-index: 1000;
+        }
+        .settings-panel h3 { margin: 0 0 10px 0; font-size: 0.9rem; color: var(--neon-green); text-align: center; }
+        .voice-selectors { display: flex; gap: 10px; margin-bottom: 10px; }
+        .control-item { flex: 1; display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
+        .control-item label { font-size: 0.7rem; opacity: 0.7; }
+        
+        select, input { padding: 6px; border-radius: 6px; border: none; background: #222; color: white; cursor: pointer; font-size: 0.75rem; width: 100%; }
+
+        /* NÚT TẮT ÂM */
+        .mute-btn {
+            width: 100%;
+            padding: 8px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.8rem;
+            transition: 0.3s;
+            background: var(--neon-blue);
+            color: black;
+            margin-top: 5px;
+        }
+        .mute-btn.is-muted { background: #ff4757; color: white; }
+
+        /* GIAO DIỆN CHÍNH */
+        .total-number { 
+            font-size: 8rem; font-weight: 900; color: var(--neon-green); 
+            margin: 20px 0 5px 0; text-shadow: 0 0 30px rgba(0, 255, 136, 0.5);
+            line-height: 1;
+        }
+
+        .tabs-bar {
+            display: flex; gap: 8px; margin-bottom: 25px;
+            background: rgba(255,255,255,0.05); padding: 8px; border-radius: 50px;
+        }
+        .tab {
+            padding: 10px 18px; background: #1a1a1a; border-radius: 25px;
+            cursor: pointer; font-weight: 800; transition: 0.3s; font-size: 0.9rem;
+        }
+        .tab.active { background: var(--neon-blue); color: black; box-shadow: 0 0 15px var(--neon-blue); }
+
+        .playground { display: flex; gap: 40px; justify-content: center; align-items: center; width: 100%; }
+        .circle-container { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+        .big-number { font-size: 7rem; font-weight: 900; color: var(--neon-blue); line-height: 1; }
+
+        .circle-area {
+            width: var(--circle-size); height: var(--circle-size);
+            border-radius: 50%; background: radial-gradient(circle, #111, #000);
+            border: 6px solid #222; display: grid;
+            grid-template-columns: repeat(4, var(--ball-size));
+            gap: 15px; justify-content: center; align-content: center;
+            box-shadow: inset 0 0 80px rgba(0,0,0,1);
+            position: relative;
+        }
+
+        /* BÓNG 3D */
+        .ball {
+            width: var(--ball-size); height: var(--ball-size);
+            background: radial-gradient(circle at 30% 30%, var(--ball-color), #000);
+            border-radius: 50%; cursor: pointer; box-shadow: 0 8px 15px rgba(0,0,0,0.6);
+            position: relative;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.2s;
+        }
+        .ball:hover { transform: scale(1.1); }
+        .ball::before { content: ''; position: absolute; top: 15%; left: 15%; width: 25%; height: 25%; background: rgba(255, 255, 255, 0.4); border-radius: 50%; filter: blur(1px); }
+    </style>
+</head>
+<body>
+
+    <div class="settings-panel">
+        <h3>HỆ THỐNG CÀI ĐẶT</h3>
+        
+        <div class="control-item">
+            <label>Chế độ ngôn ngữ</label>
+            <select id="langMode">
+                <option value="ja-JP">Tiếng Nhật (は...と...)</option>
+                <option value="vi-VN">Tiếng Việt (gồm...và...)</option>
+            </select>
+        </div>
+
+        <div class="voice-selectors">
+            <div class="control-item">
+                <label>Giọng Nhật (JP)</label>
+                <select id="voiceJP"></select>
+            </div>
+            <div class="control-item">
+                <label>Giọng Việt (VN)</label>
+                <select id="voiceVN"></select>
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+            <div class="control-item">
+                <label>Màu bóng</label>
+                <input type="color" id="colorBall" value="#ff5f6d">
+            </div>
+            <div class="control-item">
+                <label>Màu nền</label>
+                <input type="color" id="colorBg" value="#050505">
+            </div>
+        </div>
+
+        <button id="muteBtn" class="mute-btn">ÂM THANH: BẬT</button>
+    </div>
+
+    <p id="total-val" class="total-number">0</p>
+    <div class="tabs-bar" id="tab-list"></div>
+
+    <div class="playground">
+        <div class="circle-container">
+            <div id="num-left" class="big-number">0</div>
+            <div id="area-left" class="circle-area"></div>
+        </div>
+        <div class="circle-container">
+            <div id="num-right" class="big-number">0</div>
+            <div id="area-right" class="circle-area"></div>
+        </div>
+    </div>
+
+    <script>
+        const voiceJP = document.getElementById('voiceJP');
+        const voiceVN = document.getElementById('voiceVN');
+        const langMode = document.getElementById('langMode');
+        const muteBtn = document.getElementById('muteBtn');
+        const areaL = document.getElementById('area-left');
+        const areaR = document.getElementById('area-right');
+        
+        let allVoices = [];
+        let isMuted = false;
+
+        // 1. Tải danh sách giọng đọc
+        function loadVoices() {
+            allVoices = window.speechSynthesis.getVoices();
+            const jpVoices = allVoices.filter(v => v.lang.includes('ja'));
+            voiceJP.innerHTML = jpVoices.map(v => `<option value="${v.name}">${v.name}</option>`).join('') || '<option>Không tìm thấy</option>';
+            const vnVoices = allVoices.filter(v => v.lang.includes('vi'));
+            voiceVN.innerHTML = vnVoices.map(v => `<option value="${v.name}">${v.name}</option>`).join('') || '<option>Không tìm thấy</option>';
+        }
+        window.speechSynthesis.onvoiceschanged = loadVoices;
+        loadVoices();
+
+        // 2. Logic tắt âm
+        muteBtn.onclick = () => {
+            isMuted = !isMuted;
+            muteBtn.innerText = isMuted ? "ÂM THANH: TẮT" : "ÂM THANH: BẬT";
+            muteBtn.classList.toggle('is-muted', isMuted);
+            if(isMuted) window.speechSynthesis.cancel();
+        };
+
+        // 3. Logic giọng nói
+        function speakNumbers() {
+            if (isMuted) return;
+
+            const total = document.getElementById('total-val').innerText;
+            const l = areaL.children.length;
+            const r = areaR.children.length;
+            const big = Math.max(l, r);
+            const small = Math.min(l, r);
+
+            window.speechSynthesis.cancel();
+            let text = (langMode.value === 'ja-JP') ? `${total} は ${big} と ${small}` : `${total} gồm ${big} và ${small}`;
+
+            const utter = new SpeechSynthesisUtterance(text);
+            const selectedVoice = (langMode.value === 'ja-JP') ? voiceJP.value : voiceVN.value;
+            utter.voice = allVoices.find(v => v.name === selectedVoice);
+            utter.lang = langMode.value;
+            utter.rate = 0.85;
+            window.speechSynthesis.speak(utter);
+        }
+
+        // 4. Các hàm xử lý giao diện
+        function createBall(parent) {
+            const b = document.createElement('div');
+            b.className = 'ball';
+            b.onclick = () => moveBall(b);
+            parent.appendChild(b);
+        }
+
+        function moveBall(ball) {
+            const currentParent = ball.parentElement;
+            const targetParent = (currentParent.id === 'area-left') ? areaR : areaL;
+            
+            ball.style.transform = "scale(0)";
+            ball.style.opacity = "0";
+            
+            setTimeout(() => {
+                targetParent.appendChild(ball);
+                ball.style.transform = "scale(1)";
+                ball.style.opacity = "1";
+                updateCounts(true);
+            }, 150);
+        }
+
+        function switchTab(n) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById(`tab-${n}`).classList.add('active');
+            areaL.innerHTML = ''; areaR.innerHTML = '';
+            const leftCount = Math.floor(n / 2);
+            for(let i=0; i<leftCount; i++) createBall(areaL);
+            for(let i=0; i<(n-leftCount); i++) createBall(areaR);
+            updateCounts(false);
+        }
+
+        function updateCounts(speak) {
+            const l = areaL.children.length;
+            const r = areaR.children.length;
+            document.getElementById('num-left').innerText = l;
+            document.getElementById('num-right').innerText = r;
+            document.getElementById('total-val').innerText = l + r;
+            if(speak) speakNumbers();
+        }
+
+        // 5. Cài đặt ban đầu
+        for (let i = 11; i <= 20; i++) {
+            const t = document.createElement('div');
+            t.className = 'tab'; t.innerText = i; t.id = 'tab-'+i;
+            t.onclick = () => switchTab(i);
+            document.getElementById('tab-list').appendChild(t);
+        }
+
+        document.getElementById('colorBall').oninput = (e) => {
+            document.documentElement.style.setProperty('--ball-color', e.target.value);
+        };
+        document.getElementById('colorBg').oninput = (e) => {
+            document.documentElement.style.setProperty('--bg-dark', e.target.value);
+        };
+
+        switchTab(11);
+    </script>
+</body>
+</html>

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Toán Logic: Chuyển Vế Ngẫu Nhiên</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #eef2f7; display: flex; flex-direction: column; align-items: center; padding-top: 30px; }
+        
+        .tabs { margin-bottom: 20px; display: flex; gap: 10px; }
+        .tab-btn { padding: 12px 20px; cursor: pointer; border: none; border-radius: 8px; background: white; font-weight: bold; transition: 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .tab-btn.active { background: #007bff; color: white; }
+
+        .equation-box { display: flex; align-items: center; gap: 20px; background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .side { display: flex; align-items: center; gap: 15px; min-width: 180px; min-height: 100px; border: 2px dashed #cbd5e0; border-radius: 15px; padding: 20px; background: #f8fafc; }
+        
+        /* Số kéo được (Vế trái) */
+        .num-card { padding: 15px 25px; border-radius: 10px; color: white; font-size: 2.2rem; font-weight: bold; cursor: grab; transition: 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .pos { background: #3498db; }
+        .neg { background: #e74c3c; }
+
+        /* Số đứng yên (Vế phải) */
+        .static-card { padding: 15px 25px; border-radius: 10px; color: #2d3436; font-size: 2.2rem; font-weight: bold; background: #dfe6e9; border: 2px solid #b2bec3; }
+        
+        .equals { font-size: 3.5rem; font-weight: bold; color: #2d3436; }
+        .refresh-btn { margin-top: 25px; padding: 10px 25px; cursor: pointer; background: #2ecc71; color: white; border: none; border-radius: 5px; font-weight: bold; font-size: 1rem; }
+        .refresh-btn:hover { background: #27ae60; }
+        .hint { margin-top: 15px; color: #7f8c8d; }
+    </style>
+</head>
+<body>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="setMode(10)">Phạm vi 1-10</button>
+        <button class="tab-btn" onclick="setMode(20)">Phạm vi 1-20</button>
+        <button class="tab-btn" onclick="setMode(100)">Phạm vi 1-100</button>
+    </div>
+
+    <div class="equation-box">
+        <div id="left" class="side" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+        <div class="equals">=</div>
+        <div id="right" class="side" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+    </div>
+
+    <button class="refresh-btn" onclick="generateProblem()">Đổi đề bài mới</button>
+    <p class="hint">Kéo các số màu xanh từ bên trái sang phải để xem sự đổi dấu!</p>
+
+<script>
+    let currentMax = 10;
+
+    function setMode(max) {
+        currentMax = max;
+        // Cập nhật giao diện tab
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.remove('active');
+            if(btn.innerText.includes(max)) btn.classList.add('active');
+        });
+        generateProblem();
+    }
+
+    function generateProblem() {
+        const leftZone = document.getElementById('left');
+        const rightZone = document.getElementById('right');
+        leftZone.innerHTML = '';
+        rightZone.innerHTML = '';
+
+        // Tạo số ngẫu nhiên sao cho a + b = sum
+        let a = Math.floor(Math.random() * (currentMax / 2)) + 1;
+        let b = Math.floor(Math.random() * (currentMax / 2)) + 1;
+        let sum = a + b;
+
+        // Tạo các thẻ số kéo được cho vế trái
+        [a, b].forEach((val, index) => {
+            const el = document.createElement('div');
+            el.id = 'draggable-' + index + '-' + Date.now();
+            el.className = 'num-card pos';
+            el.draggable = true;
+            el.innerText = val;
+            el.setAttribute('data-val', val);
+            el.ondragstart = (ev) => ev.dataTransfer.setData("text", ev.target.id);
+            leftZone.appendChild(el);
+        });
+
+        // Tạo số tổng cố định cho vế phải
+        const staticEl = document.createElement('div');
+        staticEl.className = 'static-card';
+        staticEl.innerText = sum;
+        rightZone.appendChild(staticEl);
+    }
+
+    function allowDrop(ev) { ev.preventDefault(); }
+
+    function drop(ev) {
+        ev.preventDefault();
+        const id = ev.dataTransfer.getData("text");
+        const el = document.getElementById(id);
+        const targetSide = ev.currentTarget.id;
+
+        if (targetSide === 'right') {
+            el.innerText = "- " + el.getAttribute('data-val');
+            el.className = "num-card neg";
+        } else {
+            el.innerText = el.getAttribute('data-val');
+            el.className = "num-card pos";
+        }
+        ev.currentTarget.appendChild(el);
+    }
+
+    // Khởi tạo đề bài đầu tiên
+    generateProblem();
+</script>
+
+</body>
+</html>
