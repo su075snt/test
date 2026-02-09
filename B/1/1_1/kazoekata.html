@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日本語数え方</title>
+    <link href="https://fonts.googleapis.com" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #e0f7fa;
+            --text-color: #263238;
+            --accent-color: #00796b;
+            --card-bg: #ffffff;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'M PLUS Rounded 1c', sans-serif;
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Side Menu */
+        #menu {
+            position: fixed;
+            top: 0;
+            right: -320px;
+            width: 280px;
+            height: 100%;
+            background: white;
+            box-shadow: -5px 0 20px rgba(0,0,0,0.15);
+            transition: 0.4s;
+            z-index: 2000;
+            padding: 30px;
+            overflow-y: auto;
+        }
+        #menu.active { right: 0; }
+
+        .btn-toggle {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            z-index: 2001;
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        /* 16 Tab Selection Area */
+        .tabs-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 60px;
+            max-width: 1200px;
+        }
+
+        .tab-btn {
+            background: #fff;
+            border: 2px solid var(--accent-color);
+            padding: 8px 15px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1.5rem;
+            transition: 0.3s;
+        }
+
+        .tab-btn.active {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        /* Grid 5x2 */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 15px;
+            width: 80%;
+            max-width: 1100px;
+            margin-top: 15px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 20px 5px;
+            border-radius: 20px;
+            text-align: center;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            border: 3px solid transparent;
+            transition: 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .card.active { border-color: #ff5252; transform: scale(1.02); }
+
+        .main-text { font-size: 2rem; font-weight: 800; color: #37474f; }
+        .reading { color: #d32f2f; font-size: 1.1rem; visibility: hidden; height: 1.2rem; }
+        .icon-box { margin: 8px 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 2px; min-height: 40px; }
+        .icon-item { font-size: 1.1rem; }
+        .viet { color: #546e7a; font-size: 0.9rem; visibility: hidden; border-top: 1px dashed #ddd; margin-top: 5px; padding-top: 5px; width: 80%; }
+
+        .card.active .reading, .card.active .viet.show { visibility: visible; }
+
+        .q-area { margin-top: 30px; text-align: center; }
+
+        /* Settings CSS */
+        .setting-group { margin-bottom: 20px; }
+        .mode-box { background: #f1f8e9; padding: 15px; border-radius: 12px; margin-bottom: 15px; }
+        select, input[type="range"] { width: 100%; margin-top: 5px; }
+
+        @media (max-width: 800px) {
+            .grid-container { grid-template-columns: repeat(2, 1fr); }
+            .main-text { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <button class="btn-toggle" onclick="document.getElementById('menu').classList.toggle('active')">設定 ☰</button>
+
+    <div id="menu">
+        <h3>学習設定</h3>
+        <div class="mode-box">
+            <label><b>モード</b></label><br><br>
+            <input type="radio" name="mode" id="jpOnly" checked> 日本語のみ<br>
+            <input type="radio" name="mode" id="jpVi"> 日本語・ベトナム語
+        </div>
+        <div class="setting-group">
+            <label>背景色</label>
+            <input type="color" id="bgCol" value="#e0f7fa" oninput="updateUI()">
+        </div>
+        <div class="setting-group">
+            <label>文字色</label>
+            <input type="color" id="textCol" value="#263238" oninput="updateUI()">
+        </div>
+        <div class="setting-group">
+            <label>速度</label>
+            <input type="range" id="speed" min="0.5" max="1.5" step="0.1" value="1">
+        </div>
+        <div class="setting-group"><label>日本語音声</label><select id="vJp"></select></div>
+        <div class="setting-group"><label>ベトナム語音声</label><select id="vVi"></select></div>
+    </div>
+
+    <div class="tabs-container" id="tabs"></div>
+
+    <h2 id="categoryTitle" style="margin-top: 20px; color: var(--accent-color);"></h2>
+
+    <div class="grid-container" id="cardGrid"></div>
+
+    <div class="q-area" id="questionArea"></div>
+
+    <script>
+        const counters = {
+            "tsu": { title: "物 (Cái - chung chung)", icon: "📦", query: "いくつですか？", qRead: "いくつ　ですか？", qVi: "Mấy cái?", 
+                items: [
+                    {k:'一つ', r:'ひとつ', v:'1 cái'}, {k:'二つ', r:'ふたつ', v:'2 cái'}, {k:'三つ', r:'みっつ', v:'3 cái'},
+                    {k:'四つ', r:'よっつ', v:'4 cái'}, {k:'五つ', r:'いつつ', v:'5 cái'}, {k:'六つ', r:'むっつ', v:'6 cái'},
+                    {k:'七つ', r:'ななつ', v:'7 cái'}, {k:'八つ', r:'やっつ', v:'8 cái'}, {k:'九つ', r:'ここのつ', v:'9 cái'}, {k:'十', r:'とお', v:'10 cái'}
+                ]
+            },
+            "nin": { title: "人 (Người)", icon: "👤", query: "何人ですか？", qRead: "なんにん　ですか？", qVi: "Mấy người?", 
+                items: [
+                    {k:'一人', r:'ひとり', v:'1 người'}, {k:'二人', r:'ふたり', v:'2 người'}, {k:'三人', r:'さんにん', v:'3 người'},
+                    {k:'四人', r:'よにん', v:'4 người'}, {k:'五人', r:'ごにん', v:'5 người'}, {k:'六人', r:'ろくにん', v:'6 người'},
+                    {k:'七人', r:'ななにん', v:'7 người'}, {k:'八人', r:'はちにん', v:'8 người'}, {k:'九人', r:'きゅうにん', v:'9 người'}, {k:'十人', r:'じゅうにん', v:'10 người'}
+                ]
+            },
+            "dai": { title: "台 (Máy móc, xe cộ)", icon: "🚗", query: "何台ですか？", qRead: "なんだい　ですか？", qVi: "Mấy chiếc?", 
+                items: [
+                    {k:'一台', r:'いちだい', v:'1 chiếc'}, {k:'二台', r:'にだい', v:'2 chiếc'}, {k:'三台', r:'さんだい', v:'3 chiếc'},
+                    {k:'四台', r:'よんだい', v:'4 chiếc'}, {k:'五台', r:'ごだい', v:'5 chiếc'}, {k:'六台', r:'ろくだい', v:'6 chiếc'},
+                    {k:'七台', r:'ななだい', v:'7 chiếc'}, {k:'八台', r:'はちだい', v:'8 chiếc'}, {k:'九台', r:'きゅうだい', v:'9 chiếc'}, {k:'十台', r:'じゅうだい', v:'10 chiếc'}
+                ]
+            },
+            "mai": { title: "枚 (Tờ, vật mỏng)", icon: "📄", query: "何枚ですか？", qRead: "なんまい　ですか", qVi: "Mấy tờ?", 
+                items: Array.from({length:10}, (_, i) => ({k:(i+1)+'枚', r:['いち','に','さん','よん','ご','ろく','なな','はち','きゅう','じゅう'][i]+'まい', v:(i+1)+' tờ'}))
+            },
+            "hon": { title: "本 (Vật dài)", icon: "🥢", query: "何本ですか？", qRead: "なんぼん　ですか？", qVi: "Mấy cây?", 
+                items: [
+                    {k:'一本', r:'いっぽん', v:'1 cây'}, {k:'二本', r:'にほん', v:'2 cây'}, {k:'三本', r:'さんぼん', v:'3 cây'},
+                    {k:'四本', r:'よんほん', v:'4 cây'}, {k:'五本', r:'ごほん', v:'5 cây'}, {k:'六本', r:'ろっぽん', v:'6 cây'},
+                    {k:'七本', r:'ななほん', v:'7 cây'}, {k:'八本', r:'はっぽん', v:'8 cây'}, {k:'九本', r:'きゅうほん', v:'9 cây'}, {k:'十本', r:'じゅっぽん', v:'10 cây'}
+                ]
+            },
+            "ko": { title: "個 (Vật nhỏ, tròn)", icon: "⚽", query: "何個ですか？", qRead: "なんこ　ですか？", qVi: "Mấy quả/cái?", 
+                items: [
+                    {k:'一個', r:'いっこ', v:'1 cái'}, {k:'二個', r:'にこ', v:'2 cái'}, {k:'三個', r:'さんこ', v:'3 cái'},
+                    {k:'四個', r:'よんこ', v:'4 cái'}, {k:'五個', r:'ごこ', v:'5 cái'}, {k:'六個', r:'ろっこ', v:'6 cái'},
+                    {k:'七個', r:'ななこ', v:'7 cái'}, {k:'八個', r:'はっこ', v:'8 cái'}, {k:'九個', r:'きゅうこ', v:'9 cái'}, {k:'十個', r:'じゅっこ', v:'10 cái'}
+                ]
+            },
+            "satsu": { title: "冊 (Cuốn sách)", icon: "📚", query: "何冊ですか？", qRead: "なんさつ　ですか？", qVi: "Mấy cuốn sách,　mấy quyển sách?", 
+                items: [
+                    {k:'一冊', r:'いっさつ', v:'1 cuốn'}, {k:'二冊', r:'にさつ', v:'2 cuốn'}, {k:'三冊', r:'さんさつ', v:'3 cuốn'},
+                    {k:'四冊', r:'よんさつ', v:'4 cuốn'}, {k:'五冊', r:'ごさつ', v:'5 cuốn'}, {k:'六冊', r:'ろくさつ', v:'6 cuốn'},
+                    {k:'七冊', r:'ななさつ', v:'7 cuốn'}, {k:'八冊', r:'はっさつ', v:'8 cuốn'}, {k:'九冊', r:'きゅうさつ', v:'9 cuốn'}, {k:'十冊', r:'じゅっさつ', v:'10 cuốn'}
+                ]
+            },
+            "hiki": { title: "匹 (Con vật nhỏ)", icon: "🐱", query: "何匹ですか？", qRead: "なんびき　ですか？", qVi: "Mấy con?", 
+                items: [
+                    {k:'一匹', r:'いっぴき', v:'1 con'}, {k:'二匹', r:'にひき', v:'2 con'}, {k:'三匹', r:'さんびき', v:'3 con'},
+                    {k:'四匹', r:'よんひき', v:'4 con'}, {k:'五匹', r:'ごひき', v:'5 con'}, {k:'六匹', r:'ろっぴき', v:'6 con'},
+                    {k:'七匹', r:'ななひき', v:'7 con'}, {k:'八匹', r:'はっぴき', v:'8 con'}, {k:'九匹', r:'きゅうひき', v:'9 con'}, {k:'十匹', r:'じゅっぴき', v:'10 con'}
+                ]
+            },
+            "kai": { title: "階 (Tầng lầu)", icon: "🏢", query: "何階ですか？", qRead: "なんがい　ですか？", qVi: "Tầng mấy?", 
+                items: [
+                    {k:'一階', r:'いっかい', v:'Tầng 1'}, {k:'二階', r:'にかい', v:'Tầng 2'}, {k:'三階', r:'さんがい', v:'Tầng 3'},
+                    {k:'四階', r:'よんかい', v:'Tầng 4'}, {k:'五階', r:'ごかい', v:'Tầng 5'}, {k:'六階', r:'ろっかい', v:'Tầng 6'},
+                    {k:'七階', r:'ななかい', v:'Tầng 7'}, {k:'八階', r:'はっかい', v:'Tầng 8'}, {k:'九階', r:'きゅうかい', v:'Tầng 9'}, {k:'十階', r:'じゅっかい', v:'Tầng 10'}
+                ]
+            },
+            "jikan": { title: "時間 (Tiếng đồng hồ)", icon: "⏰", query: "何時間ですか？", qRead: "なんじかん　ですか？", qVi: "Mấy tiếng?", 
+                items: Array.from({length:10}, (_, i) => ({k:(i+1)+'時間', r:['いち','に','さん','よ','ご','ろく','しち','はち','く','じゅう'][i]+'じかん', v:(i+1)+' tiếng'}))
+            },
+            "fun": { title: "分 (Phút)", icon: "⏲️", query: "何分ですか？", qRead: "なんぷん　ですか？", qVi: "Mấy phút?", 
+                items: [
+                    {k:'一分', r:'いっぷん', v:'1 phút'}, {k:'二分', r:'にふん', v:'2 phút'}, {k:'三分', r:'さんぷん', v:'3 phút'},
+                    {k:'四分', r:'よんぷん', v:'4 phút'}, {k:'五分', r:'ごふん', v:'5 phút'}, {k:'六分', r:'ろっぷん', v:'6 phút'},
+                    {k:'七分', r:'ななふん', v:'7 phút'}, {k:'八分', r:'はっぷん', v:'8 phút'}, {k:'九分', r:'きゅうふん', v:'9 phút'}, {k:'十分', r:'じゅっぷん', v:'10 phút'}
+                ]
+            },
+            "sai": { title: "歳 (Tuổi)", icon: "🎂", query: "何歳ですか？", qRead: "なんさい　ですか？", qVi: "Mấy tuổi?", 
+                items: [
+                    {k:'一歳', r:'いっさい', v:'1 tuổi'}, {k:'二歳', r:'にさい', v:'2 tuổi'}, {k:'三歳', r:'さんさい', v:'3 tuổi'},
+                    {k:'四歳', r:'よんさい', v:'4 tuổi'}, {k:'五歳', r:'ごさい', v:'5 tuổi'}, {k:'六歳', r:'ろくさい', v:'6 tuổi'},
+                    {k:'七歳', r:'ななさい', v:'7 tuổi'}, {k:'八歳', r:'はっさい', v:'8 tuổi'}, {k:'九歳', r:'きゅうさい', v:'9 tuổi'}, {k:'十歳', r:'じゅっさい', v:'10 tuổi'}
+                ]
+            },
+            "hai": { title: "杯 (Ly, chén, bát)", icon: "🥛", query: "何杯ですか？", qRead: "なんばい　ですか？", qVi: "Mấy ly?", 
+                items: [
+                    {k:'一杯', r:'いっぱい', v:'1 ly'}, {k:'二杯', r:'にはい', v:'2 ly'}, {k:'三杯', r:'さんばい', v:'3 ly'},
+                    {k:'四杯', r:'よんはい', v:'4 ly'}, {k:'五杯', r:'ごはい', v:'5 ly'}, {k:'六杯', r:'ろっぱい', v:'6 ly'},
+                    {k:'七杯', r:'ななはい', v:'7 ly'}, {k:'八杯', r:'はっぱい', v:'8 ly'}, {k:'九杯', r:'きゅうはい', v:'9 ly'}, {k:'十杯', r:'じゅっぱい', v:'10 ly'}
+                ]
+            },
+            "soku": { title: "足 (Đôi giày, tất)", icon: "👟", query: "何足ですか？", qRead: "なんぞく　ですか？", qVi: "Mấy đôi?", 
+                items: [
+                    {k:'一足', r:'いっそく', v:'1 đôi'}, {k:'二足', r:'にそく', v:'2 đôi'}, {k:'三足', r:'さんぞく', v:'3 đôi'},
+                    {k:'四足', r:'よんそく', v:'4 đôi'}, {k:'五足', r:'ごそく', v:'5 đôi'}, {k:'六足', r:'ろっそく', v:'6 đôi'},
+                    {k:'七足', r:'ななそく', v:'7 đôi'}, {k:'八足', r:'はっそく', v:'8 đôi'}, {k:'九足', r:'きゅうそく', v:'9 đôi'}, {k:'十足', r:'じゅっそく', v:'10 đôi'}
+                ]
+            },
+            "ken": { title: "軒 (Căn nhà)", icon: "🏠", query: "何軒ですか？", qRead: "なんげん　ですか？", qVi: "Mấy căn?", 
+                items: [
+                    {k:'一軒', r:'いっけん', v:'1 căn'}, {k:'二軒', r:'にけん', v:'2 căn'}, {k:'三軒', r:'さんげん', v:'3 căn'},
+                    {k:'四軒', r:'よんけん', v:'4 căn'}, {k:'五軒', r:'ごけん', v:'5 căn'}, {k:'六軒', r:'ろっけん', v:'6 căn'},
+                    {k:'七軒', r:'ななけん', v:'7 căn'}, {k:'八軒', r:'はっけん', v:'8 căn'}, {k:'九軒', r:'きゅうけん', v:'9 căn'}, {k:'十軒', r:'じゅっけん', v:'10 căn'}
+                ]
+            },
+            "chaku": { title: "着 (Bộ quần áo)", icon: "👔", query: "何着ですか？", qRead: "なんちゃく　ですか？", qVi: "Mấy bộ?", 
+                items: Array.from({length:10}, (_, i) => ({k:(i+1)+'着', r:['いっちゃく','にちゃく','さんちゃく','よんちゃく','ごちゃく','ろくちゃく','ななちゃく','はっちゃく','きゅうちゃく','じゅっちゃく'][i], v:(i+1)+' bộ'}))
+            }
+        };
+
+        const tabsBox = document.getElementById('tabs');
+        const grid = document.getElementById('cardGrid');
+        const qArea = document.getElementById('questionArea');
+        const synth = window.speechSynthesis;
+
+        // Render Tabs
+        Object.keys(counters).forEach((key, index) => {
+            const btn = document.createElement('button');
+            btn.className = 'tab-btn' + (index === 0 ? ' active' : '');
+            btn.innerText = counters[key].title.split(' ')[0];
+            btn.onclick = () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                renderContent(key);
+            };
+            tabsBox.appendChild(btn);
+        });
+
+        function renderContent(key) {
+            const data = counters[key];
+            document.getElementById('categoryTitle').innerText = data.title;
+            grid.innerHTML = '';
+            
+            data.items.forEach((item, i) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                let icons = "";
+                for(let j=0; j<=i; j++) icons += `<span class="icon-item">${data.icon}</span>`;
+                
+                card.innerHTML = `
+                    <div class="main-text">${item.k}</div>
+                    <div class="reading">${item.r}</div>
+                    <div class="icon-box">${icons}</div>
+                    <div class="viet">${item.v}</div>
+                `;
+                card.onclick = () => play(card, item.r, item.v);
+                grid.appendChild(card);
+            });
+
+            qArea.innerHTML = `
+                <p>疑問詞</p>
+                <div class="card" style="width:250px; margin:auto" onclick="play(this, '${data.qRead}', '${data.qVi}')">
+                    <div class="main-text" style="font-size:1.6rem">${data.query}</div>
+                    <div class="reading">${data.qRead}</div>
+                    <div class="icon-box">❓❓❓</div>
+                    <div class="viet">${data.qVi}</div>
+                </div>
+            `;
+        }
+
+        function play(el, jp, vi) {
+            synth.cancel();
+            const isVi = document.getElementById('jpVi').checked;
+            document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.viet').forEach(v => v.classList.remove('show'));
+            el.classList.add('active');
+            if(isVi) el.querySelector('.viet').classList.add('show');
+
+            const speed = document.getElementById('speed').value;
+            const uJp = new SpeechSynthesisUtterance(jp);
+            uJp.voice = voices.find(v => v.name === document.getElementById('vJp').value);
+            uJp.rate = speed;
+            if(isVi) uJp.onend = () => {
+                const uVi = new SpeechSynthesisUtterance(vi);
+                uVi.voice = voices.find(v => v.name === document.getElementById('vVi').value);
+                uVi.rate = speed;
+                synth.speak(uVi);
+            };
+            synth.speak(uJp);
+        }
+
+        function updateUI() {
+            document.documentElement.style.setProperty('--bg-color', document.getElementById('bgCol').value);
+            document.documentElement.style.setProperty('--text-color', document.getElementById('textCol').value);
+        }
+
+        let voices = [];
+        function getVoices() {
+            voices = synth.getVoices();
+            const sJp = document.getElementById('vJp'), sVi = document.getElementById('vVi');
+            sJp.innerHTML = ''; sVi.innerHTML = '';
+            voices.forEach(v => {
+                const opt = document.createElement('option');
+                opt.value = v.name; opt.innerText = v.name;
+                if(v.lang.includes('ja')) sJp.appendChild(opt.cloneNode(true));
+                if(v.lang.includes('vi')) sVi.appendChild(opt);
+            });
+        }
+        speechSynthesis.onvoiceschanged = getVoices; getVoices();
+        renderContent('tsu'); // Khởi tạo mặc định
+    </script>
+</body>
+</html>
