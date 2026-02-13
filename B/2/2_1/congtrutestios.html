@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Toán Học Đa Ngôn Ngữ</title>
+    <style>
+        :root {
+            --primary: #6c5ce7;
+            --success: #00b894;
+            --error: #d63031;
+            --bg: #dfe6e9;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* Header & Lang Switch */
+        .header {
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            justify-content: space-between;
+            padding: 15px;
+            box-sizing: border-box;
+        }
+
+        .lang-btn {
+            padding: 8px 15px;
+            border: 2px solid var(--primary);
+            border-radius: 20px;
+            cursor: pointer;
+            background: white;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .lang-btn.active { background: var(--primary); color: white; }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 20px;
+            width: 90%;
+            max-width: 500px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px 5px;
+            background: #b2bec3;
+            border: none;
+            border-radius: 10px 10px 0 0;
+            cursor: pointer;
+            font-weight: bold;
+            color: white;
+        }
+
+        .tab.active { background: white; color: var(--primary); }
+
+        /* Main Card */
+        .card {
+            background: white;
+            width: 90%;
+            max-width: 500px;
+            padding: 30px;
+            border-radius: 0 0 25px 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        #question {
+            font-size: 3.5rem;
+            font-weight: bold;
+            margin: 20px 0;
+            color: #2d3436;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .opt-btn {
+            padding: 20px;
+            font-size: 1.5rem;
+            border: 2px solid #f1f2f6;
+            border-radius: 15px;
+            background: #f8f9fa;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .opt-btn:hover { background: #f1f2f6; }
+        .correct { background: var(--success) !important; color: white; border-color: var(--success); }
+        .wrong { background: var(--error) !important; color: white; border-color: var(--error); }
+
+        .footer-info {
+            margin-top: 25px;
+            display: flex;
+            justify-content: space-around;
+            font-weight: bold;
+            color: #636e72;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+        }
+
+        #feedback { height: 30px; font-weight: bold; font-size: 1.2rem; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div>
+            <button class="lang-btn active" id="btn-vi" onclick="changeLang('vi')">Tiếng Việt</button>
+            <button class="lang-btn" id="btn-ja" onclick="changeLang('ja')">日本語</button>
+        </div>
+        <div style="font-weight: bold; color: var(--primary);">Toán Học v2</div>
+    </div>
+
+    <div class="tabs">
+        <button class="tab active" id="tab-1" onclick="changeTab(1, 20)">1 - 20</button>
+        <button class="tab" id="tab-2" onclick="changeTab(20, 100)">20 - 100</button>
+        <button class="tab" id="tab-3" onclick="changeTab(100, 1000)">100 - 1000</button>
+    </div>
+
+    <div class="card">
+        <div id="feedback"></div>
+        <div id="question">0 + 0</div>
+        <div class="options-grid" id="options"></div>
+        
+        <div class="footer-info">
+            <div>Đúng: <span id="correct-count" style="color: var(--success);">0</span></div>
+            <div>Tổng câu: <span id="total-count">0</span></div>
+        </div>
+    </div>
+
+<script>
+    let currentLang = 'vi';
+    let range = { min: 1, max: 20 };
+    let stats = { correct: 0, total: 0 };
+    let answer = 0;
+
+    const i18n = {
+        vi: { plus: "cộng", minus: "trừ", ok: "Chính xác!", no: "Chưa đúng rồi!", lang: "vi-VN" },
+        ja: { plus: "たす", minus: "ひく", ok: "正解です！", no: "違いますよ！", lang: "ja-JP" }
+    };
+
+    function changeLang(l) {
+        currentLang = l;
+        document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('btn-' + l).classList.add('active');
+        newQuestion();
+    }
+
+    function changeTab(min, max) {
+        range = { min, max };
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        event.target.classList.add('active');
+        newQuestion();
+    }
+
+    function speak(text) {
+        window.speechSynthesis.cancel();
+        const msg = new SpeechSynthesisUtterance(text);
+        msg.lang = i18n[currentLang].lang;
+        msg.rate = 1;
+        window.speechSynthesis.speak(msg);
+    }
+
+    function newQuestion() {
+        const isPlus = Math.random() > 0.5;
+        let n1, n2, qText, display;
+
+        if (isPlus) {
+            n1 = Math.floor(Math.random() * (range.max - range.min)) + range.min;
+            n2 = Math.floor(Math.random() * (range.max - range.min)) + range.min;
+            answer = n1 + n2;
+            display = `${n1} + ${n2}`;
+            qText = `${n1} ${i18n[currentLang].plus} ${n2}`;
+        } else {
+            const numA = Math.floor(Math.random() * (range.max - range.min)) + range.min;
+            const numB = Math.floor(Math.random() * (range.max - range.min)) + range.min;
+            n1 = Math.max(numA, numB);
+            n2 = Math.min(numA, numB);
+            answer = n1 - n2;
+            display = `${n1} - ${n2}`;
+            qText = `${n1} ${i18n[currentLang].minus} ${n2}`;
+        }
+
+        document.getElementById('question').innerText = display;
+        document.getElementById('feedback').innerText = "";
+        renderOptions();
+        speak(qText);
+    }
+
+    function renderOptions() {
+        const container = document.getElementById('options');
+        container.innerHTML = '';
+        let choices = [answer];
+        
+        while(choices.length < 4) {
+            let offset = Math.floor(Math.random() * 20) - 10;
+            let wrong = Math.max(0, answer + offset);
+            if(!choices.includes(wrong)) choices.push(wrong);
+        }
+        choices.sort(() => Math.random() - 0.5);
+
+        choices.forEach(val => {
+            const btn = document.createElement('button');
+            btn.className = 'opt-btn';
+            btn.innerText = val;
+            btn.onclick = () => checkResult(val, btn);
+            container.appendChild(btn);
+        });
+    }
+
+    function checkResult(val, btn) {
+        const allBtns = document.querySelectorAll('.opt-btn');
+        allBtns.forEach(b => b.onclick = null); // Disable after click
+
+        stats.total++;
+        if(val === answer) {
+            stats.correct++;
+            btn.classList.add('correct');
+            document.getElementById('feedback').style.color = "var(--success)";
+            document.getElementById('feedback').innerText = i18n[currentLang].ok;
+            speak(i18n[currentLang].ok);
+        } else {
+            btn.classList.add('wrong');
+            document.getElementById('feedback').style.color = "var(--error)";
+            document.getElementById('feedback').innerText = i18n[currentLang].no;
+            speak(i18n[currentLang].no);
+        }
+
+        document.getElementById('correct-count').innerText = stats.correct;
+        document.getElementById('total-count').innerText = stats.total;
+
+        setTimeout(newQuestion, 1500);
+    }
+
+    // Khởi tạo lần đầu
+    window.onload = newQuestion;
+</script>
+</body>
+</html>
