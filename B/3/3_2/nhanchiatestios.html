@@ -2,103 +2,29 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Toán Nhân Chia Chuyên Sâu</title>
     <style>
-        :root {
-            --primary: #4b6cb7;
-            --success: #27ae60;
-            --error: #e74c3c;
-            --bg: #f4f7f6;
-        }
-
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            background: var(--bg);
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 15px;
-        }
-
+        :root { --primary: #4b6cb7; --success: #27ae60; --error: #e74c3c; --bg: #f4f7f6; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); margin: 0; display: flex; flex-direction: column; align-items: center; padding: 15px; -webkit-tap-highlight-color: transparent; }
         .header { width: 100%; max-width: 480px; display: flex; justify-content: space-between; margin-bottom: 10px; }
-
-        .lang-btn {
-            padding: 8px 15px;
-            border: 2px solid var(--primary);
-            border-radius: 20px;
-            cursor: pointer;
-            background: white;
-            font-weight: bold;
-        }
-
+        .lang-btn { padding: 8px 15px; border: 2px solid var(--primary); border-radius: 20px; cursor: pointer; background: white; font-weight: bold; }
         .lang-btn.active { background: var(--primary); color: white; }
-
-        .control-panel {
-            width: 100%;
-            max-width: 480px;
-            background: white;
-            border-radius: 15px;
-            padding: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            margin-bottom: 15px;
-            box-sizing: border-box;
-        }
-
+        .control-panel { width: 100%; max-width: 480px; background: white; border-radius: 15px; padding: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 15px; box-sizing: border-box; }
         .label { font-size: 0.75rem; font-weight: bold; color: #7f8c8d; margin: 8px 0 4px; display: block; }
-
-        .btn-group { display: flex; gap: 5px; margin-bottom: 10px; }
-
-        .btn-item {
-            flex: 1;
-            padding: 10px 2px;
-            border: none;
-            background: #ecf0f1;
-            cursor: pointer;
-            border-radius: 8px;
-            font-weight: bold;
-            font-size: 0.85rem;
-        }
-
+        .btn-group { display: flex; gap: 5px; margin-bottom: 8px; }
+        .btn-item { flex: 1; padding: 10px 2px; border: none; background: #ecf0f1; cursor: pointer; border-radius: 8px; font-weight: bold; font-size: 0.85rem; }
         .btn-item.active { background: var(--primary); color: white; }
-
-        .card {
-            background: white;
-            width: 100%;
-            max-width: 480px;
-            padding: 30px 20px;
-            border-radius: 25px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            text-align: center;
-            box-sizing: border-box;
-        }
-
+        .card { background: white; width: 100%; max-width: 480px; padding: 30px 20px; border-radius: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; box-sizing: border-box; position: relative; }
         #question { font-size: 3.5rem; font-weight: bold; margin: 15px 0; color: #2c3e50; }
-
         .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-
-        .opt-btn {
-            padding: 20px;
-            font-size: 1.8rem;
-            border: 2px solid #ecf0f1;
-            border-radius: 15px;
-            background: #fff;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
+        .opt-btn { padding: 20px; font-size: 1.8rem; border: 2px solid #ecf0f1; border-radius: 15px; background: #fff; cursor: pointer; font-weight: bold; }
         .correct { background: var(--success) !important; color: white; border-color: var(--success); }
         .wrong { background: var(--error) !important; color: white; border-color: var(--error); }
-
-        .score-box {
-            margin-top: 25px;
-            display: flex;
-            justify-content: space-around;
-            border-top: 2px dashed #eee;
-            padding-top: 15px;
-            font-weight: bold;
-        }
+        .score-box { margin-top: 25px; display: flex; justify-content: space-around; border-top: 2px dashed #eee; padding-top: 15px; font-weight: bold; }
+        
+        /* Overlay cho iOS khởi động */
+        #start-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: white; border-radius: 25px; display: flex; justify-content: center; align-items: center; z-index: 10; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -112,26 +38,27 @@
     </div>
 
     <div class="control-panel">
-        <span class="label">PHẠM VI (RANGE):</span>
+        <span class="label">PHẠM VI:</span>
         <div class="btn-group">
             <button class="btn-item active" onclick="setRange('1-20', this)">1-20</button>
             <button class="btn-item" onclick="setRange('20-100', this)">20-100</button>
             <button class="btn-item" onclick="setRange('100-1000', this)">100-1000</button>
         </div>
-
         <span class="label">PHÉP TÍNH:</span>
         <div class="btn-group">
             <button class="btn-item active" onclick="setMode('mixed', this)">× & ÷</button>
-            <button class="btn-item" onclick="setMode('*', this)">Nhân (×)</button>
-            <button class="btn-item" onclick="setMode('/', this)">Chia (÷)</button>
+            <button class="btn-item" onclick="setMode('*', this)">Nhân</button>
+            <button class="btn-item" onclick="setMode('/', this)">Chia</button>
         </div>
     </div>
 
     <div class="card">
+        <div id="start-overlay" onclick="startApp()">
+            <button style="padding: 15px 30px; font-size: 1.2rem; border-radius: 10px; border: none; background: var(--primary); color: white; font-weight: bold;">BẮT ĐẦU / START</button>
+        </div>
         <div id="feedback" style="height: 25px; font-weight: bold;"></div>
         <div id="question">...</div>
         <div class="options-grid" id="options"></div>
-        
         <div class="score-box">
             <span style="color: var(--success);">Đúng: <span id="correct-count">0</span></span>
             <span style="color: #7f8c8d;">Tổng: <span id="total-count">0</span></span>
@@ -142,41 +69,60 @@
     let conf = { lang: 'vi', range: '1-20', mode: 'mixed' };
     let stats = { correct: 0, total: 0 };
     let answer = 0;
+    let isStarted = false;
 
     const dict = {
-        vi: { '*': "nhân", '/': "chia", ok: "Chính xác!", no: "Sai rồi!", code: "vi-VN" },
-        ja: { '*': "かける", '/': "わる", ok: "正解です!", no: "違います!", code: "ja-JP" }
+        vi: { '*': "nhân", '/': "chia", ok: "Đúng rồi", no: "Sai rồi", code: "vi-VN" },
+        ja: { '*': "かける", '/': "わる", ok: "正解", no: "違います", code: "ja-JP" }
     };
+
+    function startApp() {
+        isStarted = true;
+        document.getElementById('start-overlay').style.display = 'none';
+        newGame();
+    }
+
+    function speak(text) {
+        if (!isStarted) return;
+        window.speechSynthesis.cancel();
+        
+        const msg = new SpeechSynthesisUtterance(text);
+        
+        // Tìm đúng giọng của iOS/Safari
+        const voices = window.speechSynthesis.getVoices();
+        const selectedVoice = voices.find(v => v.lang.startsWith(dict[conf.lang].code));
+        if (selectedVoice) msg.voice = selectedVoice;
+        
+        msg.lang = dict[conf.lang].code;
+        msg.rate = 0.9; // Đọc chậm một chút cho rõ
+        window.speechSynthesis.speak(msg);
+    }
+
+    // Đảm bảo voices được tải trên iOS/Chrome
+    window.speechSynthesis.onvoiceschanged = () => { window.speechSynthesis.getVoices(); };
 
     function setLang(l) {
         conf.lang = l;
         document.getElementById('vi-btn').classList.toggle('active', l==='vi');
         document.getElementById('ja-btn').classList.toggle('active', l==='ja');
-        newGame();
+        if(isStarted) newGame();
     }
 
     function setRange(r, btn) {
         conf.range = r;
         updateUI(btn);
-        newGame();
+        if(isStarted) newGame();
     }
 
     function setMode(m, btn) {
         conf.mode = m;
         updateUI(btn);
-        newGame();
+        if(isStarted) newGame();
     }
 
     function updateUI(btn) {
         btn.parentElement.querySelectorAll('.btn-item').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-    }
-
-    function speak(text) {
-        window.speechSynthesis.cancel();
-        const msg = new SpeechSynthesisUtterance(text);
-        msg.lang = dict[conf.lang].code;
-        window.speechSynthesis.speak(msg);
     }
 
     function r(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
@@ -201,7 +147,6 @@
 
         document.getElementById('question').innerText = `${n1} ${symbol} ${n2}`;
         document.getElementById('feedback').innerText = "";
-        document.getElementById('feedback').style.color = "var(--primary)";
         speak(`${n1} ${dict[conf.lang][op]} ${n2}`);
         renderOptions();
     }
@@ -209,20 +154,16 @@
     function renderOptions() {
         const grid = document.getElementById('options');
         grid.innerHTML = '';
-        
-        // Logic tạo đáp án gây nhiễu (Sát với đáp án đúng)
         let choices = new Set([answer]);
         let offsets = [1, -1, 2, -2, 3, -3, 10, -10];
         
         while(choices.size < 4) {
-            let randomOffset = offsets[Math.floor(Math.random() * offsets.length)];
-            let wrong = answer + randomOffset;
+            let off = offsets[r(0, offsets.length - 1)];
+            let wrong = answer + off;
             if (wrong >= 0 && wrong !== answer) choices.add(wrong);
-            
-            // Nếu vẫn chưa đủ, thêm số ngẫu nhiên cực gần
             if (choices.size < 4) {
-                let fallback = answer + r(-5, 5);
-                if (fallback >= 0) choices.add(fallback);
+                let fall = answer + r(-5, 5);
+                if (fall >= 0 && fall !== answer) choices.add(fall);
             }
         }
 
@@ -247,13 +188,11 @@
                 }
                 document.getElementById('correct-count').innerText = stats.correct;
                 document.getElementById('total-count').innerText = stats.total;
-                setTimeout(newGame, 1200);
+                setTimeout(newGame, 1300);
             };
             grid.appendChild(b);
         });
     }
-
-    window.onload = newGame;
 </script>
 </body>
 </html>
