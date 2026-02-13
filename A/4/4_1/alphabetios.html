@@ -11,6 +11,7 @@
             --bg: #fff5f8;
             --card-shadow: #ffb3c1;
             --blue: #4fc3f7;
+            --yellow: #fff9c4;
         }
 
         body {
@@ -26,24 +27,27 @@
 
         h1 {
             color: var(--primary);
-            font-size: 1.6rem;
+            font-size: 1.5rem;
             margin-bottom: 20px;
-            text-shadow: 2px 2px 0 white;
+            background: white;
+            padding: 10px 20px;
+            border-radius: 50px;
+            box-shadow: 0 4px 0 var(--card-shadow);
         }
 
         .grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(3, 1fr); /* 3 cột để chữ Aa hiển thị to rõ hơn */
             gap: 12px;
             max-width: 450px;
+            width: 100%;
         }
 
         .card {
             background: white;
             border: 4px solid #ffe1e6;
             border-radius: 20px;
-            width: 80px;
-            height: 90px;
+            height: 100px;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -56,25 +60,40 @@
         .card:active {
             transform: translateY(4px);
             box-shadow: 0 2px 0 var(--card-shadow);
-            background-color: #fff9c4;
+            background-color: var(--yellow);
         }
 
-        .letter {
+        .letter-box {
+            display: flex;
+            align-items: baseline;
+            gap: 2px;
+        }
+
+        .upper {
             font-size: 2.2rem;
             color: var(--blue);
-            line-height: 1;
+        }
+
+        .lower {
+            font-size: 1.6rem;
+            color: var(--blue);
         }
 
         .reading {
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             color: var(--primary);
             font-weight: bold;
-            margin-top: 5px;
-            display: none;
+            margin-top: 2px;
+            visibility: hidden; /* Giữ chỗ để card không bị nhảy kích thước */
         }
 
-        .card.active .reading { display: block; }
-        .card.active .letter { font-size: 1.6rem; }
+        .card.active .reading {
+            visibility: visible;
+        }
+
+        .card.active .upper, .card.active .lower {
+            color: var(--primary);
+        }
 
         .footer {
             margin-top: 30px;
@@ -85,49 +104,54 @@
 </head>
 <body>
 
-    <h1>✨ アルファベット ✨</h1>
+    <h1>🍎 アルファベット 🍎</h1>
 
     <div class="grid" id="alphabetGrid"></div>
 
-    <div class="footer">にほんごの こえで よむよ！</div>
+    <div class="footer">おすと こえが するよ！</div>
 
     <script>
         const alphabet = [
-            ['A','エー'],['B','ビー'],['C','シー'],['D','ディー'],['E','イー'],['F','エフ'],['G','ジー'],
-            ['H','エイチ'],['I','アイ'],['J','ジェー'],['K','ケイ'],['L','エル'],['M','エム'],['N','エヌ'],
-            ['O','オー'],['P','ピー'],['Q','キュー'],['R','アール'],['S','エス'],['T','ティー'],['U','ユー'],
-            ['V','ヴィー'],['W','ダブリュー'],['X','エックス'],['Y','ワイ'],['Z','ゼット']
+            ['A','a','エー'],['B','b','ビー'],['C','c','シー'],['D','d','ディー'],
+            ['E','e','イー'],['F','f','エフ'],['G','g','ジー'],['H','h','エイチ'],
+            ['I','i','アイ'],['J','j','ジェー'],['K','k','ケイ'],['L','l','エル'],
+            ['M','m','エム'],['N','n','エヌ'],['O','o','オー'],['P','p','ピー'],
+            ['Q','q','キュー'],['R','r','アール'],['S','s','エス'],['T','t','ティー'],
+            ['U','u','ユー'],['V','v','ヴィー'],['W','w','ダブリュー'],['X','x','エックス'],
+            ['Y','y','ワイ'],['Z','z','ゼット']
         ];
 
         let preferredVoice = null;
 
         function initVoice() {
             const voices = window.speechSynthesis.getVoices();
-            // Sử dụng logic lọc của bạn để tìm Kyoko hoặc Otoya trên iOS
+            // Ưu tiên Kyoko hoặc Otoya theo yêu cầu của bạn
             preferredVoice = voices.find(v => 
                 v.lang.includes('ja-JP') && (v.name.includes('Kyoko') || v.name.includes('Otoya'))
-            ) || voices.find(v => v.lang.includes('ja')); // Fallback nếu không có Kyoko/Otoya
+            ) || voices.find(v => v.lang.includes('ja'));
         }
 
-        // Đảm bảo load voice trên iOS/Chrome
         window.speechSynthesis.onvoiceschanged = initVoice;
         initVoice();
 
         const grid = document.getElementById('alphabetGrid');
 
-        alphabet.forEach(([char, kana]) => {
+        alphabet.forEach(([upper, lower, kana]) => {
             const card = document.createElement('div');
             card.className = 'card';
-            card.innerHTML = `<span class="letter">${char}</span><span class="reading">${kana}</span>`;
+            card.innerHTML = `
+                <div class="letter-box">
+                    <span class="upper">${upper}</span>
+                    <span class="lower">${lower}</span>
+                </div>
+                <span class="reading">${kana}</span>
+            `;
 
             card.onclick = () => {
                 card.classList.add('active');
                 
-                // Tạo yêu cầu đọc
                 const uttr = new SpeechSynthesisUtterance(kana);
-                if (preferredVoice) {
-                    uttr.voice = preferredVoice;
-                }
+                if (preferredVoice) uttr.voice = preferredVoice;
                 uttr.lang = 'ja-JP';
                 uttr.rate = 0.9;
                 uttr.pitch = 1.1;
@@ -135,7 +159,7 @@
                 window.speechSynthesis.cancel();
                 window.speechSynthesis.speak(uttr);
 
-                setTimeout(() => card.classList.remove('active'), 1000);
+                setTimeout(() => card.classList.remove('active'), 1200);
             };
 
             grid.appendChild(card);
