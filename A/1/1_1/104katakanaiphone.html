@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>カタカナ学習 - Bảng chữ cái Katakana</title>
+    <link href="https://fonts.googleapis.com" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2a9d8f; /* Màu xanh teal cho Katakana để phân biệt với Hiragana */
+            --bg-color: #f4f1de;
+            --card-bg: #ffffff;
+            --border-color: #e0e0e0;
+            --text-color: #264653;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 { color: var(--primary-color); margin-bottom: 20px; font-weight: 700; }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            background: #e9edc9;
+            padding: 5px;
+            border-radius: 50px;
+        }
+
+        .tab-btn {
+            padding: 10px 25px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            background: none;
+            font-weight: bold;
+            transition: 0.3s;
+            color: var(--text-color);
+        }
+
+        .tab-btn.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .tab-content { display: none; width: 100%; max-width: 900px; }
+        .tab-content.active { display: block; }
+
+        .grid-5 {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+        }
+
+        .grid-yoon {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr); 
+            gap: 15px;
+        }
+
+        .char-card {
+            background: var(--card-bg);
+            border-bottom: 4px solid var(--border-color);
+            border-radius: 12px;
+            padding: 15px 5px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .char-card:hover {
+            transform: scale(1.05);
+            border-color: var(--primary-color);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .empty-card { visibility: hidden; }
+
+        .jp-char { font-size: 2.2rem; font-weight: 700; margin-bottom: 5px; color: #333; }
+        .emoji { font-size: 1.6rem; margin-bottom: 5px; }
+        .vocab { font-size: 0.85rem; color: #666; font-weight: 500; }
+
+        @media (max-width: 600px) {
+            .jp-char { font-size: 1.6rem; }
+            .grid-5, .grid-yoon { gap: 8px; }
+            .tab-btn { padding: 8px 15px; font-size: 0.9rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>カタカナ (Katakana)</h1>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="openTab('seion')">清音 (Thanh âm)</button>
+        <button class="tab-btn" onclick="openTab('dakuon')">濁音 (Âm đục)</button>
+        <button class="tab-btn" onclick="openTab('yoon')">拗音 (Âm ghép)</button>
+    </div>
+
+    <!-- Thanh Âm -->
+    <div id="seion" class="tab-content active">
+        <div class="grid-5" id="seion-container"></div>
+    </div>
+
+    <!-- Âm Đục -->
+    <div id="dakuon" class="tab-content">
+        <div class="grid-5" id="dakuon-container"></div>
+    </div>
+
+    <!-- Âm Ghép -->
+    <div id="yoon" class="tab-content">
+        <div class="grid-yoon" id="yoon-container"></div>
+    </div>
+
+    <script>
+        const data = {
+            seion: [
+                ['ア', '🍦', 'アイス'], ['イ', '🏠', 'イエ'], ['ウ', '🎻', 'ウクレレ'], ['エ', '📏', 'エプロン'], ['オ', '🟠', 'オレンジ'],
+                ['カ', '📸', 'カメラ'], ['キ', '🎸', 'ギター'], ['ク', '🍰', 'ケーキ'], ['ケ', '📱', 'ケータイ'], ['コ', '☕', 'コーヒー'],
+                ['サ', '🥪', 'サンドイッチ'], ['シ', '🚿', 'シャワー'], ['ス', '🎿', 'スキー'], ['セ', '🌡️', 'センター'], ['ソ', '🍦', 'ソフト'],
+                ['タ', '🚕', 'タクシー'], ['チ', '🧀', 'チーズ'], ['ツ', '⚡', 'ツアー'], ['テ', '📺', 'テレビ'], ['ト', '🍅', 'トマト'],
+                ['ナ', '🔪', 'ナイフ'], ['ニ', '📰', 'ニュース'], ['ヌ', '🐕', 'ヌー'], ['ネ', '👔', 'ネクタイ'], ['ノ', '📔', 'ノート'],
+                ['ハ', '🍔', 'ハンバーガー'], ['ヒ', '☕', 'ヒーロー'], ['フ', '🍴', 'フォーク'], ['ヘ', '🚁', 'ヘリコプター'], ['ホ', '🏨', 'ホテル'],
+                ['マ', '🎛️', 'マイク'], ['ミ', '🥛', 'ミルク'], ['ム', '🎬', 'ムービー'], ['メ', '✉️', 'メール'], ['モ', '🏙️', 'モノレール'],
+                ['ヤ', '🌴', 'ヤシ'], ['empty', '', ''], ['ユ', '🦄', 'ユニコーン'], ['empty', '', ''], ['ヨ', '⛵', 'ヨット'],
+                ['ラ', '📻', 'ラジオ'], ['リ', '🎀', 'リボン'], ['ル', '💄', 'ルージュ'], ['レ', '🍋', 'レモン'], ['ロ', '🤖', 'ロボット'],
+                ['ワ', '🍷', 'ワイン'], ['empty', '', ''], ['empty', '', ''], ['empty', '', ''], ['ヲ', '🎌', 'ヲ'],
+                ['ン', '📏', 'ペン']
+            ],
+            dakuon: [
+                ['ガ', '⛽', 'ガス'], ['ギ', '🎸', 'ギター'], ['グ', '🍇', 'グレープ'], ['ゲ', '🎮', 'ゲーム'], ['ゴ', '⛳', 'ゴルフ'],
+                ['ザ', '⚡', 'ザザ'], ['ジ', '🥤', 'ジュース'], ['ズ', '👖', 'ズボン'], ['ゼ', '🍮', 'ゼリー'], ['ゾ', '🐘', 'ゾウ'],
+                ['ダ', '💃', 'ダンス'], ['ヂ', '🦷', 'ヂ'], ['ヅ', '📍', 'ヅ'], ['デ', '🧾', 'データ'], ['ド', '🍩', 'ドーナツ'],
+                ['バ', '🚌', 'バス'], ['ビ', '🍺', 'ビール'], ['ブ', '🍇', 'ブラシ'], ['ベ', '🛏️', 'ベッド'], ['ボ', '⛴️', 'ボート'],
+                ['パ', '🍞', 'パン'], ['ピ', '🎹', 'ピアノ'], ['プ', '🎁', 'プレゼント'], ['ペ', '🖊️', 'ペン'], ['ポ', '📮', 'ポスト']
+            ],
+            yoon: [
+                ['キャ', '🐱', 'キャベツ'], ['empty', '', ''], ['キュ', '🥒', 'キュウリ'], ['empty', '', ''], ['キョ', '⛺', 'キャンプ'],
+                ['シャ', '👕', 'シャツ'], ['empty', '', ''], ['シュ', '👟', 'シューズ'], ['empty', '', ''], ['ショ', '🛍️', 'ショップ'],
+                ['チャ', '⚡', 'チャート'], ['empty', '', ''], ['チュ', '🌷', 'チューリップ'], ['empty', '', ''], ['チョ', '🍫', 'チョコ'],
+                ['ニャ', '🐈', 'ニャー'], ['empty', '', ''], ['ニュ', '📰', 'ニュース'], ['empty', '', ''], ['ニョ', '🍄', 'ニョキ'],
+                ['ヒャ', '❄️', 'ヒャク'], ['empty', '', ''], ['ヒュ', '🌬️', 'ヒューム'], ['empty', '', ''], ['ヒョ', '🐆', 'ヒョウ'],
+                ['ミゃ', '🐈', 'ミャー'], ['empty', '', ''], ['ミュ', '🎨', 'ミュージアム'], ['empty', '', ''], ['ミョ', '💡', 'ミョウ'],
+                ['リャ', '🐲', 'リャク'], ['empty', '', ''], ['リュ', '🎒', 'リュック'], ['empty', '', ''], ['リョ', '🏢', 'リョカン'],
+                ['ギャ', 'ギャ', 'ギャグ'], ['empty', '', ''], ['ギュ', '🐄', 'ギュウ'], ['empty', '', ''], ['ギョ', '🥟', 'ギョウザ'],
+                ['ジャ', '🍞', 'ジャム'], ['empty', '', ''], ['ジュ', '🍹', 'ジュース'], ['empty', '', ''], ['ジョ', '🏃', 'ジョギング'],
+                ['ビャ', '🚑', 'ビョウイン'], ['empty', '', ''], ['ビュ', '뷔', 'ビュッフェ'], ['empty', '', ''], ['ビョ', '📈', 'ビョウ'],
+                ['ピャ', '🏢', 'ピャク'], ['empty', '', ''], ['ピュ', 'ピュー', 'ピューマ'], ['empty', '', ''], ['ピョ', '🐰', 'ピョン']
+            ]
+        };
+
+        function createCard(item) {
+            if (item === 'empty' || item[0] === 'empty') {
+                const div = document.createElement('div');
+                div.className = 'empty-card';
+                return div;
+            }
+            const [char, emoji, vocab] = item;
+            const card = document.createElement('div');
+            card.className = 'char-card';
+            card.innerHTML = `
+                <div class="emoji">${emoji}</div>
+                <div class="jp-char">${char}</div>
+                <div class="vocab">${vocab}</div>
+            `;
+            card.onclick = () => speak(char, vocab);
+            return card;
+        }
+
+        function speak(char, vocab) {
+            window.speechSynthesis.cancel();
+            const text = `${char}。${vocab}`;
+            const msg = new SpeechSynthesisUtterance(text);
+            msg.lang = 'ja-JP';
+            msg.rate = 1.0;
+            window.speechSynthesis.speak(msg);
+        }
+
+        function openTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+        function render() {
+            Object.keys(data).forEach(key => {
+                const container = document.getElementById(`${key}-container`);
+                data[key].forEach(item => {
+                    container.appendChild(createCard(item));
+                });
+            });
+        }
+
+        render();
+    </script>
+</body>
+</html>
