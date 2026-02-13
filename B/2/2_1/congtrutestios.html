@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Toán Học Đa Ngôn Ngữ</title>
+    <title>Toán Học Thông Minh Đa Năng</title>
     <style>
         :root {
-            --primary: #6c5ce7;
-            --success: #00b894;
-            --error: #d63031;
-            --bg: #dfe6e9;
+            --primary: #4834d4;
+            --success: #2ecc71;
+            --error: #eb4d4b;
+            --bg: #f0f2f5;
         }
 
         body {
@@ -19,238 +19,250 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            min-height: 100vh;
+            padding: 20px 0;
         }
 
-        /* Header & Lang Switch */
         .header {
-            width: 100%;
+            width: 90%;
             max-width: 500px;
             display: flex;
             justify-content: space-between;
-            padding: 15px;
-            box-sizing: border-box;
+            margin-bottom: 15px;
         }
 
         .lang-btn {
-            padding: 8px 15px;
+            padding: 6px 12px;
             border: 2px solid var(--primary);
-            border-radius: 20px;
+            border-radius: 15px;
             cursor: pointer;
             background: white;
             font-weight: bold;
-            transition: 0.3s;
         }
 
         .lang-btn.active { background: var(--primary); color: white; }
 
-        /* Tabs */
-        .tabs {
-            display: flex;
-            gap: 5px;
-            margin-bottom: 20px;
+        /* Tabs & Modes */
+        .control-panel {
             width: 90%;
             max-width: 500px;
+            background: #fff;
+            border-radius: 15px;
+            padding: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            margin-bottom: 15px;
         }
 
-        .tab {
-            flex: 1;
-            padding: 12px 5px;
-            background: #b2bec3;
-            border: none;
-            border-radius: 10px 10px 0 0;
-            cursor: pointer;
+        .btn-group {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 8px;
+        }
+
+        .group-label {
+            font-size: 0.8rem;
+            color: #636e72;
+            margin-bottom: 5px;
             font-weight: bold;
-            color: white;
+            display: block;
         }
 
-        .tab.active { background: white; color: var(--primary); }
+        .btn-item {
+            flex: 1;
+            padding: 10px 5px;
+            border: none;
+            background: #f1f2f6;
+            cursor: pointer;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            transition: 0.2s;
+        }
 
-        /* Main Card */
+        .btn-item.active { background: var(--primary); color: white; }
+
+        /* Play Card */
         .card {
             background: white;
             width: 90%;
             max-width: 500px;
-            padding: 30px;
-            border-radius: 0 0 25px 25px;
+            padding: 25px;
+            border-radius: 20px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
             text-align: center;
-            box-sizing: border-box;
         }
 
         #question {
             font-size: 3.5rem;
             font-weight: bold;
-            margin: 20px 0;
+            margin: 15px 0;
             color: #2d3436;
         }
 
         .options-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-top: 20px;
+            gap: 12px;
         }
 
         .opt-btn {
-            padding: 20px;
-            font-size: 1.5rem;
+            padding: 18px;
+            font-size: 1.4rem;
             border: 2px solid #f1f2f6;
-            border-radius: 15px;
-            background: #f8f9fa;
+            border-radius: 12px;
+            background: #fff;
             cursor: pointer;
-            transition: 0.2s;
+            font-weight: bold;
         }
 
-        .opt-btn:hover { background: #f1f2f6; }
         .correct { background: var(--success) !important; color: white; border-color: var(--success); }
         .wrong { background: var(--error) !important; color: white; border-color: var(--error); }
 
-        .footer-info {
-            margin-top: 25px;
+        .score-box {
+            margin-top: 20px;
             display: flex;
             justify-content: space-around;
-            font-weight: bold;
-            color: #636e72;
             border-top: 1px solid #eee;
             padding-top: 15px;
+            font-weight: bold;
         }
-
-        #feedback { height: 30px; font-weight: bold; font-size: 1.2rem; }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <div>
-            <button class="lang-btn active" id="btn-vi" onclick="changeLang('vi')">Tiếng Việt</button>
-            <button class="lang-btn" id="btn-ja" onclick="changeLang('ja')">日本語</button>
+        <div id="lang-btns">
+            <button class="lang-btn active" onclick="setLang('vi')">Việt</button>
+            <button class="lang-btn" onclick="setLang('ja')">日本語</button>
         </div>
-        <div style="font-weight: bold; color: var(--primary);">Toán Học v2</div>
+        <div style="color: var(--primary); font-weight: bold;">MATH KIDS</div>
     </div>
 
-    <div class="tabs">
-        <button class="tab active" id="tab-1" onclick="changeTab(1, 20)">1 - 20</button>
-        <button class="tab" id="tab-2" onclick="changeTab(20, 100)">20 - 100</button>
-        <button class="tab" id="tab-3" onclick="changeTab(100, 1000)">100 - 1000</button>
+    <div class="control-panel">
+        <span class="group-label">PHẠM VI SỐ (RANGE):</span>
+        <div class="btn-group">
+            <button class="btn-item active" onclick="setRange(1, 20, this)">1-20</button>
+            <button class="btn-item" onclick="setRange(20, 100, this)">20-100</button>
+            <button class="btn-item" onclick="setRange(100, 1000, this)">100-1000</button>
+        </div>
+
+        <span class="group-label">PHÉP TÍNH (MODE):</span>
+        <div class="btn-group">
+            <button class="btn-item active" onclick="setMode('all', this)">+ & -</button>
+            <button class="btn-item" onclick="setMode('plus', this)">CHỈ CỘNG (+)</button>
+            <button class="btn-item" onclick="setMode('minus', this)">CHỈ TRỪ (-)</button>
+        </div>
     </div>
 
     <div class="card">
-        <div id="feedback"></div>
-        <div id="question">0 + 0</div>
+        <div id="feedback" style="height: 25px; font-weight: bold;"></div>
+        <div id="question">...</div>
         <div class="options-grid" id="options"></div>
         
-        <div class="footer-info">
-            <div>Đúng: <span id="correct-count" style="color: var(--success);">0</span></div>
-            <div>Tổng câu: <span id="total-count">0</span></div>
+        <div class="score-box">
+            <span style="color: var(--success);">Đúng: <span id="correct-count">0</span></span>
+            <span style="color: #636e72;">Tổng: <span id="total-count">0</span></span>
         </div>
     </div>
 
 <script>
-    let currentLang = 'vi';
-    let range = { min: 1, max: 20 };
+    let config = { lang: 'vi', min: 1, max: 20, mode: 'all' };
     let stats = { correct: 0, total: 0 };
     let answer = 0;
 
-    const i18n = {
-        vi: { plus: "cộng", minus: "trừ", ok: "Chính xác!", no: "Chưa đúng rồi!", lang: "vi-VN" },
-        ja: { plus: "たす", minus: "ひく", ok: "正解です！", no: "違いますよ！", lang: "ja-JP" }
+    const dict = {
+        vi: { plus: "cộng", minus: "trừ", ok: "Đúng rồi!", no: "Sai rồi!", lang: "vi-VN" },
+        ja: { plus: "たす", minus: "ひく", ok: "正解です!", no: "違います!", lang: "ja-JP" }
     };
 
-    function changeLang(l) {
-        currentLang = l;
-        document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById('btn-' + l).classList.add('active');
+    function setLang(l) {
+        config.lang = l;
+        document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.innerText.includes(l === 'vi' ? 'Việt' : '日本語')));
         newQuestion();
     }
 
-    function changeTab(min, max) {
-        range = { min, max };
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        event.target.classList.add('active');
+    function setRange(min, max, btn) {
+        config.min = min; config.max = max;
+        highlightBtn(btn);
         newQuestion();
+    }
+
+    function setMode(m, btn) {
+        config.mode = m;
+        highlightBtn(btn);
+        newQuestion();
+    }
+
+    function highlightBtn(btn) {
+        const parent = btn.parentElement;
+        parent.querySelectorAll('.btn-item').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
     }
 
     function speak(text) {
         window.speechSynthesis.cancel();
         const msg = new SpeechSynthesisUtterance(text);
-        msg.lang = i18n[currentLang].lang;
-        msg.rate = 1;
+        msg.lang = dict[config.lang].lang;
         window.speechSynthesis.speak(msg);
     }
 
     function newQuestion() {
-        const isPlus = Math.random() > 0.5;
-        let n1, n2, qText, display;
+        let isPlus = config.mode === 'all' ? Math.random() > 0.5 : config.mode === 'plus';
+        let n1, n2, txt, symbol;
 
         if (isPlus) {
-            n1 = Math.floor(Math.random() * (range.max - range.min)) + range.min;
-            n2 = Math.floor(Math.random() * (range.max - range.min)) + range.min;
+            n1 = Math.floor(Math.random() * (config.max - config.min)) + config.min;
+            n2 = Math.floor(Math.random() * (config.max - config.min)) + config.min;
             answer = n1 + n2;
-            display = `${n1} + ${n2}`;
-            qText = `${n1} ${i18n[currentLang].plus} ${n2}`;
+            symbol = "+";
+            txt = `${n1} ${dict[config.lang].plus} ${n2}`;
         } else {
-            const numA = Math.floor(Math.random() * (range.max - range.min)) + range.min;
-            const numB = Math.floor(Math.random() * (range.max - range.min)) + range.min;
-            n1 = Math.max(numA, numB);
-            n2 = Math.min(numA, numB);
+            const a = Math.floor(Math.random() * (config.max - config.min)) + config.min;
+            const b = Math.floor(Math.random() * (config.max - config.min)) + config.min;
+            n1 = Math.max(a, b); n2 = Math.min(a, b);
             answer = n1 - n2;
-            display = `${n1} - ${n2}`;
-            qText = `${n1} ${i18n[currentLang].minus} ${n2}`;
+            symbol = "-";
+            txt = `${n1} ${dict[config.lang].minus} ${n2}`;
         }
 
-        document.getElementById('question').innerText = display;
+        document.getElementById('question').innerText = `${n1} ${symbol} ${n2}`;
         document.getElementById('feedback').innerText = "";
+        speak(txt);
         renderOptions();
-        speak(qText);
     }
 
     function renderOptions() {
-        const container = document.getElementById('options');
-        container.innerHTML = '';
-        let choices = [answer];
-        
-        while(choices.length < 4) {
-            let offset = Math.floor(Math.random() * 20) - 10;
-            let wrong = Math.max(0, answer + offset);
-            if(!choices.includes(wrong)) choices.push(wrong);
+        const grid = document.getElementById('options');
+        grid.innerHTML = '';
+        let opts = [answer];
+        while(opts.length < 4) {
+            let w = Math.max(0, answer + Math.floor(Math.random() * 14) - 7);
+            if(!opts.includes(w)) opts.push(w);
         }
-        choices.sort(() => Math.random() - 0.5);
-
-        choices.forEach(val => {
-            const btn = document.createElement('button');
-            btn.className = 'opt-btn';
-            btn.innerText = val;
-            btn.onclick = () => checkResult(val, btn);
-            container.appendChild(btn);
+        opts.sort(() => Math.random() - 0.5).forEach(v => {
+            const b = document.createElement('button');
+            b.className = 'opt-btn';
+            b.innerText = v;
+            b.onclick = () => {
+                document.querySelectorAll('.opt-btn').forEach(btn => btn.onclick = null);
+                stats.total++;
+                if(v === answer) {
+                    stats.correct++;
+                    b.classList.add('correct');
+                    document.getElementById('feedback').innerText = dict[config.lang].ok;
+                    speak(dict[config.lang].ok);
+                } else {
+                    b.classList.add('wrong');
+                    document.getElementById('feedback').innerText = dict[config.lang].no;
+                    speak(dict[config.lang].no);
+                }
+                document.getElementById('correct-count').innerText = stats.correct;
+                document.getElementById('total-count').innerText = stats.total;
+                setTimeout(newQuestion, 1200);
+            };
+            grid.appendChild(b);
         });
     }
 
-    function checkResult(val, btn) {
-        const allBtns = document.querySelectorAll('.opt-btn');
-        allBtns.forEach(b => b.onclick = null); // Disable after click
-
-        stats.total++;
-        if(val === answer) {
-            stats.correct++;
-            btn.classList.add('correct');
-            document.getElementById('feedback').style.color = "var(--success)";
-            document.getElementById('feedback').innerText = i18n[currentLang].ok;
-            speak(i18n[currentLang].ok);
-        } else {
-            btn.classList.add('wrong');
-            document.getElementById('feedback').style.color = "var(--error)";
-            document.getElementById('feedback').innerText = i18n[currentLang].no;
-            speak(i18n[currentLang].no);
-        }
-
-        document.getElementById('correct-count').innerText = stats.correct;
-        document.getElementById('total-count').innerText = stats.total;
-
-        setTimeout(newQuestion, 1500);
-    }
-
-    // Khởi tạo lần đầu
     window.onload = newQuestion;
 </script>
 </body>

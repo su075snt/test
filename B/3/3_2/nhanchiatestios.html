@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Toán Nhân Chia Chuyên Sâu</title>
+    <style>
+        :root {
+            --primary: #4b6cb7;
+            --success: #27ae60;
+            --error: #e74c3c;
+            --bg: #f4f7f6;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: var(--bg);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 15px;
+        }
+
+        .header { width: 100%; max-width: 480px; display: flex; justify-content: space-between; margin-bottom: 10px; }
+
+        .lang-btn {
+            padding: 8px 15px;
+            border: 2px solid var(--primary);
+            border-radius: 20px;
+            cursor: pointer;
+            background: white;
+            font-weight: bold;
+        }
+
+        .lang-btn.active { background: var(--primary); color: white; }
+
+        .control-panel {
+            width: 100%;
+            max-width: 480px;
+            background: white;
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            margin-bottom: 15px;
+            box-sizing: border-box;
+        }
+
+        .label { font-size: 0.75rem; font-weight: bold; color: #7f8c8d; margin: 8px 0 4px; display: block; }
+
+        .btn-group { display: flex; gap: 5px; margin-bottom: 10px; }
+
+        .btn-item {
+            flex: 1;
+            padding: 10px 2px;
+            border: none;
+            background: #ecf0f1;
+            cursor: pointer;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 0.85rem;
+        }
+
+        .btn-item.active { background: var(--primary); color: white; }
+
+        .card {
+            background: white;
+            width: 100%;
+            max-width: 480px;
+            padding: 30px 20px;
+            border-radius: 25px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        #question { font-size: 3.5rem; font-weight: bold; margin: 15px 0; color: #2c3e50; }
+
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+        .opt-btn {
+            padding: 20px;
+            font-size: 1.8rem;
+            border: 2px solid #ecf0f1;
+            border-radius: 15px;
+            background: #fff;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .correct { background: var(--success) !important; color: white; border-color: var(--success); }
+        .wrong { background: var(--error) !important; color: white; border-color: var(--error); }
+
+        .score-box {
+            margin-top: 25px;
+            display: flex;
+            justify-content: space-around;
+            border-top: 2px dashed #eee;
+            padding-top: 15px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div>
+            <button class="lang-btn active" id="vi-btn" onclick="setLang('vi')">VN</button>
+            <button class="lang-btn" id="ja-btn" onclick="setLang('ja')">JP</button>
+        </div>
+        <div style="color: var(--primary); font-weight: bold;">MATH LOGIC</div>
+    </div>
+
+    <div class="control-panel">
+        <span class="label">PHẠM VI (RANGE):</span>
+        <div class="btn-group">
+            <button class="btn-item active" onclick="setRange('1-20', this)">1-20</button>
+            <button class="btn-item" onclick="setRange('20-100', this)">20-100</button>
+            <button class="btn-item" onclick="setRange('100-1000', this)">100-1000</button>
+        </div>
+
+        <span class="label">PHÉP TÍNH:</span>
+        <div class="btn-group">
+            <button class="btn-item active" onclick="setMode('mixed', this)">× & ÷</button>
+            <button class="btn-item" onclick="setMode('*', this)">Nhân (×)</button>
+            <button class="btn-item" onclick="setMode('/', this)">Chia (÷)</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <div id="feedback" style="height: 25px; font-weight: bold;"></div>
+        <div id="question">...</div>
+        <div class="options-grid" id="options"></div>
+        
+        <div class="score-box">
+            <span style="color: var(--success);">Đúng: <span id="correct-count">0</span></span>
+            <span style="color: #7f8c8d;">Tổng: <span id="total-count">0</span></span>
+        </div>
+    </div>
+
+<script>
+    let conf = { lang: 'vi', range: '1-20', mode: 'mixed' };
+    let stats = { correct: 0, total: 0 };
+    let answer = 0;
+
+    const dict = {
+        vi: { '*': "nhân", '/': "chia", ok: "Chính xác!", no: "Sai rồi!", code: "vi-VN" },
+        ja: { '*': "かける", '/': "わる", ok: "正解です!", no: "違います!", code: "ja-JP" }
+    };
+
+    function setLang(l) {
+        conf.lang = l;
+        document.getElementById('vi-btn').classList.toggle('active', l==='vi');
+        document.getElementById('ja-btn').classList.toggle('active', l==='ja');
+        newGame();
+    }
+
+    function setRange(r, btn) {
+        conf.range = r;
+        updateUI(btn);
+        newGame();
+    }
+
+    function setMode(m, btn) {
+        conf.mode = m;
+        updateUI(btn);
+        newGame();
+    }
+
+    function updateUI(btn) {
+        btn.parentElement.querySelectorAll('.btn-item').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    }
+
+    function speak(text) {
+        window.speechSynthesis.cancel();
+        const msg = new SpeechSynthesisUtterance(text);
+        msg.lang = dict[conf.lang].code;
+        window.speechSynthesis.speak(msg);
+    }
+
+    function r(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+    function newGame() {
+        let op = conf.mode === 'mixed' ? (Math.random() > 0.5 ? '*' : '/') : conf.mode;
+        let n1, n2, symbol;
+
+        if (conf.range === '1-20') {
+            if (op === '*') { n1 = r(2, 5); n2 = r(2, 4); } 
+            else { n2 = r(2, 5); answer = r(1, 4); n1 = n2 * answer; }
+        } else if (conf.range === '20-100') {
+            if (op === '*') { n1 = r(3, 10); n2 = r(3, 10); } 
+            else { n2 = r(3, 10); answer = r(3, 10); n1 = n2 * answer; }
+        } else {
+            if (op === '*') { n1 = r(11, 40); n2 = r(3, 15); } 
+            else { n2 = r(11, 30); answer = r(11, 30); n1 = n2 * answer; }
+        }
+
+        if (op === '*') { answer = n1 * n2; symbol = "×"; } 
+        else { symbol = "÷"; }
+
+        document.getElementById('question').innerText = `${n1} ${symbol} ${n2}`;
+        document.getElementById('feedback').innerText = "";
+        document.getElementById('feedback').style.color = "var(--primary)";
+        speak(`${n1} ${dict[conf.lang][op]} ${n2}`);
+        renderOptions();
+    }
+
+    function renderOptions() {
+        const grid = document.getElementById('options');
+        grid.innerHTML = '';
+        
+        // Logic tạo đáp án gây nhiễu (Sát với đáp án đúng)
+        let choices = new Set([answer]);
+        let offsets = [1, -1, 2, -2, 3, -3, 10, -10];
+        
+        while(choices.size < 4) {
+            let randomOffset = offsets[Math.floor(Math.random() * offsets.length)];
+            let wrong = answer + randomOffset;
+            if (wrong >= 0 && wrong !== answer) choices.add(wrong);
+            
+            // Nếu vẫn chưa đủ, thêm số ngẫu nhiên cực gần
+            if (choices.size < 4) {
+                let fallback = answer + r(-5, 5);
+                if (fallback >= 0) choices.add(fallback);
+            }
+        }
+
+        Array.from(choices).sort(() => Math.random() - 0.5).forEach(v => {
+            const b = document.createElement('button');
+            b.className = 'opt-btn';
+            b.innerText = v;
+            b.onclick = () => {
+                document.querySelectorAll('.opt-btn').forEach(btn => btn.onclick = null);
+                stats.total++;
+                if(v === answer) {
+                    stats.correct++;
+                    b.classList.add('correct');
+                    document.getElementById('feedback').innerText = dict[conf.lang].ok;
+                    document.getElementById('feedback').style.color = "var(--success)";
+                    speak(dict[conf.lang].ok);
+                } else {
+                    b.classList.add('wrong');
+                    document.getElementById('feedback').innerText = dict[conf.lang].no;
+                    document.getElementById('feedback').style.color = "var(--error)";
+                    speak(dict[conf.lang].no);
+                }
+                document.getElementById('correct-count').innerText = stats.correct;
+                document.getElementById('total-count').innerText = stats.total;
+                setTimeout(newGame, 1200);
+            };
+            grid.appendChild(b);
+        });
+    }
+
+    window.onload = newGame;
+</script>
+</body>
+</html>
