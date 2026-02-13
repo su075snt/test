@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bé Học Tiếng Anh - Kawaii Alphabet</title>
+    <link href="https://fonts.googleapis.com" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'M PLUS Rounded 1c', sans-serif;
+            background-color: #fffaf0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #ff85a1;
+            font-size: 2.2rem;
+            text-shadow: 2px 2px #fff;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 20px;
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        .card {
+            background: white;
+            border-radius: 30px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            border: 5px solid #ffcad4;
+            box-shadow: 0 8px 0 #ffcad4;
+            transition: all 0.1s ease;
+        }
+
+        .card:active {
+            transform: translateY(6px);
+            box-shadow: 0 2px 0 #ffcad4;
+        }
+
+        .letter {
+            font-size: 4.5rem;
+            color: #ff758f;
+            margin: 0;
+            line-height: 1;
+        }
+
+        .emoji {
+            font-size: 3rem;
+            margin: 10px 0;
+        }
+
+        .word {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #55acee;
+            text-transform: uppercase;
+        }
+
+        /* Màu sắc pastel ngẫu nhiên */
+        .card:nth-child(4n+1) { border-color: #ffcfd2; box-shadow: 0 8px 0 #ffcfd2; }
+        .card:nth-child(4n+2) { border-color: #b9fbc0; box-shadow: 0 8px 0 #b9fbc0; }
+        .card:nth-child(4n+3) { border-color: #cfbcff; box-shadow: 0 8px 0 #cfbcff; }
+        .card:nth-child(4n+4) { border-color: #a3c4f3; box-shadow: 0 8px 0 #a3c4f3; }
+
+        @media (max-width: 480px) {
+            .grid { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>✨ ALPHABET FOR KIDS ✨</h1>
+
+    <div class="grid" id="grid"></div>
+
+    <script>
+        const alphabet = [
+            {l: 'A', w: 'Apple', e: '🍎'}, {l: 'B', w: 'Ball', e: '⚽'}, {l: 'C', w: 'Cat', e: '🐱'},
+            {l: 'D', w: 'Dog', e: '🐶'}, {l: 'E', w: 'Elephant', e: '🐘'}, {l: 'F', w: 'Fish', e: '🐟'},
+            {l: 'G', w: 'Giraffe', e: '🦒'}, {l: 'H', w: 'Hat', e: '👒'}, {l: 'I', w: 'Ice cream', e: '🍦'},
+            {l: 'J', w: 'Jellyfish', e: '🪼'}, {l: 'K', w: 'Kangaroo', e: '🦘'}, {l: 'L', w: 'Lion', e: '🦁'},
+            {l: 'M', w: 'Monkey', e: '🐒'}, {l: 'N', w: 'Nurse', e: '👩‍⚕️'}, {l: 'O', w: 'Octopus', e: '🐙'},
+            {l: 'P', w: 'Panda', e: '🐼'}, {l: 'Q', w: 'Queen', e: '👸'}, {l: 'R', w: 'Rabbit', e: '🐰'},
+            {l: 'S', w: 'Sun', e: '☀️'}, {l: 'T', w: 'Tiger', e: '🐯'}, {l: 'U', w: 'Umbrella', e: '☂️'},
+            {l: 'V', w: 'Van', e: '🚐'}, {l: 'W', w: 'Whale', e: '🐳'}, {l: 'X', w: 'Xylophone', e: '🎹'},
+            {l: 'Y', w: 'Yo-yo', e: '🪀'}, {l: 'Z', w: 'Zebra', e: '🦓'}
+        ];
+
+        function speak(letter, word) {
+            window.speechSynthesis.cancel(); 
+
+            // 1. Đọc chữ cái
+            const msgLetter = new SpeechSynthesisUtterance(letter);
+            setVoice(msgLetter);
+            window.speechSynthesis.speak(msgLetter);
+
+            // 2. Nghỉ 0.6 giây rồi đọc từ vựng
+            msgLetter.onend = () => {
+                setTimeout(() => {
+                    const msgWord = new SpeechSynthesisUtterance(word);
+                    setVoice(msgWord);
+                    window.speechSynthesis.speak(msgWord);
+                }, 600);
+            };
+        }
+
+        function setVoice(utt) {
+            utt.lang = 'en-US';
+            utt.rate = 0.8;
+            utt.pitch = 1.2; // Giọng nữ cao dễ thương
+            const voices = window.speechSynthesis.getVoices();
+            const female = voices.find(v => (v.name.includes('Female') || v.name.includes('Google US English') || v.name.includes('Samantha')));
+            if (female) utt.voice = female;
+        }
+
+        const gridContainer = document.getElementById('grid');
+        alphabet.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.innerHTML = `
+                <div class="letter">${item.l}</div>
+                <div class="emoji">${item.e}</div>
+                <div class="word">${item.w}</div>
+            `;
+            card.onclick = () => speak(item.l, item.w);
+            gridContainer.appendChild(card);
+        });
+
+        // Nạp voice
+        window.speechSynthesis.onvoiceschanged = () => {};
+    </script>
+</body>
+</html>
