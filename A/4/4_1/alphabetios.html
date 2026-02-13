@@ -2,90 +2,94 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IOS chuẩn giọng Nhật</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>たのしいアルファベット</title>
     <link href="https://fonts.googleapis.com" rel="stylesheet">
     <style>
         :root {
-            --primary: #ff9a9e;
-            --secondary: #fad0c4;
-            --blue: #a1c4fd;
+            --primary: #ff8fab;
+            --bg: #fff5f8;
+            --card-shadow: #ffb3c1;
+            --blue: #4fc3f7;
         }
+
         body {
-            background: #fffafa;
             font-family: 'M PLUS Rounded 1c', sans-serif;
+            background-color: var(--bg);
+            margin: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 10px;
-            margin: 0;
-            touch-action: manipulation;
+            padding: 20px;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        /* Phần chọn giọng đọc */
-        .voice-selector {
-            margin: 15px 0;
-            background: white;
-            padding: 10px;
-            border-radius: 15px;
-            border: 2px solid var(--secondary);
-            font-size: 0.9rem;
-        }
-
-        select {
-            font-family: 'M PLUS Rounded 1c', sans-serif;
-            padding: 5px;
-            border-radius: 10px;
-            border: 1px solid #ccc;
-            outline: none;
+        h1 {
+            color: var(--primary);
+            font-size: 1.6rem;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 0 white;
         }
 
         .grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-            max-width: 400px;
+            gap: 12px;
+            max-width: 450px;
         }
 
         .card {
             background: white;
-            border: 3px solid var(--secondary);
+            border: 4px solid #ffe1e6;
             border-radius: 20px;
-            width: 75px;
-            height: 85px;
+            width: 80px;
+            height: 90px;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             cursor: pointer;
-            box-shadow: 0 5px 0 var(--primary);
+            box-shadow: 0 6px 0 var(--card-shadow);
             transition: 0.1s;
         }
 
         .card:active {
             transform: translateY(4px);
-            box-shadow: 0 1px 0 var(--primary);
-            background-color: #fff0f0;
+            box-shadow: 0 2px 0 var(--card-shadow);
+            background-color: #fff9c4;
         }
 
-        .letter { font-size: 2rem; color: #555; }
-        .reading { font-size: 0.8rem; color: var(--primary); display: none; }
+        .letter {
+            font-size: 2.2rem;
+            color: var(--blue);
+            line-height: 1;
+        }
+
+        .reading {
+            font-size: 0.85rem;
+            color: var(--primary);
+            font-weight: bold;
+            margin-top: 5px;
+            display: none;
+        }
+
         .card.active .reading { display: block; }
         .card.active .letter { font-size: 1.6rem; }
 
-        h1 { color: var(--primary); font-size: 1.5rem; margin-top: 10px; }
+        .footer {
+            margin-top: 30px;
+            color: #888;
+            font-size: 0.8rem;
+        }
     </style>
 </head>
 <body>
 
-    <h1>🌸 アルファベット 🌸</h1>
+    <h1>✨ アルファベット ✨</h1>
 
-    <!-- Menu chọn giọng -->
-    <div class="voice-selector">
-        🗣️ <select id="voiceSelect"><option value="">Đang tải giọng Nhật...</option></select>
-    </div>
+    <div class="grid" id="alphabetGrid"></div>
 
-    <div class="grid" id="grid"></div>
+    <div class="footer">にほんごの こえで よむよ！</div>
 
     <script>
         const alphabet = [
@@ -95,31 +99,21 @@
             ['V','ヴィー'],['W','ダブリュー'],['X','エックス'],['Y','ワイ'],['Z','ゼット']
         ];
 
-        const voiceSelect = document.getElementById('voiceSelect');
-        const grid = document.getElementById('grid');
-        let voices = [];
+        let preferredVoice = null;
 
-        function loadVoices() {
-            // Lấy tất cả giọng nói có sẵn trên thiết bị
-            voices = window.speechSynthesis.getVoices();
-            
-            // Lọc ra các giọng Nhật Bản (ja-JP)
-            const jpVoices = voices.filter(v => v.lang.includes('ja'));
-
-            voiceSelect.innerHTML = '';
-            jpVoices.forEach((voice, index) => {
-                const option = document.createElement('option');
-                // iOS thường có: Kyoko, Otoya, Siri
-                option.value = voice.name;
-                option.textContent = voice.name.replace('Japanese', 'Giọng Nhật');
-                if(voice.name.includes('Kyoko')) option.selected = true; // Ưu tiên Kyoko (giọng nữ chuẩn nhất)
-                voiceSelect.appendChild(option);
-            });
+        function initVoice() {
+            const voices = window.speechSynthesis.getVoices();
+            // Sử dụng logic lọc của bạn để tìm Kyoko hoặc Otoya trên iOS
+            preferredVoice = voices.find(v => 
+                v.lang.includes('ja-JP') && (v.name.includes('Kyoko') || v.name.includes('Otoya'))
+            ) || voices.find(v => v.lang.includes('ja')); // Fallback nếu không có Kyoko/Otoya
         }
 
-        // Sự kiện nạp giọng nói của trình duyệt
-        window.speechSynthesis.onvoiceschanged = loadVoices;
-        loadVoices();
+        // Đảm bảo load voice trên iOS/Chrome
+        window.speechSynthesis.onvoiceschanged = initVoice;
+        initVoice();
+
+        const grid = document.getElementById('alphabetGrid');
 
         alphabet.forEach(([char, kana]) => {
             const card = document.createElement('div');
@@ -129,18 +123,21 @@
             card.onclick = () => {
                 card.classList.add('active');
                 
+                // Tạo yêu cầu đọc
                 const uttr = new SpeechSynthesisUtterance(kana);
-                // Chọn giọng đã chọn từ menu
-                const selectedVoiceName = voiceSelect.value;
-                uttr.voice = voices.find(v => v.name === selectedVoiceName);
+                if (preferredVoice) {
+                    uttr.voice = preferredVoice;
+                }
                 uttr.lang = 'ja-JP';
                 uttr.rate = 0.9;
-                
+                uttr.pitch = 1.1;
+
                 window.speechSynthesis.cancel();
                 window.speechSynthesis.speak(uttr);
 
-                setTimeout(() => card.classList.remove('active'), 800);
+                setTimeout(() => card.classList.remove('active'), 1000);
             };
+
             grid.appendChild(card);
         });
     </script>
