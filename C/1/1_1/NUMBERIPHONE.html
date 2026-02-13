@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bé học đếm số 1-100</title>
+    <link href="https://fonts.googleapis.com" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #fffaf0;
+            --primary-color: #ff9aa2;
+            --secondary-color: #b5ead7;
+            --text-color: #5d5d5d;
+        }
+
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        h1 {
+            color: #ff6f91;
+            text-shadow: 2px 2px #fff;
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .subtitle {
+            margin-bottom: 30px;
+            color: #888;
+            font-weight: 500;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            gap: 15px;
+            width: 100%;
+            max-width: 1000px;
+        }
+
+        .number-card {
+            background: white;
+            border: 4px solid var(--secondary-color);
+            border-radius: 20px;
+            padding: 20px 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 6px 0 var(--secondary-color);
+            position: relative;
+        }
+
+        /* Hiệu ứng khi nhấn cho bắt mắt */
+        .number-card:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 var(--secondary-color);
+        }
+
+        /* Trạng thái khi đang đọc */
+        .speaking {
+            border-color: var(--primary-color) !important;
+            box-shadow: 0 6px 0 var(--primary-color) !important;
+            background-color: #fff0f1 !important;
+            transform: scale(1.05);
+        }
+
+        .num {
+            font-size: 32px;
+            font-weight: 700;
+            color: #ff6f91;
+        }
+
+        .eng {
+            font-size: 15px;
+            font-weight: 700;
+            color: #4b7bec;
+            margin-top: 8px;
+            text-transform: capitalize;
+        }
+
+        /* Responsive cho điện thoại nhỏ */
+        @media (max-width: 480px) {
+            .grid-container {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 10px;
+            }
+            .num { font-size: 24px; }
+            .eng { font-size: 12px; }
+            h1 { font-size: 1.6rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>✨ Let's Count 1 - 100 ✨</h1>
+    <p class="subtitle">Chạm vào số để nghe tiếng Anh nhé!</p>
+
+    <div class="grid-container" id="grid"></div>
+
+    <script>
+        const grid = document.getElementById('grid');
+        const units = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine"];
+        const teens = ["Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"];
+        const tens = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
+
+        // Hàm tạo danh sách 100 số
+        for (let i = 1; i <= 100; i++) {
+            let name = "";
+            if (i < 10) {
+                name = units[i];
+            } else if (i < 20) {
+                name = teens[i - 10];
+            } else if (i < 100) {
+                let t = Math.floor(i / 10);
+                let u = i % 10;
+                name = tens[t] + (u !== 0 ? " " + units[u] : "");
+            } else {
+                name = "One Hundred";
+            }
+
+            const card = document.createElement('div');
+            card.className = 'number-card';
+            card.innerHTML = `
+                <div class="num">${i}</div>
+                <div class="eng">${name}</div>
+            `;
+
+            // Sự kiện Click/Touch
+            card.addEventListener('click', () => speak(name, card));
+            grid.appendChild(card);
+        }
+
+        function speak(text, element) {
+            // Xóa hiệu ứng đang đọc cũ
+            document.querySelectorAll('.number-card').forEach(c => c.classList.remove('speaking'));
+            
+            // Thêm hiệu ứng đang đọc mới
+            element.classList.add('speaking');
+
+            // Ngừng các âm thanh đang phát (tránh bị chồng tiếng khi ấn nhanh)
+            window.speechSynthesis.cancel();
+
+            const msg = new SpeechSynthesisUtterance();
+            msg.text = text;
+            msg.lang = 'en-US'; // Giọng tiếng Anh
+            msg.rate = 0.9;     // Tốc độ vừa phải cho bé nghe
+
+            msg.onend = () => {
+                element.classList.remove('speaking');
+            };
+
+            window.speechSynthesis.speak(msg);
+        }
+    </script>
+</body>
+</html>
