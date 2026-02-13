@@ -3,49 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Toán Cộng Trừ Chuyên Sâu</title>
+    <title>Toán Cộng Trừ Chuẩn Giọng</title>
     <style>
-        :root { --primary: #2d3436; --success: #00b894; --error: #d63031; --bg: #f1f2f6; }
+        :root { --primary: #0097e6; --success: #44bd32; --error: #c23616; --bg: #f5f6fa; }
         body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); margin: 0; display: flex; flex-direction: column; align-items: center; padding: 15px; -webkit-tap-highlight-color: transparent; }
         .header { width: 100%; max-width: 480px; display: flex; justify-content: space-between; margin-bottom: 10px; }
-        .lang-btn { padding: 8px 15px; border: 2px solid var(--primary); border-radius: 20px; cursor: pointer; background: white; font-weight: bold; }
+        .lang-btn { padding: 10px 18px; border: 2px solid var(--primary); border-radius: 25px; cursor: pointer; background: white; font-weight: bold; font-size: 0.9rem; }
         .lang-btn.active { background: var(--primary); color: white; }
-        .control-panel { width: 100%; max-width: 480px; background: white; border-radius: 15px; padding: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 15px; box-sizing: border-box; }
-        .label { font-size: 0.75rem; font-weight: bold; color: #636e72; margin: 8px 0 4px; display: block; }
-        .btn-group { display: flex; gap: 5px; margin-bottom: 8px; }
-        .btn-item { flex: 1; padding: 10px 2px; border: none; background: #dfe6e9; cursor: pointer; border-radius: 8px; font-weight: bold; font-size: 0.85rem; }
+        .control-panel { width: 100%; max-width: 480px; background: white; border-radius: 15px; padding: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 15px; box-sizing: border-box; }
+        .label { font-size: 0.75rem; font-weight: bold; color: #7f8c8d; margin: 10px 0 5px; display: block; }
+        .btn-group { display: flex; gap: 6px; }
+        .btn-item { flex: 1; padding: 12px 2px; border: none; background: #dcdde1; cursor: pointer; border-radius: 10px; font-weight: bold; font-size: 0.85rem; }
         .btn-item.active { background: var(--primary); color: white; }
-        .card { background: white; width: 100%; max-width: 480px; padding: 30px 20px; border-radius: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; box-sizing: border-box; position: relative; min-height: 300px; }
-        #question { font-size: 3.5rem; font-weight: bold; margin: 15px 0; color: #2d3436; }
-        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .opt-btn { padding: 20px; font-size: 1.8rem; border: 2px solid #eee; border-radius: 15px; background: #fff; cursor: pointer; font-weight: bold; }
+        .card { background: white; width: 100%; max-width: 480px; padding: 35px 20px; border-radius: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; box-sizing: border-box; position: relative; min-height: 350px; }
+        #question { font-size: 4rem; font-weight: bold; margin: 15px 0; color: #2f3640; }
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .opt-btn { padding: 22px; font-size: 2rem; border: 2px solid #f1f2f6; border-radius: 18px; background: #fff; cursor: pointer; font-weight: bold; transition: transform 0.1s; }
+        .opt-btn:active { transform: scale(0.95); }
         .correct { background: var(--success) !important; color: white; border-color: var(--success); }
         .wrong { background: var(--error) !important; color: white; border-color: var(--error); }
-        .score-box { margin-top: 25px; display: flex; justify-content: space-around; border-top: 2px dashed #eee; padding-top: 15px; font-weight: bold; }
-        #start-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: white; border-radius: 25px; display: flex; justify-content: center; align-items: center; z-index: 10; }
-        #start-overlay button { padding: 15px 30px; font-size: 1.2rem; border-radius: 10px; border: none; background: var(--primary); color: white; font-weight: bold; cursor: pointer; }
+        .score-box { margin-top: 30px; display: flex; justify-content: space-around; border-top: 2px dashed #f1f2f6; padding-top: 20px; font-weight: bold; color: #718093; }
+        #start-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: white; border-radius: 30px; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 20; }
+        #start-overlay button { padding: 18px 45px; font-size: 1.4rem; border-radius: 15px; border: none; background: var(--primary); color: white; font-weight: bold; cursor: pointer; box-shadow: 0 5px 15px rgba(0, 151, 230, 0.4); }
     </style>
 </head>
 <body>
 
     <div class="header">
         <div>
-            <button class="lang-btn active" id="vi-btn" onclick="setLang('vi')">VN</button>
-            <button class="lang-btn" id="ja-btn" onclick="setLang('ja')">JP</button>
+            <button class="lang-btn active" id="vi-btn" onclick="setLang('vi')">Tiếng Việt</button>
+            <button class="lang-btn" id="ja-btn" onclick="setLang('ja')">日本語</button>
         </div>
-        <div style="font-weight: bold;">MATH PLUS</div>
+        <div style="font-weight: bold; color: var(--primary);">MATH PLUS</div>
     </div>
 
     <div class="control-panel">
-        <span class="label">PHẠM VI:</span>
+        <span class="label">PHẠM VI SỐ (RANGE):</span>
         <div class="btn-group">
             <button class="btn-item active" onclick="setRange('1-20', this)">1-20</button>
             <button class="btn-item" onclick="setRange('20-100', this)">20-100</button>
             <button class="btn-item" onclick="setRange('100-1000', this)">100-1000</button>
         </div>
-        <span class="label">PHÉP TÍNH:</span>
+        <span class="label">PHÉP TÍNH (MODE):</span>
         <div class="btn-group">
-            <button class="btn-item active" onclick="setMode('all', this)">+ & -</button>
+            <button class="btn-item active" onclick="setMode('all', this)">Cộng & Trừ</button>
             <button class="btn-item" onclick="setMode('plus', this)">Cộng (+)</button>
             <button class="btn-item" onclick="setMode('minus', this)">Trừ (-)</button>
         </div>
@@ -53,14 +54,15 @@
 
     <div class="card">
         <div id="start-overlay">
-            <button onclick="startApp()">BẤT ĐẦU / START</button>
+            <p style="margin-bottom: 20px; font-weight: bold; color: #2f3640;">Nhấn để bắt đầu / Click to start</p>
+            <button onclick="startApp()">START</button>
         </div>
-        <div id="feedback" style="height: 25px; font-weight: bold;"></div>
+        <div id="feedback" style="height: 25px; font-weight: bold; font-size: 1.2rem;"></div>
         <div id="question">...</div>
         <div class="options-grid" id="options"></div>
         <div class="score-box">
-            <span style="color: var(--success);">Đúng: <span id="correct-count">0</span></span>
-            <span style="color: #636e72;">Tổng: <span id="total-count">0</span></span>
+            <span>Đúng: <span id="correct-count" style="color: var(--success);">0</span></span>
+            <span>Tổng: <span id="total-count">0</span></span>
         </div>
     </div>
 
@@ -71,32 +73,45 @@
     let isStarted = false;
 
     const dict = {
-        vi: { plus: "cộng", minus: "trừ", ok: "Đúng rồi", no: "Sai rồi", code: "vi-VN" },
-        ja: { plus: "たす", minus: "ひく", ok: "正解", no: "違います", code: "ja-JP" }
+        vi: { plus: "cộng", minus: "trừ", ok: "Chính xác!", no: "Sai rồi!", code: "vi-VN" },
+        ja: { plus: "たす", minus: "ひく", ok: "正解です!", no: "違います!", code: "ja-JP" }
     };
 
     function startApp() {
         isStarted = true;
         document.getElementById('start-overlay').style.display = 'none';
+        // Đánh thức giọng nói trên iOS bằng câu chào ẩn
+        speak(""); 
         newGame();
     }
 
     function speak(text) {
-        if (!isStarted) return;
+        if (!isStarted && text !== "") return;
         window.speechSynthesis.cancel();
         
         const msg = new SpeechSynthesisUtterance(text);
         const voices = window.speechSynthesis.getVoices();
-        // Đặc trị iOS: Tìm voice vi-VN của Apple
-        const selectedVoice = voices.find(v => v.lang.replace('_', '-').startsWith(dict[conf.lang].code));
-        if (selectedVoice) msg.voice = selectedVoice;
         
+        let preferredVoice;
+        if (conf.lang === 'vi') {
+            // Tìm giọng Việt (Linh/Lan/Tu)
+            preferredVoice = voices.find(v => v.lang.includes('vi-VN') && (v.name.includes('Linh') || v.name.includes('Lan')));
+        } else {
+            // Tìm giọng Nhật (Kyoko/Otoya)
+            preferredVoice = voices.find(v => v.lang.includes('ja-JP') && (v.name.includes('Kyoko') || v.name.includes('Otoya')));
+        }
+        
+        if (!preferredVoice) {
+            preferredVoice = voices.find(v => v.lang.replace('_', '-').startsWith(dict[conf.lang].code));
+        }
+
+        if (preferredVoice) msg.voice = preferredVoice;
         msg.lang = dict[conf.lang].code;
-        msg.rate = 1.0;
+        msg.rate = 1.0; 
         window.speechSynthesis.speak(msg);
     }
 
-    // Load voices cho trình duyệt Safari/iOS
+    // iOS/Safari Voice Loading fix
     window.speechSynthesis.onvoiceschanged = () => { window.speechSynthesis.getVoices(); };
 
     function setLang(l) {
@@ -127,21 +142,23 @@
 
     function newGame() {
         let isPlus = conf.mode === 'all' ? Math.random() > 0.5 : conf.mode === 'plus';
-        let n1, n2, symbol, speakOp;
+        let n1, n2, symbol, opText;
         let bounds = conf.range.split('-').map(Number);
 
         if (isPlus) {
-            n1 = r(bounds[0], bounds[1]/2); n2 = r(bounds[0], bounds[1]/2);
-            answer = n1 + n2; symbol = "+"; speakOp = dict[conf.lang].plus;
+            n1 = r(bounds[0], bounds[1]/1.5); 
+            n2 = r(bounds[0], bounds[1]/3);
+            answer = n1 + n2; symbol = "+"; opText = dict[conf.lang].plus;
         } else {
-            let a = r(bounds[0], bounds[1]); let b = r(bounds[0], bounds[1]);
+            let a = r(bounds[0], bounds[1]); 
+            let b = r(bounds[0], bounds[1]);
             n1 = Math.max(a, b); n2 = Math.min(a, b);
-            answer = n1 - n2; symbol = "-"; speakOp = dict[conf.lang].minus;
+            answer = n1 - n2; symbol = "-"; opText = dict[conf.lang].minus;
         }
 
         document.getElementById('question').innerText = `${n1} ${symbol} ${n2}`;
         document.getElementById('feedback').innerText = "";
-        speak(`${n1} ${speakOp} ${n2}`);
+        speak(`${n1} ${opText} ${n2}`);
         renderOptions();
     }
 
@@ -149,14 +166,14 @@
         const grid = document.getElementById('options');
         grid.innerHTML = '';
         let choices = new Set([answer]);
-        let offsets = [1, -1, 2, -2, 3, -3, 10, -10];
+        let offsets = [1, -1, 2, -2, 10, -10]; // Chênh lệch cực sát
         
         while(choices.size < 4) {
             let off = offsets[r(0, offsets.length - 1)];
             let wrong = answer + off;
             if (wrong >= 0 && wrong !== answer) choices.add(wrong);
             if (choices.size < 4) {
-                let fall = answer + r(-5, 5);
+                let fall = answer + r(-3, 3);
                 if (fall >= 0 && fall !== answer) choices.add(fall);
             }
         }
@@ -182,7 +199,7 @@
                 }
                 document.getElementById('correct-count').innerText = stats.correct;
                 document.getElementById('total-count').innerText = stats.total;
-                setTimeout(newGame, 1300);
+                setTimeout(newGame, 1400);
             };
             grid.appendChild(b);
         });
