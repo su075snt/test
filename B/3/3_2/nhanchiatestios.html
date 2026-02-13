@@ -3,27 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Toán Học Việt - Nhật (iOS Optimized)</title>
+    <title>Toán Nhân Chia - Việt Nhật</title>
     <style>
-        :root { --primary: #4834d4; --success: #20bf6b; --error: #eb3b5a; --bg: #f1f2f6; }
-        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); margin: 0; display: flex; flex-direction: column; align-items: center; padding: 15px; -webkit-tap-highlight-color: transparent; }
+        :root { --primary: #6c5ce7; --success: #00b894; --error: #d63031; --bg: #f8f9fa; }
+        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); margin: 0; display: flex; flex-direction: column; align-items: center; padding: 10px; -webkit-tap-highlight-color: transparent; }
         .header { width: 100%; max-width: 480px; display: flex; justify-content: space-between; margin-bottom: 10px; }
-        .lang-btn { padding: 10px 20px; border: 2px solid var(--primary); border-radius: 25px; cursor: pointer; background: white; font-weight: bold; font-size: 0.9rem; }
+        .lang-btn { padding: 10px 18px; border: 2px solid var(--primary); border-radius: 25px; cursor: pointer; background: white; font-weight: bold; font-size: 0.9rem; }
         .lang-btn.active { background: var(--primary); color: white; }
         .control-panel { width: 100%; max-width: 480px; background: white; border-radius: 15px; padding: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 15px; box-sizing: border-box; }
-        .label { font-size: 0.75rem; font-weight: bold; color: #747d8c; margin: 10px 0 5px; display: block; }
-        .btn-group { display: flex; gap: 6px; }
-        .btn-item { flex: 1; padding: 12px 2px; border: none; background: #dfe4ea; cursor: pointer; border-radius: 10px; font-weight: bold; font-size: 0.85rem; }
+        .label { font-size: 0.75rem; font-weight: bold; color: #636e72; margin: 8px 0 4px; display: block; }
+        .btn-group { display: flex; gap: 5px; margin-bottom: 8px; }
+        .btn-item { flex: 1; padding: 12px 2px; border: none; background: #dfe6e9; cursor: pointer; border-radius: 10px; font-weight: bold; font-size: 0.85rem; }
         .btn-item.active { background: var(--primary); color: white; }
         .card { background: white; width: 100%; max-width: 480px; padding: 35px 20px; border-radius: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; box-sizing: border-box; position: relative; min-height: 350px; }
-        #question { font-size: 3.8rem; font-weight: bold; margin: 15px 0; color: #2f3542; }
+        #question { font-size: 3.8rem; font-weight: bold; margin: 15px 0; color: #2d3436; }
         .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .opt-btn { padding: 22px; font-size: 1.8rem; border: 2px solid #f1f2f6; border-radius: 18px; background: #fff; cursor: pointer; font-weight: bold; transition: 0.1s; }
+        .opt-btn { padding: 22px; font-size: 2rem; border: 2px solid #f1f2f6; border-radius: 18px; background: #fff; cursor: pointer; font-weight: bold; }
         .correct { background: var(--success) !important; color: white; border-color: var(--success); }
         .wrong { background: var(--error) !important; color: white; border-color: var(--error); }
-        .score-box { margin-top: 30px; display: flex; justify-content: space-around; border-top: 2px dashed #f1f2f6; padding-top: 20px; font-weight: bold; color: #57606f; }
+        .score-box { margin-top: 30px; display: flex; justify-content: space-around; border-top: 2px dashed #eee; padding-top: 20px; font-weight: bold; color: #636e72; }
         #start-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: white; border-radius: 30px; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 20; }
-        #start-overlay button { padding: 18px 40px; font-size: 1.3rem; border-radius: 15px; border: none; background: var(--primary); color: white; font-weight: bold; cursor: pointer; box-shadow: 0 5px 15px rgba(72, 52, 212, 0.4); }
+        #start-overlay button { padding: 18px 45px; font-size: 1.4rem; border-radius: 15px; border: none; background: var(--primary); color: white; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -33,7 +33,7 @@
             <button class="lang-btn active" id="vi-btn" onclick="setLang('vi')">Tiếng Việt</button>
             <button class="lang-btn" id="ja-btn" onclick="setLang('ja')">日本語</button>
         </div>
-        <div style="font-weight: bold; color: var(--primary);">MATH PRO</div>
+        <div style="font-weight: bold; color: var(--primary);">MATH × ÷</div>
     </div>
 
     <div class="control-panel">
@@ -43,9 +43,9 @@
             <button class="btn-item" onclick="setRange('20-100', this)">20-100</button>
             <button class="btn-item" onclick="setRange('100-1000', this)">100-1000</button>
         </div>
-        <span class="label">CHẾ ĐỘ PHÉP TÍNH:</span>
+        <span class="label">PHÉP TÍNH:</span>
         <div class="btn-group">
-            <button class="btn-item active" onclick="setMode('mixed', this)">Tất cả</button>
+            <button class="btn-item active" onclick="setMode('mixed', this)">Nhân & Chia</button>
             <button class="btn-item" onclick="setMode('*', this)">Nhân (×)</button>
             <button class="btn-item" onclick="setMode('/', this)">Chia (÷)</button>
         </div>
@@ -53,10 +53,9 @@
 
     <div class="card">
         <div id="start-overlay">
-            <p style="margin-bottom: 20px; font-weight: bold; color: #2f3542;">Nhấn để bắt đầu học</p>
-            <button onclick="startApp()">BẮT ĐẦU</button>
+            <button onclick="startApp()">START</button>
         </div>
-        <div id="feedback" style="height: 25px; font-weight: bold; font-size: 1.2rem;"></div>
+        <div id="feedback" style="height: 25px; font-weight: bold; font-size: 1.1rem;"></div>
         <div id="question">...</div>
         <div class="options-grid" id="options"></div>
         <div class="score-box">
@@ -72,24 +71,31 @@
     let isStarted = false;
 
     const dict = {
-        vi: { '*': "nhân", '/': "chia", ok: "Chính xác!", no: "Sai rồi!", code: "vi-VN" },
-        ja: { '*': "かける", '/': "わる", ok: "正解です!", no: "違います!", code: "ja-JP" }
+        vi: {
+            '*': "nhân", '/': "chia", code: "vi-VN",
+            correct: ["Chính xác!", "Giỏi quá!", "Đúng rồi, tuyệt vời!", "Xuất sắc!", "Đúng rồi con nhé!"],
+            wrong: ["Chưa đúng rồi!", "Cố gắng lên nào!", "Hãy thử lại nhé!", "Sắp đúng rồi đó!", "Bình tĩnh tính lại nhé!"]
+        },
+        ja: {
+            '*': "かける", '/': "わる", code: "ja-JP",
+            correct: ["正解です！", "すごいですね！", "よくできました！", "その調子です！", "素晴らしい！"],
+            wrong: ["残念、違います！", "頑張って！", "もう一度やってみよう！", "おしいですよ！", "落ち着いて考えよう！"]
+        }
     };
 
     function startApp() {
         isStarted = true;
         document.getElementById('start-overlay').style.display = 'none';
+        speak(""); 
         newGame();
     }
 
     function speak(text) {
-        if (!isStarted) return;
+        if (!isStarted && text !== "") return;
         window.speechSynthesis.cancel();
-        
         const msg = new SpeechSynthesisUtterance(text);
         const voices = window.speechSynthesis.getVoices();
         
-        // Tìm giọng bản địa chất lượng cao cho iOS
         let preferredVoice;
         if (conf.lang === 'vi') {
             preferredVoice = voices.find(v => v.lang.includes('vi-VN') && (v.name.includes('Linh') || v.name.includes('Lan')));
@@ -97,19 +103,14 @@
             preferredVoice = voices.find(v => v.lang.includes('ja-JP') && (v.name.includes('Kyoko') || v.name.includes('Otoya')));
         }
         
-        // Nếu không có giọng ưu tiên, lấy giọng bất kỳ đúng ngôn ngữ
-        if (!preferredVoice) {
-            preferredVoice = voices.find(v => v.lang.replace('_', '-').startsWith(dict[conf.lang].code));
-        }
-
+        if (!preferredVoice) preferredVoice = voices.find(v => v.lang.replace('_', '-').startsWith(dict[conf.lang].code));
         if (preferredVoice) msg.voice = preferredVoice;
+        
         msg.lang = dict[conf.lang].code;
         msg.rate = 1.0;
-        msg.pitch = 1.0;
         window.speechSynthesis.speak(msg);
     }
 
-    // Đảm bảo voices load đầy đủ trên iOS/Safari
     window.speechSynthesis.onvoiceschanged = () => { window.speechSynthesis.getVoices(); };
 
     function setLang(l) {
@@ -143,11 +144,11 @@
         let n1, n2, symbol;
 
         if (conf.range === '1-20') {
-            if (op === '*') { n1 = r(2, 5); n2 = r(1, 4); } 
+            if (op === '*') { n1 = r(2, 5); n2 = r(2, 4); } 
             else { n2 = r(2, 5); answer = r(1, 4); n1 = n2 * answer; }
         } else if (conf.range === '20-100') {
-            if (op === '*') { n1 = r(2, 10); n2 = r(2, 10); } 
-            else { n2 = r(2, 10); answer = r(2, 10); n1 = n2 * answer; }
+            if (op === '*') { n1 = r(3, 10); n2 = r(2, 10); } 
+            else { n2 = r(3, 10); answer = r(2, 10); n1 = n2 * answer; }
         } else {
             if (op === '*') { n1 = r(10, 30); n2 = r(3, 15); } 
             else { n2 = r(5, 25); answer = r(5, 25); n1 = n2 * answer; }
@@ -185,21 +186,23 @@
             b.onclick = () => {
                 document.querySelectorAll('.opt-btn').forEach(btn => btn.onclick = null);
                 stats.total++;
+                let msgList = (v === answer) ? dict[conf.lang].correct : dict[conf.lang].wrong;
+                let randomMsg = msgList[r(0, msgList.length - 1)];
+
                 if(v === answer) {
                     stats.correct++;
                     b.classList.add('correct');
-                    document.getElementById('feedback').innerText = dict[conf.lang].ok;
                     document.getElementById('feedback').style.color = "var(--success)";
-                    speak(dict[conf.lang].ok);
                 } else {
                     b.classList.add('wrong');
-                    document.getElementById('feedback').innerText = dict[conf.lang].no;
                     document.getElementById('feedback').style.color = "var(--error)";
-                    speak(dict[conf.lang].no);
                 }
+
+                document.getElementById('feedback').innerText = randomMsg;
+                speak(randomMsg);
                 document.getElementById('correct-count').innerText = stats.correct;
                 document.getElementById('total-count').innerText = stats.total;
-                setTimeout(newGame, 1400);
+                setTimeout(newGame, 1600);
             };
             grid.appendChild(b);
         });
