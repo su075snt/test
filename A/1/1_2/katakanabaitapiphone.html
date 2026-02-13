@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>カタカナ おけいこ - Katakana Game</title>
+    <link href="https://fonts.googleapis.com" rel="stylesheet">
+    <style>
+        :root { --primary: #74b9ff; --bg: #f0f7ff; --accent: #fab1a0; --correct: #c8e6c9; --wrong: #ffcdd2; }
+        body {
+            font-family: 'Kosugi Maru', sans-serif; background-color: var(--bg);
+            margin: 0; display: flex; flex-direction: column; align-items: center;
+            user-select: none; -webkit-tap-highlight-color: transparent;
+        }
+        header {
+            background: linear-gradient(135deg, #74b9ff 0%, #a29bfe 100%);
+            width: 100%; padding: 15px 0; text-align: center;
+            color: white; font-size: 22px; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .tab-container { display: flex; margin: 15px 0; gap: 5px; flex-wrap: wrap; justify-content: center; }
+        .tab {
+            padding: 10px 15px; cursor: pointer; background: white;
+            border: 2px solid var(--primary); border-radius: 20px; font-size: 14px; font-weight: bold;
+        }
+        .tab.active { background: var(--primary); color: white; }
+        
+        #game-container {
+            width: 90%; max-width: 500px; background: white; min-height: 450px;
+            padding: 20px; border-radius: 30px; border: 5px solid var(--accent);
+            text-align: center; position: relative; display: flex; flex-direction: column;
+        }
+        .progress-bar { font-size: 18px; color: #0984e3; margin-bottom: 10px; font-weight: bold; background: #e1f5fe; padding: 5px; border-radius: 10px; }
+        
+        .audio-box {
+            font-size: 80px; width: 120px; height: 120px; background: #f1f2f6;
+            border-radius: 50%; border: 4px dashed var(--primary);
+            display: inline-flex; align-items: center; justify-content: center;
+            margin: 10px auto 20px; cursor: pointer; animation: bounce 2s infinite;
+        }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .option-btn {
+            padding: 15px 5px; background: white; border: 3px solid #eee;
+            border-radius: 15px; cursor: pointer; display: flex; flex-direction: column; align-items: center; transition: 0.2s;
+        }
+        .option-btn .char { font-size: 32px; color: #0984e3; font-weight: bold; }
+        .option-btn .emoji { font-size: 24px; }
+        .option-btn .word { font-size: 13px; color: #555; font-weight: bold;}
+        
+        .option-btn.correct { background: var(--correct) !important; border-color: #4caf50; }
+        .option-btn.wrong { background: var(--wrong) !important; border-color: #f44336; }
+
+        #result-screen {
+            display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: white; border-radius: 25px; flex-direction: column;
+            align-items: center; justify-content: center; z-index: 10;
+        }
+        .btn-restart {
+            margin-top: 20px; padding: 12px 30px; background: #0984e3;
+            color: white; border: none; border-radius: 25px; font-size: 18px; cursor: pointer; font-family: 'Kosugi Maru';
+        }
+        .message { margin-top: 15px; font-size: 18px; font-weight: bold; color: #6c5ce7; min-height: 25px; }
+    </style>
+</head>
+<body>
+
+<header>🌟 カタカナ おけいこ 🌟</header>
+
+<div class="tab-container">
+    <div class="tab active" onclick="initGame('seion', this)">せいおん (46)</div>
+    <div class="tab" onclick="initGame('dakuon', this)">だくおん (25)</div>
+    <div class="tab" onclick="initGame('yoon', this)">ようおん (33)</div>
+</div>
+
+<div id="game-container">
+    <div id="result-screen">
+        <div style="font-size: 80px;">🥇</div>
+        <h2>カタカナ マスター！</h2>
+        <p>Bé thật tuyệt vời!</p>
+        <button class="btn-restart" onclick="location.reload()">もういちど (Làm lại)</button>
+    </div>
+
+    <div class="progress-bar">のこり (Còn lại): <span id="count">0</span> / <span id="total">0</span></div>
+    <div class="audio-box" onclick="playCurrent()">📢</div>
+    <div id="options" class="options-grid"></div>
+    <div class="message" id="message"></div>
+</div>
+
+<script>
+    const database = {
+        seion: [
+            {c:"ア",e:"🐜",w:"アリ"},{c:"イ",e:"🍓",w:"イチゴ"},{c:"ウ",e:"🐰",w:"ウサギ"},{c:"エ",e:"✏️",w:"エンピツ"},{c:"オ",e:"👹",w:"オニ"},
+            {c:"カ",e:"🐢",w:"カメ"},{c:"キ",e:"🍄",w:"キノコ"},{c:"ク",e:"🐻",w:"クマ"},{c:"ケ",e:"🐛",w:"ケムシ"},{c:"コ",e:"🎪",w:"コマ"},
+            {c:"サ",e:"🐟",w:"サカナ"},{c:"シ",e:"🦌",w:"シカ"},{c:"ス",e:"🍉",w:"スイカ"},{c:"セ",e:"🧼",w:"セッケン"},{c:"ソ",e:"🍦",w:"ソフト"},
+            {c:"タ",e:"🐙",w:"タコ"},{c:"チ",e:"🌷",w:"チューリップ"},{c:"ツ",e:"🌙",w:"ツキ"},{c:"テ",e:"💌",w:"テガミ"},{c:"ト",e:"🐯",w:"トラ"},
+            {c:"ナ",e:"🍆",w:"ナス"},{c:"ニ",e:"🥕",w:"ニンジン"},{c:"ヌ",e:"🐕",w:"イヌ"},{c:"ネ",e:"🐱",w:"ネコ"},{c:"ノ",e:"📓",w:"ノート"},
+            {c:"ハ",e:"🌸",w:"ハナ"},{c:"ヒ",e:"🐑",w:"ヒツジ"},{c:"フ",e:"🚢",w:"フネ"},{c:"ヘ",e:"🐍",w:"ヘビ"},{c:"ホ",e:"⭐",w:"ホシ"},
+            {c:"マ",e:"🫘",w:"マメ"},{c:"ミ",e:"🍊",w:"ミカン"},{c:"ム",e:"🐞",w:"ムシ"},{c:"メ",e:"👓",w:"メガネ"},{c:"モ",e:"🍑",w:"モモ"},
+            {c:"ヤ",e:"⛰️",w:"ヤマ"},{c:"ユ",e:"❄️",w:"ユキ"},{c:"ヨ",e:"⛵",w:"ヨット"},
+            {c:"ラ",e:"🦁",w:"ライオン"},{c:"リ",e:"🍎",w:"リンゴ"},{c:"ル",e:"🐒",w:"サル"},{c:"レ",e:"🍋",w:"レモン"},{c:"ロ",e:"ロケット",w:"ロケット"},
+            {c:"ワ",e:"🐊",w:"ワニ"},{c:"ヲ",e:"📻",w:"ラジオヲキク"},{c:"ン",e:"🔔",w:"リン"}
+        ],
+        dakuon: [
+            {c:"ガ",e:"🦆",w:"ガチョウ"},{c:"ギ",e:"🎸",w:"ギター"},{c:"グ",e:"🍇",w:"グレープ"},{c:"ゲ",e:"👞",w:"ゲタ"},{c:"ゴ",e:"🦍",w:"ゴリラ"},
+            {c:"ザ",e:"🐘",w:"ゾウ"},{c:"ジ",e:"⛑️",w:"ジシン"},{c:"ズ",e:"🗺️",w:"チズ"},{c:"ゼ",e:"🍧",w:"ゼリー"},{c:"ゾ",e:"🧹",w:"ゾウキン"},
+            {c:"ダ",e:"🥁",w:"タイコ"},{c:"ヂ",e:"🩸",w:"ハナヂ"},{c:"ヅ",e:"👃",w:"ハナミヅ"},{c:"デ",e:"📞",w:"デンワ"},{c:"ド",e:"🍩",w:"ドーナツ"},
+            {c:"バ",e:"🍌",w:"バナナ"},{c:"ビ",e:"🐍",w:"ヘビ"},{c:"ブ",e:"🐷",w:"ブタ"},{c:"ベ",e:"🍱",w:"ベントウ"},{c:"ボ",e:"⚽",w:"ボール"},
+            {c:"パ",e:"🐼",w:"パンダ"},{c:"ピ",e:"🐥",w:"ピヨピヨ"},{c:"プ",e:"🍮",w:"プリン"},{c:"ペ",e:"🐧",w:"ペンギン"},{c:"ポ",e:"📮",w:"ポスト"}
+        ],
+        yoon: [
+            {c:"キャ",e:"🐱",w:"キャク"},{c:"キュ",e:"🥒",w:"キュウリ"},{c:"キョ",e:"🦈",w:"キョリュウ"},
+            {c:"シャ",e:"🚗",w:"シャシン"},{c:"シュ",e:"🧤",w:"シュギョウ"},{c:"ショ",e:"🚒",w:"ショウボウシャ"},
+            {c:"チャ",e:"🍵",w:"オチャ"},{c:"チュ",e:"🐭",w:"チュウ"},{c:"チョ",e:"🍫",w:"チョコレート"},
+            {c:"ニャ",e:"😸",w:"ニャンコ"},{c:"ニュ",e:"🥛",w:"ニュウニュウ"},{c:"ニョ",e:"🐍",w:"ニョロニョロ"},
+            {c:"ヒャ",e:"❄️",w:"ヒャク"},{c:"ヒュ",e:"🌬️",w:"ヒュウ"},{c:"ヒョ",e:"🐆",w:"ヒョウ"},
+            {c:"ミャ",e:"🐾",w:"ミャア"},{c:"ミュ",e:"🎶",w:"ミュージック"},{c:"ミョ",e:"Ginger",w:"ミョウガ"},
+            {c:"リャ",e:"🦖",w:"リャク"},{c:"リュ",e:"🐉",w:"リュウ"},{c:"リョ",e:"🍵",w:"リョクチャ"},
+            {c:"ギャ",e:"🖼️",w:"ギャラリー"},{c:"ギュ",e:"🥩",w:"ギュウニク"},{c:"ギョ",e:"🐟",w:"ギョカイ"},
+            {c:"ジャ",e:"🥔",w:"ジャガイモ"},{c:"ジュ",e:"🥤",w:"ジュース"},{c:"ジョ",e:"👸",w:"ジョオウ"},
+            {c:"ビャ",e:"white",w:"ビャッコ"},{c:"ビュ",e:"view",w:"ビュー"},{c:"ビョ",e:"🏥",w:"ビョウイン"},
+            {c:"ピャ",e:"happy",w:"ハッピャク"},{c:"ピュ",e:"pure",w:"ピュア"},{c:"ピョ",e:"🐰",w:"ピョンピョン"}
+        ]
+    };
+
+    const praises = ["すごい！", "てんさいだね！", "やったー！", "ばっちり！", "おみごと！"];
+    let queue = [];
+    let currentQ = null;
+    let allInTab = [];
+    let isProcessing = false;
+
+    function initGame(tab, el) {
+        if(el) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+        }
+        allInTab = [...database[tab]];
+        queue = [...allInTab].sort(() => Math.random() - 0.5);
+        document.getElementById('total').innerText = allInTab.length;
+        document.getElementById('result-screen').style.display = 'none';
+        nextQuestion();
+    }
+
+    function playCurrent() { if(currentQ) speak(currentQ.c); }
+
+    function speak(text) {
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = 'ja-JP';
+        u.rate = 0.8;
+        window.speechSynthesis.speak(u);
+    }
+
+    function nextQuestion() {
+        if (queue.length === 0) {
+            showResult();
+            return;
+        }
+        isProcessing = false;
+        currentQ = queue[0];
+        document.getElementById('count').innerText = queue.length;
+        document.getElementById('message').innerText = "";
+        
+        let choices = [currentQ];
+        let others = allInTab.filter(item => item.c !== currentQ.c);
+        others.sort(() => Math.random() - 0.5);
+        choices.push(...others.slice(0, 3));
+        choices.sort(() => Math.random() - 0.5);
+
+        const grid = document.getElementById('options');
+        grid.innerHTML = "";
+        choices.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerHTML = `<span class="char">${opt.c}</span><span class="emoji">${opt.e}</span><span class="word">${opt.w}</span>`;
+            btn.onclick = () => check(opt, btn);
+            grid.appendChild(btn);
+        });
+        setTimeout(playCurrent, 500);
+    }
+
+    function check(selected, btn) {
+        if(isProcessing) return;
+        isProcessing = true;
+
+        if(selected.c === currentQ.c) {
+            btn.classList.add('correct');
+            queue.shift(); 
+            const p = praises[Math.floor(Math.random() * praises.length)];
+            document.getElementById('message').innerText = p;
+            speak(p);
+            setTimeout(nextQuestion, 1500);
+        } else {
+            btn.classList.add('wrong');
+            document.getElementById('message').innerText = "ざんねん！あとで また やろう";
+            speak("ざんねん");
+            const failed = queue.shift();
+            queue.push(failed);
+            setTimeout(nextQuestion, 1500);
+        }
+    }
+
+    function showResult() {
+        document.getElementById('result-screen').style.display = 'flex';
+        speak("おめでとう！カタカナマスターです");
+    }
+
+    window.onload = () => initGame('seion');
+</script>
+
+</body>
+</html>
