@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ABC Kids</title>
+    <title>ABC Kids iPhone</title>
     <link href="https://fonts.googleapis.com" rel="stylesheet">
     <style>
         body {
@@ -16,7 +16,7 @@
         .grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 10px; width: 100%; max-width: 360px;
+            gap: 10px; width: 100%; max-width: 350px;
         }
         .card {
             background: white; border-radius: 20px;
@@ -25,19 +25,18 @@
             cursor: pointer; -webkit-tap-highlight-color: transparent;
         }
         .card:active { transform: translateY(4px); box-shadow: 0 1px 0 #ffcad4; }
-        .letter { font-size: 40px; color: #ff758f; line-height: 1; margin: 0; }
-        .num-style { font-size: 24px; color: #6a4c93; font-weight: 800; }
+        .letter { font-size: 42px; color: #ff758f; line-height: 1; margin: 0; }
+        .num-style { font-size: 22px; color: #6a4c93; font-weight: 800; }
         .emoji { font-size: 32px; margin: 8px 0; }
         .word { font-size: 13px; font-weight: bold; color: #4ea8de; text-transform: uppercase; }
         
-        /* Màu sắc xen kẽ */
         .card:nth-child(even) { border-color: #b9fbc0; box-shadow: 0 5px 0 #b9fbc0; }
         .card.is-num { border-color: #a2d2ff; box-shadow: 0 5px 0 #a2d2ff; }
     </style>
 </head>
 <body>
 
-    <h2 style="color: #ff85a1; font-size: 20px;">✨ ABC & NUMBERS ✨</h2>
+    <h2 style="color: #ff85a1; font-size: 20px; margin-bottom: 15px;">✨ ABC & NUMBERS ✨</h2>
     <div class="grid" id="grid"></div>
 
     <script>
@@ -59,35 +58,31 @@
 
         const synth = window.speechSynthesis;
 
-        function speak(text) {
-            return new Promise((resolve) => {
-                const utter = new SpeechSynthesisUtterance(text);
-                utter.lang = 'en-US';
-                utter.rate = 0.8; 
-                utter.pitch = 1.1;
-
-                // Chọn giọng nữ chuẩn Apple
-                const voices = synth.getVoices();
-                const femaleVoice = voices.find(v => v.name.includes('Samantha') || v.name.includes('Samantha') || v.name.includes('Apple'));
-                if (femaleVoice) utter.voice = femaleVoice;
-
-                utter.onend = resolve;
-                synth.speak(utter);
-            });
+        function createUtterance(text) {
+            const utter = new SpeechSynthesisUtterance(text);
+            utter.lang = 'en-US';
+            utter.rate = 0.75; 
+            utter.pitch = 1.1;
+            const voices = synth.getVoices();
+            const femaleVoice = voices.find(v => (v.name.includes('Samantha') || v.name.includes('Apple') || v.name.includes('Female')) && v.lang.includes('en'));
+            if (femaleVoice) utter.voice = femaleVoice;
+            return utter;
         }
 
-        async function handleTap(item) {
-            // Dừng mọi âm thanh đang đọc dở
+        function handleTap(item) {
             synth.cancel();
 
-            // 1. Chỉ đọc chữ cái/con số
-            await speak(item.l);
+            // Chỉ đọc chữ cái/con số
+            const msg1 = createUtterance(item.l);
+            synth.speak(msg1);
 
-            // 2. Nghỉ 0.6 giây
-            setTimeout(async () => {
-                // 3. Chỉ đọc từ vựng
-                await speak(item.w);
-            }, 600);
+            msg1.onend = () => {
+                setTimeout(() => {
+                    // Chỉ đọc từ vựng
+                    const msg2 = createUtterance(item.w);
+                    synth.speak(msg2);
+                }, 600);
+            };
         }
 
         const grid = document.getElementById('grid');
@@ -103,7 +98,6 @@
             grid.appendChild(card);
         });
 
-        // Kích hoạt giọng nói cho iOS
         window.speechSynthesis.onvoiceschanged = () => synth.getVoices();
     </script>
 </body>
