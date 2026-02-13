@@ -3,148 +3,157 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>キッズ・アルファベット</title>
+    <title>あいうえお - 日本語の読み方</title>
     <link href="https://fonts.googleapis.com" rel="stylesheet">
     <style>
         :root {
-            --bg: #fff5f8;
-            --main: #ff8fa3;
-            --sub: #ffdae0;
-            --blue: #4fc3f7;
+            --bg: #fffbf0;
+            --btn-border: #ffcc80;
+            --btn-shadow: #fb8c00;
+            --text-color: #5d4037;
+            --pink: #ff80ab;
         }
 
         body {
             font-family: 'M PLUS Rounded 1c', sans-serif;
             background-color: var(--bg);
+            color: var(--text-color);
             margin: 0;
             padding: 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            -webkit-tap-highlight-color: transparent;
+            user-select: none;
         }
 
         h1 {
-            color: var(--main);
-            font-size: 1.8rem;
-            margin-bottom: 20px;
-            text-shadow: 2px 2px 0 white;
-            text-align: center;
+            font-size: 1.5rem;
+            background: white;
+            padding: 10px 25px;
+            border-radius: 50px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            color: #ef6c00;
         }
 
-        .alphabet-grid {
+        .grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
-            gap: 15px;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            max-width: 450px;
             width: 100%;
-            max-width: 500px;
         }
 
         .card {
             background: white;
-            border: 4px solid var(--sub);
-            border-radius: 20px;
-            height: 90px;
+            border: 3px solid var(--btn-border);
+            border-radius: 18px;
+            height: 85px;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             cursor: pointer;
-            transition: 0.1s;
-            box-shadow: 0 6px 0 var(--sub);
-            position: relative;
+            box-shadow: 0 5px 0 var(--btn-shadow);
+            transition: all 0.1s;
         }
 
         .card:active {
             transform: translateY(4px);
-            box-shadow: 0 2px 0 var(--sub);
-            background-color: #fff9c4;
+            box-shadow: 0 1px 0 var(--btn-shadow);
+            background-color: #fffde7;
         }
 
         .letter {
-            font-size: 2.2rem;
-            color: var(--blue);
-            line-height: 1;
+            font-size: 2rem;
+            color: #1e88e5;
         }
 
         .reading {
-            font-size: 0.9rem;
-            color: var(--main);
-            position: absolute;
-            bottom: 5px;
-            display: none; /* Chỉ hiện khi click */
+            font-size: 0.85rem;
+            color: var(--pink);
+            font-weight: bold;
+            display: none;
         }
 
         .card.active .reading {
             display: block;
         }
 
-        .hint {
-            margin-top: 20px;
-            background: white;
-            padding: 10px 20px;
-            border-radius: 30px;
-            color: #888;
-            font-size: 0.9rem;
+        .card.active .letter {
+            font-size: 1.6rem;
+        }
+
+        .footer {
+            margin-top: 30px;
+            font-size: 0.8rem;
+            color: #ffa726;
         }
     </style>
 </head>
 <body>
 
-    <h1>🎈 アルファベット おとあそび 🎈</h1>
+    <h1>🇯🇵 アルファベットの発音 🇯🇵</h1>
 
-    <div class="alphabet-grid" id="grid"></div>
+    <div class="grid" id="alphabetGrid"></div>
 
-    <p class="hint">文字(もじ)を おしてみてね！</p>
+    <div class="footer">にほんごの こえで よむよ！</div>
 
     <script>
-        const alphabet = [
+        const data = [
             ['A','エー'],['B','ビー'],['C','シー'],['D','ディー'],['E','イー'],['F','エフ'],['G','ジー'],
             ['H','エイチ'],['I','アイ'],['J','ジェー'],['K','ケイ'],['L','エル'],['M','エム'],['N','エヌ'],
             ['O','オー'],['P','ピー'],['Q','キュー'],['R','アール'],['S','エス'],['T','ティー'],['U','ユー'],
             ['V','ヴィー'],['W','ダブリュー'],['X','エックス'],['Y','ワイ'],['Z','ゼット']
         ];
 
-        const grid = document.getElementById('grid');
-        let japaneseVoice = null;
+        let nativeJapaneseVoice = null;
 
-        // Hàm lấy giọng đọc Nhật Bản chuẩn nhất trên thiết bị
-        function loadVoices() {
+        // Hàm tìm giọng đọc người Nhật bản địa
+        function findJapaneseVoice() {
             const voices = window.speechSynthesis.getVoices();
-            // Ưu tiên giọng của Google hoặc Apple (Kyoko/Otoya)
-            japaneseVoice = voices.find(v => v.lang === 'ja-JP' || v.lang === 'ja_JP');
+            // Ưu tiên giọng Apple (Kyoko), Google Japanese, hoặc bất kỳ giọng ja-JP nào
+            nativeJapaneseVoice = voices.find(v => v.lang === 'ja-JP' && v.name.includes('Google')) || 
+                                 voices.find(v => v.lang === 'ja-JP' || v.lang === 'ja_JP');
         }
 
-        // Đợi trình duyệt tải danh sách giọng nói
-        window.speechSynthesis.onvoiceschanged = loadVoices;
-        loadVoices();
+        // Kích hoạt nạp giọng nói (quan trọng cho Chrome/Android)
+        window.speechSynthesis.onvoiceschanged = findJapaneseVoice;
+        findJapaneseVoice();
 
-        alphabet.forEach(([char, kana]) => {
+        const grid = document.getElementById('alphabetGrid');
+
+        data.forEach(([char, kana]) => {
             const card = document.createElement('div');
             card.className = 'card';
             card.innerHTML = `<span class="letter">${char}</span><span class="reading">${kana}</span>`;
 
             card.onclick = () => {
-                // Hiển thị cách đọc
+                // Hiệu ứng hiển thị
                 card.classList.add('active');
                 
-                // Phát âm giọng Nhật
-                const uttr = new SpeechSynthesisUtterance(kana);
-                if (japaneseVoice) {
-                    uttr.voice = japaneseVoice;
-                }
-                uttr.lang = 'ja-JP';
-                uttr.rate = 1.0;
-                
-                window.speechSynthesis.cancel();
-                window.speechSynthesis.speak(uttr);
+                // Phát âm
+                speak(kana);
 
-                // Tự động ẩn sau 1 giây
-                setTimeout(() => card.classList.remove('active'), 1000);
+                setTimeout(() => card.classList.remove('active'), 800);
             };
 
             grid.appendChild(card);
         });
+
+        function speak(text) {
+            window.speechSynthesis.cancel();
+            const uttr = new SpeechSynthesisUtterance(text);
+            
+            if (nativeJapaneseVoice) {
+                uttr.voice = nativeJapaneseVoice;
+            }
+            
+            uttr.lang = 'ja-JP';
+            uttr.rate = 0.9; // Tốc độ hơi chậm cho bé dễ nghe
+            uttr.pitch = 1.1; // Chỉnh giọng hơi cao một chút cho dễ thương (Kawaii)
+            
+            window.speechSynthesis.speak(uttr);
+        }
     </script>
 </body>
 </html>
