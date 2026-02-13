@@ -3,83 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Baby Alphabet</title>
+    <title>ABC Kids</title>
     <link href="https://fonts.googleapis.com" rel="stylesheet">
     <style>
         body {
             font-family: 'Quicksand', sans-serif;
             background-color: #fffaf0;
-            margin: 0;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            /* Chống xoay ngang gây vỡ giao diện trên iPhone */
+            margin: 0; padding: 10px;
+            display: flex; flex-direction: column; align-items: center;
             -webkit-text-size-adjust: 100%;
         }
-
-        h1 {
-            color: #ff85a1;
-            font-size: 24px;
-            margin: 10px 0;
-        }
-
         .grid {
             display: grid;
-            /* Chia 2 cột cố định cho màn hình nhỏ như iPhone */
             grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            width: 100%;
-            max-width: 400px;
+            gap: 10px; width: 100%; max-width: 360px;
         }
-
         .card {
-            background: white;
-            border-radius: 20px;
-            padding: 15px 10px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            border: 3px solid #ffcad4;
-            box-shadow: 0 4px 0 #ffcad4;
-            cursor: pointer;
-            transition: transform 0.1s;
-            /* Ngăn chặn highlight xanh khi chạm trên iOS */
-            -webkit-tap-highlight-color: transparent;
+            background: white; border-radius: 20px;
+            padding: 15px 5px; display: flex; flex-direction: column; align-items: center;
+            border: 4px solid #ffcad4; box-shadow: 0 5px 0 #ffcad4;
+            cursor: pointer; -webkit-tap-highlight-color: transparent;
         }
-
-        .card:active {
-            transform: scale(0.95);
-            box-shadow: 0 1px 0 #ffcad4;
-        }
-
-        .letter {
-            font-size: 50px;
-            color: #ff758f;
-            line-height: 1;
-            margin: 0;
-        }
-
-        .emoji {
-            font-size: 35px;
-            margin: 5px 0;
-        }
-
-        .word {
-            font-size: 14px;
-            font-weight: bold;
-            color: #4ea8de;
-            text-transform: uppercase;
-        }
-
-        /* Màu sắc pastel cho bé */
-        .card:nth-child(odd) { border-color: #b9fbc0; box-shadow: 0 4px 0 #b9fbc0; }
-        .card:nth-child(3n) { border-color: #a2d2ff; box-shadow: 0 4px 0 #a2d2ff; }
+        .card:active { transform: translateY(4px); box-shadow: 0 1px 0 #ffcad4; }
+        .letter { font-size: 40px; color: #ff758f; line-height: 1; margin: 0; }
+        .num-style { font-size: 24px; color: #6a4c93; font-weight: 800; }
+        .emoji { font-size: 32px; margin: 8px 0; }
+        .word { font-size: 13px; font-weight: bold; color: #4ea8de; text-transform: uppercase; }
+        
+        /* Màu sắc xen kẽ */
+        .card:nth-child(even) { border-color: #b9fbc0; box-shadow: 0 5px 0 #b9fbc0; }
+        .card.is-num { border-color: #a2d2ff; box-shadow: 0 5px 0 #a2d2ff; }
     </style>
 </head>
 <body>
 
-    <h1>✨ ABC FOR KIDS ✨</h1>
+    <h2 style="color: #ff85a1; font-size: 20px;">✨ ABC & NUMBERS ✨</h2>
     <div class="grid" id="grid"></div>
 
     <script>
@@ -92,63 +50,61 @@
             {l: 'P', w: 'Panda', e: '🐼'}, {l: 'Q', w: 'Queen', e: '👸'}, {l: 'R', w: 'Rabbit', e: '🐰'},
             {l: 'S', w: 'Sun', e: '☀️'}, {l: 'T', w: 'Tiger', e: '🐯'}, {l: 'U', w: 'Umbrella', e: '☂️'},
             {l: 'V', w: 'Van', e: '🚐'}, {l: 'W', w: 'Whale', e: '🐳'}, {l: 'X', w: 'Xylophone', e: '🎹'},
-            {l: 'Y', w: 'Yo-yo', e: '🪀'}, {l: 'Z', w: 'Zebra', e: '🦓'}
+            {l: 'Y', w: 'Yo-yo', e: '🪀'}, {l: 'Z', w: 'Zebra', e: '🦓'},
+            {l: '1000', w: 'One Thousand', e: '🔢', n: true},
+            {l: '10000', w: 'Ten Thousand', e: '🔢', n: true},
+            {l: '100000', w: 'One Hundred Thousand', e: '🔢', n: true},
+            {l: '1000000', w: 'One Million', e: '🔢', n: true}
         ];
 
-        function playSound(letter, word) {
-            // Quan trọng cho iPhone: Phải cancel trước khi tạo mới
-            window.speechSynthesis.cancel();
+        const synth = window.speechSynthesis;
 
-            // Tạo giọng đọc cho chữ cái
-            const speakLetter = new SpeechSynthesisUtterance(letter);
-            speakLetter.lang = 'en-US';
-            speakLetter.rate = 0.8;
-            speakLetter.pitch = 1.1;
+        function speak(text) {
+            return new Promise((resolve) => {
+                const utter = new SpeechSynthesisUtterance(text);
+                utter.lang = 'en-US';
+                utter.rate = 0.8; 
+                utter.pitch = 1.1;
 
-            // Tạo giọng đọc cho từ vựng
-            const speakWord = new SpeechSynthesisUtterance(word);
-            speakWord.lang = 'en-US';
-            speakWord.rate = 0.8;
-            speakWord.pitch = 1.1;
+                // Chọn giọng nữ chuẩn Apple
+                const voices = synth.getVoices();
+                const femaleVoice = voices.find(v => v.name.includes('Samantha') || v.name.includes('Samantha') || v.name.includes('Apple'));
+                if (femaleVoice) utter.voice = femaleVoice;
 
-            // Tìm giọng nữ (đặc biệt cho Safari iOS)
-            const voices = window.speechSynthesis.getVoices();
-            const femaleVoice = voices.find(v => v.name.includes('Samantha') || v.name.includes('Apple') || v.name.includes('Female'));
-            
-            if (femaleVoice) {
-                speakLetter.voice = femaleVoice;
-                speakWord.voice = femaleVoice;
-            }
+                utter.onend = resolve;
+                synth.speak(utter);
+            });
+        }
 
-            // Thực hiện đọc chữ cái
-            window.speechSynthesis.speak(speakLetter);
+        async function handleTap(item) {
+            // Dừng mọi âm thanh đang đọc dở
+            synth.cancel();
 
-            // Đợi chữ cái kết thúc mới bắt đầu đếm 0.6s đọc từ vựng
-            speakLetter.onend = () => {
-                setTimeout(() => {
-                    window.speechSynthesis.speak(speakWord);
-                }, 600);
-            };
+            // 1. Chỉ đọc chữ cái/con số
+            await speak(item.l);
+
+            // 2. Nghỉ 0.6 giây
+            setTimeout(async () => {
+                // 3. Chỉ đọc từ vựng
+                await speak(item.w);
+            }, 600);
         }
 
         const grid = document.getElementById('grid');
         data.forEach(item => {
             const card = document.createElement('div');
-            card.className = 'card';
+            card.className = `card ${item.n ? 'is-num' : ''}`;
             card.innerHTML = `
-                <div class="letter">${item.l}</div>
+                <div class="${item.n ? 'num-style' : 'letter'}">${item.l}</div>
                 <div class="emoji">${item.e}</div>
                 <div class="word">${item.w}</div>
             `;
-            // Sử dụng touchstart để nhạy hơn trên iPhone
-            card.addEventListener('click', () => playSound(item.l, item.w));
+            card.onclick = () => handleTap(item);
             grid.appendChild(card);
         });
 
-        // Kích hoạt nạp voice (Safari cần bước này)
-        window.speechSynthesis.onvoiceschanged = () => {
-            window.speechSynthesis.getVoices();
-        };
+        // Kích hoạt giọng nói cho iOS
+        window.speechSynthesis.onvoiceschanged = () => synth.getVoices();
     </script>
 </body>
 </html>
