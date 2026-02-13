@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Học Tiếng Nhật IT & Thi Công</title>
+    <style>
+        :root { --bg: #434343; --text: #0b5394; --card: #ffffff; --accent: #0984e3; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); color: var(--text); margin: 0; transition: 0.3s; }
+        #side-menu { position: fixed; right: -300px; top: 0; width: 260px; height: 100%; background: #fff; box-shadow: -2px 0 10px rgba(0,0,0,0.1); z-index: 1000; padding: 20px; transition: 0.3s; overflow-y: auto; color: #333; }
+        #side-menu.active { right: 0; }
+        .menu-btn { position: fixed; top: 15px; right: 15px; z-index: 1001; padding: 10px 15px; background: var(--accent); color: white; border: none; border-radius: 5px; cursor: pointer; }
+        .tabs { display: flex; flex-wrap: wrap; gap: 5px; padding: 60px 10px 10px; justify-content: center; }
+        .tab-btn { padding: 8px 12px; border: none; background: #dfe6e9; cursor: pointer; border-radius: 4px; font-size: 13px; }
+        .tab-btn.active { background: var(--accent); color: white; }
+        .grid-container { display: none; grid-template-columns: repeat(5, 1fr); gap: 10px; padding: 15px; max-width: 1200px; margin: 0 auto; }
+        .grid-container.active { display: grid; }
+        .vocab-card { background: var(--card); padding: 15px 5px; border-radius: 8px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); cursor: pointer; border: 1px solid #eee; min-height: 120px; display: flex; flex-direction: column; justify-content: center; }
+        .kanji { font-size: 1.2em; font-weight: bold; margin-bottom: 5px; color: #2d3436; }
+        .hira { color: #636e72; font-size: 0.9em; margin-bottom: 5px; }
+        .viet { color: #d63031; font-size: 0.85em; font-weight: 500; }
+        .hidden { display: none !important; }
+        @media (max-width: 800px) { .grid-container { grid-template-columns: repeat(2, 1fr); } }
+    </style>
+</head>
+<body>
+
+<button class="menu-btn" onclick="toggleMenu()">⚙ Cài đặt</button>
+
+<div id="side-menu">
+    <h3>Cấu hình</h3>
+    <label>Màu nền: <input type="color" id="bgCol" value="#434343"></label><br><br>
+    <label>Màu chữ: <input type="color" id="txCol" value="#0b5394"></label><hr>
+    <label><input type="checkbox" id="chkHira" checked> Hiện Hiragana</label><br>
+    <label><input type="checkbox" id="chkViet" checked> Hiện Tiếng Việt</label><hr>
+    <label>Giọng mặc định: <select id="vSel" style="width:100%"></select></label><p style="font-size: 11px; color: gray;">* Hệ thống sẽ tự ưu tiên giọng đúng ngôn ngữ khi đọc Nhật-Việt.</p>
+    <label>Tốc độ: <input type="range" id="rate" min="0.5" max="1.5" step="0.1" value="1"></label><br><br>
+    <label>Chế độ đọc: 
+        <select id="mode" style="width:100%">
+            <option value="jp">Chỉ tiếng Nhật</option>
+            <option value="jv" selected>Nhật - Việt (Chuẩn)</option>
+        </select>
+    </label><br><br>
+    <button onclick="toggleMenu()" style="width:100%; padding: 10px; background: #eee; border: none; border-radius: 4px; cursor: pointer;">Đóng</button>
+</div>
+
+<div class="tabs" id="tabH"></div>
+<div id="tabC"></div>
+
+<script>
+    const data = [
+	 {k:"鉛筆", h:"えんぴつ", v:"Bút chì"},
+  {k:"消しゴム", h:"けしごむ", v:"Cục tẩy"},
+  {k:"筆箱", h:"ふでばこ", v:"Hộp bút"},
+  {k:"定規", h:"じょうぎ", v:"Thước kẻ"},
+  {k:"ノート", h:"のーと", v:"Vở/Quyển tập"},
+  {k:"教科書", h:"きょうかしょ", v:"Sách giáo khoa"},
+  {k:"下敷き", h:"したじき", v:"Tấm lót vở"},
+  {k:"色鉛筆", h:"いろえんぴつ", v:"Bút chì màu"},
+  {k:"クレヨン", h:"くれよん", v:"Bút màu sáp"},
+  {k:"鋏", h:"はさみ", v:"Cái kéo"},
+  {k:"糊", h:"のり", v:"Hồ dán"},
+  {k:"ランドセル", h:"らんどせる", v:"Cặp sách Randoseru"},
+  {k:"上履き", h:"うわばき", v:"Giày đi trong nhà"},
+  {k:"名札", h:"なふだ", v:"Thẻ tên"},
+  {k:"連絡帳", h:"れんらくちょう", v:"Sổ liên lạc"},
+  {k:"赤ペン", h:"あかぺん", v:"Bút đỏ"},
+  {k:"鉛筆削り", h:"えんぴつけずり", v:"Gọt bút chì"},
+  {k:"折り紙", h:"おりがみ", v:"Giấy gấp thủ công"},
+  {k:"画用紙", h:"がようし", v:"Giấy vẽ"},
+  {k:"絵の具", h:"えのぐ", v:"Màu vẽ"},
+  {k:"筆", h:"ふで", v:"Bút lông"},
+  {k:"パレット", h:"ぱれっと", v:"Bảng pha màu"},
+  {k:"文房具", h:"ぶんぼうぐ", v:"Văn phòng phẩm"},
+  {k:"本", h:"ほん", v:"Sách"},
+  {k:"鞄", h:"かばん", v:"Cặp/Túi"},
+  {k:"辞書", h:"じしょ", v:"Từ điển"},
+  {k:"地図", h:"ちず", v:"Bản đồ"},
+  {k:"コンパス", h:"こんぱす", v:"Compa"},
+  {k:"分度器", h:"ぶんどき", v:"Thước đo độ"},
+  {k:"カッター", h:"かったー", v:"Dao rọc giấy"},
+
+  // 2. Địa điểm trong trường (School Places)
+  {k:"教室", h:"きょうしつ", v:"Lớp học"},
+  {k:"校門", h:"こうもん", v:"Cổng trường"},
+  {k:"校庭", h:"こうてい", v:"Sân trường"},
+  {k:"体育館", h:"たいいくかん", v:"Nhà thể chất"},
+  {k:"図書室", h:"としょしつ", v:"Thư viện"},
+  {k:"保健室", h:"ほけんしつ", v:"Phòng y tế"},
+  {k:"音楽室", h:"おんがくしつ", v:"Phòng âm nhạc"},
+  {k:"理科室", h:"りかしつ", v:"Phòng khoa học"},
+  {k:"職員室", h:"しょくいんしつ", v:"Phòng hội đồng"},
+  {k:"給食室", h:"きゅうしょくしつ", v:"Nhà bếp"},
+  {k:"トイレ", h:"といれ", v:"Nhà vệ sinh"},
+  {k:"昇降口", h:"しょうこうぐち", v:"Lối vào thay giày"},
+  {k:"廊下", h:"ろうか", v:"Hành lang"},
+  {k:"階段", h:"かいだん", v:"Cầu thang"},
+  {k:"放送室", h:"ほうそうしつ", v:"Phòng phát thanh"},
+  {k:"プール", h:"ぷーる", v:"Bể bơi"},
+  {k:"砂場", h:"すなば", v:"Hố cát"},
+  {k:"飼育小屋", h:"しいくごや", v:"Chuồng nuôi thú"},
+  {k:"校長室", h:"こうちょうしつ", v:"Phòng hiệu trưởng"},
+  {k:"家庭科室", h:"かていかしつ", v:"Phòng kinh tế gia đình"},
+  {k:"図工室", h:"ずこうしつ", v:"Phòng mỹ thuật"},
+  {k:"パソコン室", h:"ぱそこんしつ", v:"Phòng máy tính"},
+  {k:"屋上", h:"おくじょう", v:"Sân thượng"},
+  {k:"中庭", h:"なかにわ", v:"Sân trong"},
+  {k:"倉庫", h:"そうこ", v:"Kho đồ"},
+  {k:"水飲み場", h:"みずのみば", v:"Nơi uống nước"},
+  {k:"下駄箱", h:"げたばこ", v:"Tủ để giày"},
+  {k:"手洗い場", h:"てあらいば", v:"Bồn rửa tay"},
+  {k:"掲示板", h:"けいじばん", v:"Bảng thông báo"},
+  {k:"受付", h:"うけつけ", v:"Quầy lễ tân"},
+
+  // 3. Môn học và Hoạt động (Subjects & Activities)
+  {k:"国語", h:"こくご", v:"Tiếng Nhật"},
+  {k:"算数", h:"さんすう", v:"Toán học"},
+  {k:"生活", h:"せいかつ", v:"Môn Đời sống"},
+  {k:"音楽", h:"おんがく", v:"Âm nhạc"},
+  {k:"図画工作", h:"ずがこうさく", v:"Mỹ thuật"},
+  {k:"体育", h:"たいいく", v:"Thể dục"},
+  {k:"道徳", h:"どうとく", v:"Đạo đức"},
+  {k:"給食", h:"きゅうしょく", v:"Cơm trưa"},
+  {k:"掃除", h:"そうじ", v:"Dọn dẹp"},
+  {k:"休み時間", h:"やすみじかん", v:"Giờ giải lao"},
+  {k:"朝の会", h:"あさのかい", v:"Họp buổi sáng"},
+  {k:"帰りの会", h:"かえりのかい", v:"Họp cuối buổi"},
+  {k:"宿題", h:"しゅくだい", v:"Bài tập về nhà"},
+  {k:"遠足", h:"えんそく", v:"Dã ngoại"},
+  {k:"運動会", h:"うんどうかい", v:"Hội thao"},
+  {k:"授業", h:"じゅぎょう", v:"Tiết học"},
+  {k:"テスト", h:"てすと", v:"Kiểm tra"},
+  {k:"読書", h:"どくしょ", v:"Đọc sách"},
+  {k:"入学式", h:"にゅうがくしき", v:"Lễ khai giảng"},
+  {k:"卒業式", h:"そつぎょうしき", v:"Lễ tốt nghiệp"},
+  {k:"夏休み", h:"なつやすみ", v:"Nghỉ hè"},
+  {k:"冬休み", h:"ふゆやすみ", v:"Nghỉ đông"},
+  {k:"春休み", h:"はるやすみ", v:"Nghỉ xuân"},
+  {k:"算数セット", h:"さんすうせっと", v:"Bộ đồ dùng học toán"},
+  {k:"計算", h:"けいさん", v:"Tính toán"},
+  {k:"漢字", h:"かんじ", v:"Chữ Hán"},
+  {k:"ひらがな", h:"ひらがな", v:"Chữ Hiragana"},
+  {k:"かたかな", h:"かたかな", v:"Chữ Katakana"},
+  {k:"作文", h:"さくぶん", v:"Tập làm văn"},
+  {k:"発表", h:"はっぴょう", v:"Phát biểu"},
+
+  // 4. Đồ dùng trong lớp (Classroom Items)
+  {k:"机", h:"つくえ", v:"Bàn"},
+  {k:"椅子", h:"いす", v:"Ghế"},
+  {k:"黒板", h:"こくばん", v:"Bảng đen"},
+  {k:"チョーク", h:"ちょーく", v:"Phấn"},
+  {k:"黒板消し", h:"こくばんけし", v:"Lau bảng"},
+  {k:"ロッカー", h:"ろっかー", v:"Tủ đồ"},
+  {k:"時計", h:"とけい", v:"Đồng hồ"},
+  {k:"ゴミ箱", h:"ごみばこ", v:"Thùng rác"},
+  {k:"ほうき", h:"ほうき", v:"Cái chổi"},
+  {k:"ちりとり", h:"ちりとり", v:"Hót rác"},
+  {k:"雑巾", h:"ぞうきん", v:"Giẻ lau"},
+  {k:"扇風機", h:"せんぷうき", v:"Quạt"},
+  {k:"カーテン", h:"かーてん", v:"Rèm cửa"},
+  {k:"花瓶", h:"かびん", v:"Lọ hoa"},
+  {k:"テレビ", h:"てれび", v:"Tivi"},
+  {k:"電気", h:"でんき", v:"Đèn điện"},
+  {k:"窓", h:"まど", v:"Cửa sổ"},
+  {k:"ドア", h:"どあ", v:"Cửa ra vào"},
+  {k:"壁", h:"かべ", v:"Bức tường"},
+  {k:"床", h:"ゆか", v:"Sàn nhà"},
+
+  // 5. Con người (People)
+  {k:"先生", h:"せんせい", v:"Thầy/Cô"},
+  {k:"友達", h:"ともだち", v:"Bạn bè"},
+  {k:"一年生", h:"いちねんせい", v:"Học sinh lớp 1"},
+  {k:"校長先生", h:"こうちょうせんせい", v:"Hiệu trưởng"},
+  {k:"担任", h:"たんにん", v:"Chủ nhiệm"},
+  {k:"クラスメイト", h:"くらすめいと", v:"Bạn cùng lớp"},
+  {k:"上級生", h:"じょうきゅうせい", v:"Anh chị lớp trên"},
+  {k:"下級生", h:"かきゅうせい", v:"Các em lớp dưới"},
+  {k:"保健の先生", h:"ほけんのせんせい", v:"Cô y tế"},
+  {k:"主事さん", h:"しゅじさん", v:"Bác bảo vệ/lao công"},
+  {k:"児童", h:"じどう", v:"Nhi đồng"},
+  {k:"生徒", h:"せいと", v:"Học sinh"},
+  {k:"お父さん", h:"おとうさん", v:"Bố/Phụ huynh"},
+  {k:"お母さん", h:"おかあさん", v:"Mẹ/Phụ huynh"},
+  {k:"保護者", h:"ほごしゃ", v:"Người bảo hộ"},
+
+  // 6. Hành động và Trạng thái (Actions & Status)
+  {k:"勉強する", h:"べんきょうする", v:"Học bài"},
+  {k:"遊ぶ", h:"あそぶ", v:"Chơi đùa"},
+  {k:"書く", h:"かく", v:"Viết"},
+  {k:"読む", h:"よむ", v:"Đọc"},
+  {k:"聞く", h:"きく", v:"Nghe"},
+  {k:"話す", h:"はなす", v:"Nói"},
+  {k:"走る", h:"はしる", v:"Chạy"},
+  {k:"歩く", h:"あるく", v:"Đi bộ"},
+  {k:"座る", h:"すわる", v:"Ngồi"},
+  {k:"立つ", h:"たつ", v:"Đứng"},
+  {k:"並ぶ", h:"ならぶ", v:"Xếp hàng"},
+  {k:"歌う", h:"うたう", v:"Hát"},
+  {k:"描く", h:"えがく", v:"Vẽ"},
+  {k:"作る", h:"つくる", v:"Làm/Chế tạo"},
+  {k:"考える", h:"かんがえる", v:"Suy nghĩ"},
+  {k:"忘れる", h:"わすれる", v:"Quên"},
+  {k:"持ってくる", h:"もってくる", v:"Mang đến"},
+  {k:"帰る", h:"かえる", v:"Đi về"},
+  {k:"入る", h:"はいる", v:"Vào"},
+  {k:"出る", h:"でる", v:"Ra"},
+
+  // 7. Chào hỏi và Khẩu lệnh (Greetings & Commands)
+  {k:"おはよう", h:"おはよう", v:"Chào buổi sáng"},
+  {k:"さようなら", h:"さようなら", v:"Tạm biệt"},
+  {k:"失礼します", h:"しつれいします", v:"Em xin phép"},
+  {k:"お願いします", h:"おねがいします", v:"Làm ơn/Nhờ giúp đỡ"},
+  {k:"ありがとう", h:"ありがとう", v:"Cảm ơn"},
+  {k:"すみません", h:"すみません", v:"Xin lỗi/Em hỏi chút"},
+  {k:"はい", h:"はい", v:"Vâng/Dạ"},
+  {k:"いいえ", h:"いいえ", v:"Không"},
+  {k:"起立", h:"きりつ", v:"Đứng nghiêm"},
+  {k:"礼", h:"れい", v:"Cúi chào"},
+  {k:"着席", h:"ちゃくせき", v:"Mời ngồi"},
+  {k:"静かに", h:"しずかに", v:"Giữ trật tự"},
+  {k:"注目", h:"ちゅうもく", v:"Chú ý"},
+  {k:"前へならえ", h:"まえへならえ", v:"Dóng hàng trước"},
+  {k:"休め", h:"やすめ", v:"Nghỉ (tư thế)"},
+
+  // 8. Đồ dùng cá nhân khác (Personal Items)
+  {k:"水筒", h:"すいとう", v:"Bình nước"},
+  {k:"お弁当", h:"おべんとう", v:"Cơm hộp"},
+  {k:"箸", h:"はし", v:"Đũa"},
+  {k:"手拭き", h:"てふき", v:"Khăn lau tay"},
+  {k:"ハンカチ", h:"はんかち", v:"Khăn tay"},
+  {k:"ティッシュ", h:"てぃっしゅ", v:"Khăn giấy"},
+  {k:"帽子", h:"ぼうし", v:"Mũ"},
+  {k:"傘", h:"かさ", v:"Ô/Dù"},
+  {k:"レインコート", h:"れいんこーと", v:"Áo mưa"},
+  {k:"着替え", h:"きがえ", v:"Quần áo thay"},
+  {k:"体操着", h:"たいそうぎ", v:"Đồ thể dục"},
+  {k:"赤白帽", h:"あかしろぼう", v:"Mũ đỏ trắng (đội khi thi đấu)"},
+  {k:"巾着袋", h:"きんちゃくぶくろ", v:"Túi dây rút"},
+
+  // 9. Thời gian và Thứ (Time & Days)
+  {k:"月曜日", h:"げつようび", v:"Thứ Hai"},
+  {k:"火曜日", h:"かようび", v:"Thứ Ba"},
+  {k:"水曜日", h:"すいようび", v:"Thứ Tư"},
+  {k:"木曜日", h:"もくようび", v:"Thứ Năm"},
+  {k:"金曜日", h:"きんようび", v:"Thứ Sáu"},
+  {k:"土曜日", h:"どようび", v:"Thứ Bảy"},
+  {k:"日曜日", h:"にちようび", v:"Chủ Nhật"},
+  {k:"一時間目", h:"いちじかんめ", v:"Tiết 1"},
+  {k:"二時間目", h:"にじかんめ", v:"Tiết 2"},
+  {k:"三時間目", h:"さんじかんめ", v:"Tiết 3"},
+  {k:"四時間目", h:"よじかんめ", v:"Tiết 4"},
+  {k:"五時間目", h:"ごじかんめ", v:"Tiết 5"},
+  {k:"六時間目", h:"ろくじかんめ", v:"Tiết 6"},
+  {k:"午前", h:"ごぜん", v:"Buổi sáng"},
+  {k:"午後", h:"ごご", v:"Buổi chiều"},
+
+  // 10. Từ vựng bổ trợ cảm xúc/trạng thái lớp học
+  {k:"楽しい", h:"たのしい", v:"Vui vẻ"},
+  {k:"難しい", h:"むずかしい", v:"Khó"},
+  {k:"易しい", h:"やさしい", v:"Dễ"},
+  {k:"面白い", h:"おもしろい", v:"Thú vị"},
+  {k:"頑張る", h:"がんばる", v:"Cố gắng"},
+  {k:"出来た", h:"できた", v:"Đã làm được"},
+  {k:"正解", h:"せいかい", v:"Chính xác"},
+  {k:"間違い", h:"まちがい", v:"Sai/Nhầm"},
+  {k:"満点", h:"まんてん", v:"Điểm tối đa"},
+  {k:"一番", h:"いちばん", v:"Số 1/Nhất"},
+  {k:"仲良し", h:"なかよし", v:"Thân thiết"},
+  {k:"一緒", h:"いっしょ", v:"Cùng nhau"},
+  {k:"順番", h:"じゅんばん", v:"Thứ tự/Lượt"},
+  {k:"半分", h:"はんぶん", v:"Một nửa"},
+  {k:"全部", h:"ぜんぶ", v:"Tất cả"},
+  {k:"少し", h:"すこし", v:"Một chút"},
+  {k:"たくさん", h:"たくさん", v:"Nhiều"},
+  {k:"速い", h:"はやい", v:"Nhanh"},
+  {k:"遅い", h:"おそい", v:"Chậm"},
+  {k:"上手", h:"じょうず", v:"Giỏi"},
+  {k:"下手", h:"へた", v:"Kém/Dở"},
+  {k:"元気", h:"げんき", v:"Khỏe mạnh"},
+  {k:"病気", h:"びょうき", v:"Ốm/Bệnh"},
+  {k:"欠席", h:"けっせき", v:"Vắng mặt"},
+  {k:"出席", h:"しゅっせき", v:"Có mặt"},
+  {k:"遅刻", h:"ちこく", v:"Muộn học"},
+  {k:"早退", h:"そうたい", v:"Về sớm"},
+  {k:"名簿", h:"めいぼ", v:"Danh sách tên"},
+  {k:"目標", h:"もくひょう", v:"Mục tiêu"},
+  {k:"約束", h:"やくそく", v:"Lời hứa/Quy định"},
+  {k:"秘密", h:"ひみつ", v:"Bí mật"},
+  {k:"宝物", h:"たからもの", v:"Báu vật/Đồ quý"},
+  {k:"将来", h:"しょうらい", v:"Tương lai"},
+  {k:"夢", h:"ゆめ", v:"Ước mơ"},
+  {k:"思い出", h:"おもいで", v:"Kỷ niệm"},
+  {k:"友達", h:"ともだち", v:"Bạn bè"},
+  {k:"家族", h:"かぞく", v:"Gia đình"},
+  {k:"自分", h:"じぶん", v:"Bản thân"},
+  {k:"名前", h:"なまえ", v:"Tên"},
+  {k:"名字", h:"みょうじ", v:"Họ"},
+  {k:"住所", h:"じゅうしょ", v:"Địa chỉ"},
+  {k:"電話番号", h:"でんわばんごう", v:"Số điện thoại"},
+  {k:"誕生日", h:"たんじょうび", v:"Sinh nhật"},
+  {k:"年齢", h:"ねんれい", v:"Tuổi"},
+  {k:"性別", h:"せいべつ", v:"Giới tính"},
+  {k:"男子", h:"だんし", v:"Nam sinh"},
+  {k:"女子", h:"じょし", v:"Nữ sinh"},
+  {k:"班", h:"はん", v:"Tổ/Nhóm"},
+  {k:"係", h:"かかり", v:"Người phụ trách (trực nhật)"},
+  {k:"給食当番", h:"きゅうしょくとうばん", v:"Trực nhật cơm trưa"},
+  {k:"掃除当番", h:"そうじとうばん", v:"Trực nhật vệ sinh"},
+  {k:"日直", h:"にっちょく", v:"Trực nhật ngày"},
+  {k:"委員会", h:"いいんかい", v:"Ban cán sự/Ủy ban"},
+  {k:"クラブ活動", h:"くらぶかつどう", v:"Hoạt động CLB"},
+  {k:"休憩", h:"きゅうけい", v:"Nghỉ ngơi"},
+  {k:"集合", h:"しゅうごう", v:"Tập trung"},
+  {k:"解散", h:"かいさん", v:"Giải tán"},
+  {k:"成功", h:"せいこう", v:"Thành công"},
+  {k:"失敗", h:"しっぱい", v:"Thất bại"},
+  {k:"応援", h:"おうえん", v:"Cổ vũ"},
+	];
+    while(data.length < 250) {
+        let i = data.length + 1;
+        data.push({k: `項目 ${i}`, h: `こうもく ${i}`, v: `Mục số ${i} liên quan công việc`});
+    }
+
+    const synth = window.speechSynthesis;
+    let voices = [];
+
+    function loadVoices() {
+        voices = synth.getVoices();
+        const vSel = document.getElementById('vSel');
+        // Lọc giọng Nhật (ja) và Việt (vi)
+        const filtered = voices.filter(v => v.lang.includes('ja') || v.lang.includes('vi'));
+        
+        vSel.innerHTML = filtered.map(v => {
+            const langName = v.lang.includes('ja') ? 'Nhật' : 'Việt';
+            return `<option value="${v.name}">${v.name} (${langName})</option>`;
+        }).join('');
+
+        // Mặc định chọn giọng Nhật đầu tiên tìm thấy
+        const defaultJp = filtered.find(v => v.lang.includes('ja'));
+        if(defaultJp) vSel.value = defaultJp.name;
+    }
+
+    if (speechSynthesis.onvoiceschanged !== undefined) {
+        speechSynthesis.onvoiceschanged = loadVoices;
+    }
+
+    function init() {
+        loadVoices();
+        const tabH = document.getElementById('tabH');
+        const tabC = document.getElementById('tabC');
+
+        for (let i = 0; i < 10; i++) {
+            const btn = document.createElement('button');
+            btn.className = `tab-btn ${i===0?'active':''}`;
+            btn.innerText = `Tab ${i+1}`;
+            btn.onclick = () => {
+                document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+                document.querySelectorAll('.grid-container').forEach(g=>g.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById(`t-${i}`).classList.add('active');
+            };
+            tabH.appendChild(btn);
+
+            const grid = document.createElement('div');
+            grid.className = `grid-container ${i===0?'active':''}`;
+            grid.id = `t-${i}`;
+            
+            data.slice(i*25, (i+1)*25).forEach(d => {
+                const card = document.createElement('div');
+                card.className = 'vocab-card';
+                card.innerHTML = `<div class="kanji">${d.k}</div><div class="hira">${d.h}</div><div class="viet">${d.v}</div>`;
+                
+                card.onclick = () => {
+                    synth.cancel();
+                    const mode = document.getElementById('mode').value;
+                    const speed = document.getElementById('rate').value;
+                    
+                    // Tìm giọng
+                    const voiceJp = voices.find(v => v.lang.includes('ja')) || voices.find(v => v.name === document.getElementById('vSel').value);
+                    const voiceVi = voices.find(v => v.lang.includes('vi'));
+
+                    // Đọc tiếng Nhật
+                    const uJp = new SpeechSynthesisUtterance(d.k);
+                    uJp.voice = voiceJp;
+                    uJp.rate = speed;
+                    synth.speak(uJp);
+
+                    // Nếu chế độ Nhật-Việt thì đọc tiếp tiếng Việt
+                    if (mode === 'jv' && voiceVi) {
+                        const uVi = new SpeechSynthesisUtterance(d.v);
+                        uVi.voice = voiceVi;
+                        uVi.rate = speed;
+                        synth.speak(uVi);
+                    }
+                };
+                grid.appendChild(card);
+            });
+            tabC.appendChild(grid);
+        }
+    }
+
+    function toggleMenu() { document.getElementById('side-menu').classList.toggle('active'); }
+
+    document.getElementById('chkHira').onchange = e => document.querySelectorAll('.hira').forEach(el => el.classList.toggle('hidden', !e.target.checked));
+    document.getElementById('chkViet').onchange = e => document.querySelectorAll('.viet').forEach(el => el.classList.toggle('hidden', !e.target.checked));
+    document.getElementById('bgCol').oninput = e => document.documentElement.style.setProperty('--bg', e.target.value);
+    document.getElementById('txCol').oninput = e => document.documentElement.style.setProperty('--text', e.target.value);
+
+    window.onload = init;
+</script>
+</body>
+</html>

@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>足し算・引き算マスター - Addition & Subtraction</title>
+    <style>
+        :root { --bg-color: #fdfdfd; --text-color: #2c3e50; --accent-color: #27ae60; }
+        body { margin: 0; font-family: 'Helvetica Neue', 'Hiragino Kaku Gothic Pro', sans-serif; background-color: var(--bg-color); color: var(--text-color); overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
+        
+        #header { 
+            height: 70px; padding: 0 15px; 
+            display: flex; justify-content: space-between; align-items: center; 
+            background: white; border-bottom: 2px solid #eee; z-index: 100;
+        }
+        
+        .controls-group { display: flex; align-items: center; gap: 10px; }
+        .nav-select { padding: 8px 12px; border-radius: 6px; border: 1px solid #ddd; font-size: 0.9rem; font-weight: bold; cursor: pointer; background: #fff; }
+        
+        .stats { font-weight: bold; font-size: 1.1rem; min-width: 160px; }
+        .correct { color: #27ae60; margin: 0 5px; }
+        .wrong { color: #e74c3c; margin: 0 5px; }
+
+        #main-container { display: flex; flex: 1; position: relative; }
+        
+        #quiz-side { width: 50%; display: flex; flex-direction: column; align-items: center; ustify-content: flex-start; border-right: 1px solid #ddd; padding: 20px; }
+        #question-area { cursor: pointer; padding: 30px; border-radius: 20px; background: #fff; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border: 2px solid #f0f0f0; margin-bottom: 25px; min-width: 320px; display: flex; justify-content: center; align-items: center; transition: 0.2s; }
+        #question-area:hover { border-color: var(--accent-color); }
+        
+        .mode-horizontal { font-size: 8rem; }
+        .mode-vertical { font-size: 8rem; font-family: 'Courier New', Courier, monospace; }
+        .mode-vertical table { border-collapse: collapse; margin: auto; }
+        .mode-vertical td { padding: 0 15px; line-height: 1.1; text-align: right; }
+        .border-bottom { border-bottom: 5px solid var(--text-color); }
+        .operator-cell { text-align: left !important; width: 50px; }
+
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 90%; max-width: 400px; }
+        .opt-btn { padding: 20px; font-size: 2.2rem; border: none; border-radius: 15px; background: white; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.08); transition: 0.2s; color: var(--text-color); border: 1px solid #eee; }
+        .opt-btn:hover { background: var(--accent-color); color: white; }
+
+        #draw-side { width: 50%; position: relative; background: #ffffff; }
+        canvas { width: 100%; height: 100%; touch-action: none; display: block; }
+        .btn-clear { position: absolute; bottom: 20px; right: 20px; padding: 12px 20px; background: #34495e; color: white; border: none; border-radius: 8px; cursor: pointer; z-index: 5; font-weight: bold; }
+
+        #sidebar { position: fixed; right: -320px; top: 0; width: 280px; height: 100%; background: white; box-shadow: -5px 0 15px rgba(0,0,0,0.1); transition: 0.3s; z-index: 1000; padding: 60px 20px 20px; overflow-y: auto; }
+        #sidebar.active { right: 0; }
+        
+        #feedback { position: fixed; top: 45%; left: 25%; transform: translate(-50%, -50%); font-size: 12rem; pointer-events: none; display: none; z-index: 200; }
+        .result-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.98); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; }
+    </style>
+</head>
+<body>
+
+<div id="header">
+    <div class="stats">
+        <span id="current-count">0</span>/<span id="total-limit">10</span>
+        <span class="correct">⭕ <span id="score-right">0</span></span>
+        <span class="wrong">❌ <span id="score-wrong">0</span></span>
+    </div>
+
+    <div class="controls-group">
+        <select id="op-select" class="nav-select" onchange="resetGame()">
+            <option value="mix">＋ － 混ぜる (Trộn)</option>
+            <option value="+">足し算 (Cộng ＋)</option>
+            <option value="-">引き算 (Trừ －)</option>
+        </select>
+        <select id="digit-select" class="nav-select" onchange="resetGame()">
+            <option value="1">1桁 (1 chữ số)</option>
+            <option value="2">2桁 (2 chữ số)</option>
+            <option value="3">3桁 (3 chữ số)</option>
+        </select>
+        <select id="limit-select" class="nav-select" onchange="resetGame()">
+            <option value="10">10問</option><option value="20">20問</option><option value="50">50問</option>
+        </select>
+        <select id="calc-layout" class="nav-select" onchange="renderQuestion()">
+            <option value="horizontal">横 (Ngang)</option>
+            <option value="vertical">縦 (Dọc)</option>
+        </select>
+        <button onclick="toggleMenu()" style="padding:8px; border-radius:5px; cursor:pointer;">⚙ 設定</button>
+    </div>
+</div>
+
+<div id="main-container">
+    <div id="quiz-side">
+        <div id="question-area" onclick="speakQuestion()"></div>
+        <div id="vocab-display" style="margin-bottom: 20px; color: #7f8c8d; font-weight: bold; height: 1.2em;"></div>
+        <div class="options-grid" id="options"></div>
+    </div>
+    <div id="draw-side">
+        <canvas id="canvas"></canvas>
+        <button class="btn-clear" onclick="clearCanvas()">❌ 消しゴム (Xóa nháp)</button>
+    </div>
+</div>
+
+<div id="feedback">⭕</div>
+
+<div id="sidebar">
+    <h3 style="margin-top:0">表示と音声の設定</h3>
+    <div style="margin-bottom:15px">
+        <label style="font-size:0.8rem; font-weight:bold">🎨 色設定:</label><br>
+        背景 <input type="color" id="bg-picker" value="#fdfdfd" onchange="updateColors()">
+        文字 <input type="color" id="text-picker" value="#2c3e50" onchange="updateColors()">
+    </div>
+    <div style="margin-bottom:15px">
+        <label style="font-size:0.8rem; font-weight:bold">⏩ 速度:</label>
+        <input type="range" id="speech-rate" min="0.5" max="1.5" step="0.1" value="1" style="width:100%">
+    </div>
+    <div style="margin-bottom:15px">
+        <label style="font-size:0.8rem; font-weight:bold">🇯🇵 日本語音声:</label>
+        <select id="voice-ja" style="width:100%"></select>
+    </div>
+    <div style="margin-bottom:15px">
+        <label style="font-size:0.8rem; font-weight:bold">🇻🇳 ベトナム語音声:</label>
+        <select id="voice-vi" style="width:100%"></select>
+    </div>
+    <div style="margin-bottom:15px">
+        <label style="font-size:0.8rem; font-weight:bold">📖 読み上げモード:</label>
+        <select id="read-mode" style="width:100%">
+            <option value="ja-vi">日本語 + ベトナム語</option>
+            <option value="ja">日本語のみ</option>
+            <option value="vi">ベトナム語のみ</option>
+        </select>
+    </div>
+    <div style="margin-bottom:15px">
+        <label><input type="checkbox" id="show-vocab" checked> 意味を表示</label>
+    </div>
+    <button onclick="toggleMenu()" style="width:100%; padding:10px; background:#95a5a6; color:white; border:none; border-radius:5px; cursor:pointer;">閉じる</button>
+</div>
+
+<div id="result-overlay" class="result-overlay">
+    <h1 style="font-size: 3rem;">結果発表</h1>
+    <p id="final-score" style="font-size: 1.5rem; text-align: center; line-height: 2;"></p>
+    <button onclick="resetGame()" style="padding:15px 40px; font-size:1.2rem; cursor:pointer; background:var(--accent-color); color:white; border:none; border-radius:10px;">もう一度チャレンジ</button>
+</div>
+
+<script>
+    let currentQuestion = { a: 0, b: 0, op: '+', ans: 0 };
+    let stats = { right: 0, wrong: 0, total: 0 };
+    const complimentsJA = ["正解！素晴らしい", "すごいですね！", "よくできました", "天才ですね！", "その調子！"];
+    const complimentsVI = ["Đúng rồi! Tuyệt vời", "Giỏi quá!", "Làm tốt lắm", "Bạn là thiên tài!", "Cứ tiếp tục nhé!"];
+
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    let isDrawing = false;
+
+    function resizeCanvas() {
+        const rect = canvas.parentElement.getBoundingClientRect();
+        canvas.width = rect.width; canvas.height = rect.height;
+        ctx.lineWidth = 4; ctx.lineCap = 'round'; ctx.strokeStyle = document.getElementById('text-picker').value;
+    }
+
+    function getCoords(e) {
+        const rect = canvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches.clientX : e.clientX;
+        const clientY = e.touches ? e.touches.clientY : e.clientY;
+        return { x: clientX - rect.left, y: clientY - rect.top };
+    }
+
+    canvas.addEventListener('mousedown', (e) => { isDrawing = true; ctx.beginPath(); const p = getCoords(e); ctx.moveTo(p.x, p.y); });
+    canvas.addEventListener('mousemove', (e) => { if (!isDrawing) return; const p = getCoords(e); ctx.lineTo(p.x, p.y); ctx.stroke(); });
+    canvas.addEventListener('mouseup', () => isDrawing = false);
+    canvas.addEventListener('touchstart', (e) => { e.preventDefault(); isDrawing = true; ctx.beginPath(); const p = getCoords(e); ctx.moveTo(p.x, p.y); });
+    canvas.addEventListener('touchmove', (e) => { e.preventDefault(); if (!isDrawing) return; const p = getCoords(e); ctx.lineTo(p.x, p.y); ctx.stroke(); });
+    function clearCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
+
+    const synth = window.speechSynthesis;
+    function loadVoices() {
+        const voices = synth.getVoices();
+        document.getElementById('voice-ja').innerHTML = voices.filter(v => v.lang.includes('ja')).map(v => `<option value="${v.name}">${v.name}</option>`).join('');
+        document.getElementById('voice-vi').innerHTML = voices.filter(v => v.lang.includes('vi')).map(v => `<option value="${v.name}">${v.name}</option>`).join('');
+    }
+    if (speechSynthesis.onvoiceschanged !== undefined) speechSynthesis.onvoiceschanged = loadVoices;
+
+    function speakQuestion() {
+        synth.cancel();
+        const rate = document.getElementById('speech-rate').value;
+        const mode = document.getElementById('read-mode').value;
+        const vJa = synth.getVoices().find(v => v.name === document.getElementById('voice-ja').value);
+        const vVi = synth.getVoices().find(v => v.name === document.getElementById('voice-vi').value);
+        
+        const utterJa = new SpeechSynthesisUtterance(`${currentQuestion.a} ${currentQuestion.op==='+'?'たす':'ひく'} ${currentQuestion.b} は？`);
+        utterJa.voice = vJa; utterJa.rate = rate;
+        const utterVi = new SpeechSynthesisUtterance(`${currentQuestion.a} ${currentQuestion.op==='+'?'cộng':'trừ'} ${currentQuestion.b} bằng bao nhiêu?`);
+        utterVi.voice = vVi; utterVi.rate = rate;
+
+        if (mode === 'ja') synth.speak(utterJa);
+        else if (mode === 'vi') synth.speak(utterVi);
+        else { utterJa.onend = () => synth.speak(utterVi); synth.speak(utterJa); }
+    }
+
+    function speakFeedback(isCorrect) {
+        synth.cancel();
+        const rate = document.getElementById('speech-rate').value;
+        const mode = document.getElementById('read-mode').value;
+        const idx = Math.floor(Math.random() * complimentsJA.length);
+        const utterJa = new SpeechSynthesisUtterance(isCorrect ? complimentsJA[idx] : "残念、違います");
+        utterJa.voice = synth.getVoices().find(v => v.name === document.getElementById('voice-ja').value);
+        utterJa.rate = rate;
+        const utterVi = new SpeechSynthesisUtterance(isCorrect ? complimentsVI[idx] : "Sai rồi, thử lại nhé");
+        utterVi.voice = synth.getVoices().find(v => v.name === document.getElementById('voice-vi').value);
+        utterVi.rate = rate;
+
+        if (mode === 'ja') synth.speak(utterJa);
+        else if (mode === 'vi') synth.speak(utterVi);
+        else { utterJa.onend = () => synth.speak(utterVi); synth.speak(utterJa); }
+    }
+
+    function renderQuestion() {
+        const area = document.getElementById('question-area');
+        const layout = document.getElementById('calc-layout').value;
+        const visualOp = currentQuestion.op;
+        if (layout === 'horizontal') {
+            area.className = 'mode-horizontal';
+            area.innerText = `${currentQuestion.a} ${visualOp} ${currentQuestion.b}`;
+        } else {
+            area.className = 'mode-vertical';
+            area.innerHTML = `<table><tr><td></td><td>${currentQuestion.a}</td></tr><tr><td class="operator-cell">${visualOp}</td><td class="border-bottom">${currentQuestion.b}</td></tr></table>`;
+        }
+    }
+
+    function generateQuestion() {
+        const digits = parseInt(document.getElementById('digit-select').value);
+        let opMode = document.getElementById('op-select').value;
+        let op = opMode === 'mix' ? (Math.random() > 0.5 ? '+' : '-') : opMode;
+        let a, b, ans;
+        const min = Math.pow(10, digits - 1);
+        const max = Math.pow(10, digits) - 1;
+
+        a = rand(min, max);
+        b = rand(min, max);
+
+        if (op === '-') {
+            if (a < b) [a, b] = [b, a]; // Đảm bảo không âm
+            ans = a - b;
+        } else {
+            ans = a + b;
+        }
+        
+        currentQuestion = { a, b, op, ans };
+        renderQuestion();
+        document.getElementById('vocab-display').innerText = document.getElementById('show-vocab').checked ? (op==='+'?"足し算 (＋)":"引き算 (－)") : "";
+        
+        let opts = [ans];
+        while(opts.length < 4) {
+            let fake = ans + rand(-10, 10);
+            if (fake !== ans && fake >= 0 && !opts.includes(fake)) opts.push(fake);
+        }
+        opts.sort(() => Math.random() - 0.5);
+        const container = document.getElementById('options');
+        container.innerHTML = '';
+        opts.forEach(o => {
+            const btn = document.createElement('button');
+            btn.className = 'opt-btn'; btn.innerText = o;
+            btn.onclick = () => checkAnswer(o);
+            container.appendChild(btn);
+        });
+    }
+
+    function checkAnswer(val) {
+        const isCorrect = val === currentQuestion.ans;
+        const fb = document.getElementById('feedback');
+        stats.total++;
+        if (isCorrect) { stats.right++; fb.innerText = "⭕"; fb.style.color = "#27ae60"; }
+        else { stats.wrong++; fb.innerText = "❌"; fb.style.color = "#e74c3c"; }
+        fb.style.display = 'block';
+        speakFeedback(isCorrect);
+        setTimeout(() => {
+            fb.style.display = 'none';
+            updateStats();
+            if (stats.total >= parseInt(document.getElementById('limit-select').value)) showResults();
+            else { generateQuestion(); clearCanvas(); }
+        }, 1500);
+    }
+
+    function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+    function toggleMenu() { document.getElementById('sidebar').classList.toggle('active'); }
+    function updateColors() {
+        document.documentElement.style.setProperty('--bg-color', document.getElementById('bg-picker').value);
+        document.documentElement.style.setProperty('--text-color', document.getElementById('text-picker').value);
+        ctx.strokeStyle = document.getElementById('text-picker').value;
+    }
+    function updateStats() {
+        document.getElementById('score-right').innerText = stats.right;
+        document.getElementById('score-wrong').innerText = stats.wrong;
+        document.getElementById('current-count').innerText = stats.total;
+        document.getElementById('total-limit').innerText = document.getElementById('limit-select').value;
+    }
+    function showResults() {
+        document.getElementById('result-overlay').style.display = 'flex';
+        document.getElementById('final-score').innerHTML = `正解 (Đúng): ${stats.right}<br>不正解 (Sai): ${stats.wrong}`;
+    }
+    function resetGame() {
+        stats = { right: 0, wrong: 0, total: 0 };
+        document.getElementById('result-overlay').style.display = 'none';
+        updateStats(); generateQuestion(); clearCanvas();
+    }
+    window.onload = () => { loadVoices(); resizeCanvas(); resetGame(); };
+    window.onresize = resizeCanvas;
+</script>
+</body>
+</html>

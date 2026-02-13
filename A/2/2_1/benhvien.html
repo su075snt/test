@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Học Tiếng Nhật IT & Thi Công</title>
+    <style>
+        :root { --bg: #292929; --text: #0b5394; --card: #ffffff; --accent: #0984e3; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); color: var(--text); margin: 0; transition: 0.3s; }
+        #side-menu { position: fixed; right: -300px; top: 0; width: 260px; height: 100%; background: #fff; box-shadow: -2px 0 10px rgba(0,0,0,0.1); z-index: 1000; padding: 20px; transition: 0.3s; overflow-y: auto; }
+        #side-menu.active { right: 0; }
+        .menu-btn { position: fixed; top: 15px; right: 15px; z-index: 1001; padding: 10px 15px; background: var(--accent); color: white; border: none; border-radius: 5px; cursor: pointer; }
+        .tabs { display: flex; flex-wrap: wrap; gap: 5px; padding: 60px 10px 10px; justify-content: center; }
+        .tab-btn { padding: 8px 12px; border: none; background: #dfe6e9; cursor: pointer; border-radius: 4px; font-size: 13px; }
+        .tab-btn.active { background: var(--accent); color: white; }
+        .grid-container { display: none; grid-template-columns: repeat(5, 1fr); gap: 10px; padding: 15px; max-width: 1200px; margin: 0 auto; }
+        .grid-container.active { display: grid; }
+        .vocab-card { background: var(--card); padding: 15px 5px; border-radius: 8px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); cursor: pointer; border: 1px solid #eee; min-height: 120px; display: flex; flex-direction: column; justify-content: center; }
+        .kanji { font-size: 1.2em; font-weight: bold; margin-bottom: 5px; }
+        .hiragana { color: #636e72; font-size: 0.9em; margin-bottom: 5px; }
+        .vietnamese { color: #d63031; font-size: 0.85em; font-weight: 500; }
+        .hidden { display: none !important; }
+        @media (max-width: 800px) { .grid-container { grid-template-columns: repeat(2, 1fr); } }
+    </style>
+</head>
+<body>
+
+<button class="menu-btn" onclick="toggleMenu()">⚙ Cài đặt</button>
+
+<div id="side-menu">
+    <h3>Cấu hình</h3>
+    <label>Màu nền: <input type="color" id="bgCol" value="#f4f7f6"></label><br><br>
+    <label>Màu chữ: <input type="color" id="txCol" value="#2d3436"></label><hr>
+    <label><input type="checkbox" id="chkHira" checked> Hiện Hiragana</label><br>
+    <label><input type="checkbox" id="chkViet" checked> Hiện Tiếng Việt</label><hr>
+    <label>Giọng đọc: <select id="vSel" style="width:100%"></select></label><br><br>
+    <label>Tốc độ: <input type="range" id="rate" min="0.5" max="1.5" step="0.1" value="1"></label><br>
+    <label>Chế độ: <select id="mode" style="width:100%"><option value="jp">Chỉ Nhật</option><option value="jv">Nhật-Việt</option></select></label><br><br>
+    <button onclick="toggleMenu()" style="width:100%">Đóng</button>
+</div>
+
+<div class="tabs" id="tabH"></div>
+<div id="tabC"></div>
+
+<script>
+    // DỮ LIỆU 250 CÂU GIAO TIẾP & TỪ VỰNG (Gộp từ các phần trước)
+    const data = [
+       {k:"病院", h:"びょういん", v:"Bệnh viện"},
+    {k:"受付", h:"うけつけ", v:"Quầy tiếp tân"},
+    {k:"内科", h:"ないか", v:"Khoa nội"},
+    {k:"外科", h:"げか", v:"Khoa ngoại"},
+    {k:"小児科", h:"しょうにか", v:"Khoa nhi"},
+    {k:"眼科", h:"がんか", v:"Khoa mắt"},
+    {k:"歯科", h:"しか", v:"Nha khoa"},
+    {k:"皮膚科", h:"ひふか", v:"Khoa da liễu"},
+    {k:"耳鼻科", h:"じびか", v:"Khoa tai mũi họng"},
+    {k:"整形外科", h:"せいけいげか", v:"Khoa chấn thương chỉnh hình"},
+    {k:"婦人科", h:"ふじんか", v:"Phụ khoa"},
+    {k:"産婦人科", h:"さんふじんか", v:"Khoa sản"},
+    {k:"精神科", h:"せいしんか", v:"Khoa tâm thần"},
+    {k:"泌尿器科", h:"ひにょうきか", v:"Khoa tiết niệu"},
+    {k:"初診", h:"しょしん", v:"Khám lần đầu"},
+    {k:"再診", h:"さいしん", v:"Tái khám"},
+    {k:"保険証", h:"ほけんしょう", v:"Thẻ bảo hiểm"},
+    {k:"診察券", h:"しんさつけん", v:"Thẻ khám bệnh"},
+    {k:"紹介状", h:"しょうかいじょう", v:"Giấy giới thiệu"},
+    {k:"予約", h:"よやく", v:"Hẹn lịch khám"},
+    {k:"問診票", h:"もんしんひょう", v:"Tờ khai y tế"},
+    {k:"待合室", h:"まちあいしつ", v:"Phòng chờ"},
+    {k:"診察室", h:"しんさつしつ", v:"Phòng khám"},
+    {k:"処方箋", h:"しょほうせん", v:"Đơn thuốc"},
+    {k:"会計", h:"かいけい", v:"Thanh toán"},
+    {k:"調剤薬局", h:"ちょうざいやっきょく", v:"Nhà thuốc thuốc kê đơn"},
+    {k:"体温計", h:"たいおんけい", v:"Nhiệt kế"},
+    {k:"血圧計", h:"けつあつけい", v:"Máy đo huyết áp"},
+    {k:"身長", h:"しんちょう", v:"Chiều cao"},
+    {k:"体重", h:"たいじゅう", v:"Cân nặng"},
+    {k:"風邪", h:"かぜ", v:"Cảm cúm"},
+    {k:"発熱", h:"はつねつ", v:"Sốt"},
+    {k:"咳", h:"せき", v:"Ho"},
+    {k:"鼻水", h:"はなみず", v:"Sổ mũi"},
+    {k:"鼻詰まり", h:"はなづまり", v:"Nghẹt mũi"},
+    {k:"喉の痛み", h:"のどのいたみ", v:"Đau họng"},
+    {k:"頭痛", h:"ずつう", v:"Đau đầu"},
+    {k:"腹痛", h:"ふくつう", v:"Đau bụng"},
+    {k:"下痢", h:"げり", v:"Tiêu chảy"},
+    {k:"便秘", h:"べんぴ", v:"Táo bón"},
+    {k:"吐き気", h:"はきけ", v:"Buồn nôn"},
+    {k:"嘔吐", h:"おうと", v:"Nôn mửa"},
+    {k:"眩暈", h:"めまい", v:"Chóng mặt"},
+    {k:"倦怠感", h:"けんたいかん", v:"Mệt mỏi/Uể oải"},
+    {k:"寒気", h:"さむけ", v:"Ớn lạnh"},
+    {k:"震え", h:"ふるえ", v:"Run rẩy"},
+    {k:"動悸", h:"どうき", v:"Tim đập nhanh/Hồi hộp"},
+    {k:"息切れ", h:"いきぎれ", v:"Khó thở/Hụt hơi"},
+    {k:"湿疹", h:"しっしん", v:"Phát ban/Nổi mẩn"},
+    {k:"痒み", h:"かゆみ", v:"Ngứa"},
+    {k:"腫れ", h:"はれ", v:"Sưng"},
+    {k:"炎症", h:"えんしょう", v:"Viêm nhiễm"},
+    {k:"充血", h:"じゅうけつ", v:"Đau mắt đỏ/Xung huyết"},
+    {k:"耳鳴り", h:"みみなき", v:"Ù tai"},
+    {k:"筋肉痛", h:"きんにくつう", v:"Đau cơ"},
+    {k:"腰痛", h:"ようつう", v:"Đau lưng"},
+    {k:"関節痛", h:"かんせつつう", v:"Đau khớp"},
+    {k:"歯痛", h:"しつう", v:"Đau răng"},
+    {k:"生理痛", h:"せいりつう", v:"Đau bụng kinh"},
+    {k:"痺れ", h:"しびれ", v:"Tê chân tay"},
+    {k:"怪我", h:"けが", v:"Vết thương"},
+    {k:"骨折", h:"こっせつ", v:"Gãy xương"},
+    {k:"捻挫", h:"ねんざ", v:"Bong gân"},
+    {k:"脱臼", h:"だっきゅう", v:"Trật khớp"},
+    {k:"打撲", h:"だぼく", v:"Vết bầm tím/Va đập"},
+    {k:"切り傷", h:"きりきず", v:"Vết cắt"},
+    {k:"擦り傷", h:"すりきず", v:"Vết trầy xước"},
+    {k:"刺し傷", h:"さしきず", v:"Vết đâm"},
+    {k:"火傷", h:"やけど", v:"Bỏng"},
+    {k:"出血", h:"しゅっけつ", v:"Chảy máu"},
+    {k:"鼻血", h:"はなぢ", v:"Chảy máu cam"},
+    {k:"貧血", h:"ひんけつ", v:"Thiếu máu"},
+    {k:"食欲不振", h:"しょくよくふしん", v:"Chán ăn"},
+    {k:"不眠", h:"ふみん", v:"Mất ngủ"},
+    {k:"アレルギー", h:"あれるぎー", v:"Dị ứng"},
+    {k:"喘息", h:"ぜんそく", v:"Hen suyễn"},
+    {k:"花粉症", h:"かふんしょう", v:"Dị ứng phấn hoa"},
+    {k:"インフルエンザ", h:"いんふるえんざ", v:"Cúm mùa"},
+    {k:"食中毒", h:"しょくちゅうどく", v:"Ngộ độc thực phẩm"},
+    {k:"熱中症", h:"ねっちゅうしょう", v:"Sốc nhiệt/Say nắng"},
+    {k:"高血圧", h:"こうけつあつ", v:"Cao huyết áp"},
+    {k:"糖尿病", h:"とうにょうびょう", v:"Tiểu đường"},
+    {k:"心臓病", h:"しんぞうびょう", v:"Bệnh tim"},
+    {k:"肝臓病", h:"かんぞうびょう", v:"Bệnh gan"},
+    {k:"腎臓病", h:"じんぞうびょう", v:"Bệnh thận"},
+	 {k:"検査", h:"けんさ", v:"Xét nghiệm/Kiểm tra"},
+    {k:"血液検査", h:"けつえきけんさ", v:"Xét nghiệm máu"},
+    {k:"尿検査", h:"にょうけんさ", v:"Xét nghiệm nước tiểu"},
+    {k:"便検査", h:"べんけんさ", v:"Xét nghiệm phân"},
+    {k:"レントゲン", h:"れんとげん", v:"Chụp X-quang"},
+    {k:"CT検査", h:"しーてぃーけんさ", v:"Chụp CT"},
+    {k:"MRI検査", h:"えむあーるあいけんさ", v:"Chụp MRI"},
+    {k:"超音波検査", h:"ちょうおんぱけんさ", v:"Siêu âm"},
+    {k:"心電図", h:"しんでんず", v:"Điện tâm đồ"},
+    {k:"内視鏡", h:"ないしきょう", v:"Nội soi"},
+    {k:"バリウム検査", h:"ばりうむけんさ", v:"Chụp dạ dày cản quang"},
+    {k:"診察", h:"しんさつ", v:"Khám bệnh"},
+    {k:"診断", h:"しんだん", v:"Chẩn đoán"},
+    {k:"治療", h:"ちりょう", v:"Điều trị"},
+    {k:"手術", h:"しゅじゅつ", v:"Phẫu thuật"},
+    {k:"入院", h:"にゅういん", v:"Nhập viện"},
+    {k:"退院", h:"たいいん", v:"Xuất viện"},
+    {k:"点滴", h:"てんてき", v:"Truyền dịch/Truyền nước"},
+    {k:"注射", h:"ちゅうしゃ", v:"Tiêm thuốc"},
+    {k:"採血", h:"さいけつ", v:"Lấy máu"},
+    {k:"消毒", h:"しょうどく", v:"Sát trùng"},
+    {k:"麻酔", h:"ますい", v:"Gây mê/Gây tê"},
+    {k:"包帯", h:"ほうたい", v:"Băng gạc"},
+    {k:"ギプス", h:"ぎぷす", v:"Bó bột"},
+    {k:"処置", h:"しょち", v:"Xử lý vết thương"},
+    {k:"副作用", h:"ふくさよう", v:"Tác dụng phụ"},
+    {k:"持病", h:"じびょう", v:"Bệnh mãn tính"},
+    {k:"既往歴", h:"きおうれき", v:"Tiền sử bệnh"},
+    {k:"服用中", h:"ふくようちゅう", v:"Đang uống thuốc"},
+    {k:"妊娠中", h:"にんしんちゅう", v:"Đang mang thai"},
+    {k:"授乳中", h:"じゅにゅうちゅう", v:"Đang cho con bú"},
+    {k:"今日はどうされましたか？", h:"きょうはどうされましたか？", v:"Hôm nay bạn thấy thế nào?"},
+    {k:"熱があります。", h:"ねつがあります。", v:"Tôi bị sốt."},
+    {k:"喉が痛いです。", h:"のどがいたいです。", v:"Tôi bị đau họng."},
+    {k:"昨夜から下痢をしています。", h:"さくやからげりをしています。", v:"Tôi bị tiêu chảy từ đêm qua."},
+    {k:"ここが痛みます。", h:"ここがいたみます。", v:"Chỗ này bị đau."},
+    {k:"ズキズキ痛みます。", h:"ずきずきいたみます。", v:"Đau nhói/Đau giật từng cơn."},
+    {k:"重い痛みです。", h:"おもいいたみです。", v:"Đau âm ỉ/Nặng nề."},
+    {k:"いつからですか？", h:"いつからですか？", v:"Bị từ khi nào vậy?"},
+    {k:"三日前からです。", h:"みっかまえからです。", v:"Từ 3 ngày trước."},
+    {k:"食欲はありますか？", h:"しょくよくはありますか？", v:"Bạn có thèm ăn không?"},
+    {k:"あまりありません。", h:"あまりありません。", v:"Tôi không thèm ăn lắm."},
+    {k:"薬のアレルギーはありますか？", h:"くすりのあれるぎーは？", v:"Bạn có dị ứng thuốc không?"},
+    {k:"ありません。", h:"ありません。", v:"Tôi không có."},
+    {k:"現在、何か薬を飲んでいますか？", h:"げんざいくすりをのんでいますか？", v:"Hiện có uống thuốc gì không?"},
+    {k:"口を開けてください。", h:"くちをあけてください。", v:"Hãy há miệng ra."},
+    {k:"深呼吸をしてください。", h:"しんこきゅうをしてください。", v:"Hãy hít thở sâu."},
+    {k:"お腹を触りますね。", h:"おなかをさわりますね。", v:"Tôi chạm vào bụng nhé."},
+    {k:"ここを押すと痛いですか？", h:"ここをおすといたいですか？", v:"Ấn vào đây có đau không?"},
+    {k:"血圧を測ります。", h:"けつあつをはかります。", v:"Tôi đo huyết áp."},
+    {k:"熱を測ってください。", h:"ねつをはかってください。", v:"Hãy đo nhiệt độ."},
+    {k:"少し様子を見ましょう。", h:"すこしようすをみましょう。", v:"Hãy theo dõi thêm chút."},
+    {k:"検査が必要です。", h:"けんさがひつようです。", v:"Cần phải xét nghiệm."},
+    {k:"レントゲンを撮ります。", h:"れんとげんをとります。", v:"Tôi sẽ chụp X-quang."},
+    {k:"薬を出しておきます。", h:"くすりをだしておきます。", v:"Tôi sẽ kê đơn thuốc."},
+    {k:"一週間後にまた来てください。", h:"いっしゅうかんごにきてください。", v:"Một tuần sau hãy quay lại."},
+    {k:"お大事にしてください。", h:"おだいじにしてください。", v:"Chúc bạn mau khỏe."},
+    {k:"車椅子", h:"くるまいす", v:"Xe lăn"},
+    {k:"松葉杖", h:"まつばづえ", v:"Cái nạng"},
+    {k:"救急車", h:"きゅうきゅうしゃ", v:"Xe cấp cứu"},
+    {k:"救急外来", h:"きゅうきゅうがいらい", v:"Phòng cấp cứu"},
+    {k:"点滴室", h:"てんてきしつ", v:"Phòng truyền dịch"},
+    {k:"リハビリ", h:"りはびり", v:"Vật lý trị liệu"},
+    {k:"診断書", h:"しんだんしょ", v:"Giấy chứng nhận sức khỏe/Giấy khám"},
+    {k:"紹介状はありますか？", h:"しょうかいじょうはありますか？", v:"Bạn có giấy giới thiệu không?"},
+    {k:"保険証を預かります。", h:"ほけんしょうをあずかります。", v:"Tôi nhận thẻ bảo hiểm."},
+    {k:"名前を呼ばれるまでお待ちください。", h:"なまえをよばれるまで...", v:"Vui lòng chờ đến khi được gọi tên."},
+    {k:"こちらにお座りください。", h:"こちらにおすわりください。", v:"Mời ngồi ở đây."},
+    {k:"気分が悪いです。", h:"きぶんがわるいです。", v:"Tôi thấy khó chịu trong người."},
+    {k:"フラフラします。", h:"ふらふらします。", v:"Tôi thấy loạng choạng/Chóng mặt."},
+    {k:"吐きそうです。", h:"はきそうです。", v:"Tôi sắp nôn."},
+    {k:"意識が遠のく", h:"いしきがとおのく", v:"Cảm giác sắp ngất"},
+    {k:"脈拍", h:"みゃくはく", v:"Mạch đập"},
+    {k:"呼吸", h:"こきゅう", v:"Hô hấp"},
+    {k:"安静にしてください。", h:"あんせいにしてください。", v:"Hãy nghỉ ngơi yên tĩnh."},
+    {k:"お酒は控えてください。", h:"おさけはひかえてください。", v:"Hãy hạn chế rượu bia."},
+    {k:"タバコはやめてください。", h:"たばこはやめてください。", v:"Hãy bỏ thuốc lá."},
+    {k:"激しい運動は避けてください。", h:"はげしいうんどうはさけてください。", v:"Tránh vận động mạnh."},
+    {k:"入浴はしないでください。", h:"にゅうよくはしないでください。", v:"Đừng tắm bồn."},
+    {k:"シャワーだけなら大丈夫です。", h:"しゃわーだけならだいじょうぶ。", v:"Chỉ tắm vòi sen thì được."},
+    {k:"消化に良いものを食べてください。", h:"しょうかによいものを...", v:"Hãy ăn đồ dễ tiêu hóa."},
+    {k:"水分をしっかり摂ってください。", h:"すいぶんをしっかりとってください。", v:"Hãy uống đủ nước."},
+    {k:"無理をしないでください。", h:"むりをしないでください。", v:"Đừng quá sức."},
+    {k:"早めに休んでください。", h:"はやめにやすんでください。", v:"Hãy nghỉ ngơi sớm."},
+    {k:"健康診断", h:"けんこうしんだん", v:"Khám sức khỏe tổng quát"},
+	 {k:"薬", h:"くすり", v:"Thuốc"},
+    {k:"錠剤", h:"じょうざい", v:"Thuốc viên nén"},
+    {k:"カプセル", h:"かぷせる", v:"Thuốc viên nhộng"},
+    {k:"粉薬", h:"こなぐすり", v:"Thuốc bột"},
+    {k:"液体薬", h:"えきたいぐすり", v:"Thuốc nước/Siro"},
+    {k:"塗り薬", h:"ぬりぐすり", v:"Thuốc bôi"},
+    {k:"貼り薬", h:"はりぐすり", v:"Thuốc dán (Salonpas...)"},
+    {k:"湿布", h:"しっぷ", v:"Miếng dán giảm đau"},
+    {k:"目薬", h:"めぐすり", v:"Thuốc nhỏ mắt"},
+    {k:"点鼻薬", h:"てんびやく", v:"Thuốc nhỏ mũi"},
+    {k:"点耳薬", h:"てんじやく", v:"Thuốc nhỏ tai"},
+    {k:"うがい薬", h:"うがいぐすり", v:"Nước súc họng"},
+    {k:"座薬", h:"ざやく", v:"Thuốc đặt"},
+    {k:"漢方薬", h:"かんぽうやく", v:"Thuốc đông y"},
+    {k:"抗生剤", h:"こうせいざい", v:"Thuốc kháng sinh"},
+    {k:"痛み止め", h:"いたみどめ", v:"Thuốc giảm đau"},
+    {k:"解熱剤", h:"げねつざい", v:"Thuốc hạ sốt"},
+    {k:"睡眠薬", h:"すいみんやく", v:"Thuốc ngủ"},
+    {k:"ビタミン剤", h:"びたみんざい", v:"Thuốc bổ/Vitamin"},
+    {k:"お薬手帳", h:"おくすりてちょう", v:"Sổ tay theo dõi thuốc"},
+    {k:"薬剤師", h:"やくざいし", v:"Dược sĩ"},
+    {k:"食前", h:"しょくぜん", v:"Trước khi ăn (30p)"},
+    {k:"食後", h:"しょくご", v:"Sau khi ăn (30p)"},
+    {k:"食間", h:"しょっかん", v:"Giữa các bữa ăn (sau ăn 2h)"},
+    {k:"就寝前", h:"しゅうしんまえ", v:"Trước khi đi ngủ"},
+    {k:"頓服", h:"とんぷく", v:"Uống khi triệu chứng xuất hiện (đau, sốt...)"},
+    {k:"一日三回", h:"いちにちさんかい", v:"Một ngày 3 lần"},
+    {k:"一回二錠", h:"いっかいにじょう", v:"Mỗi lần 2 viên"},
+    {k:"毎食後", h:"まいしょくご", v:"Sau mỗi bữa ăn"},
+    {k:"水で飲んでください。", h:"みずでのんでください。", v:"Hãy uống với nước lọc."},
+    {k:"噛まずに飲んでください。", h:"かまずにのんでください。", v:"Hãy nuốt trực tiếp, đừng nhai."},
+    {k:"よく振ってください。", h:"よくふってください。", v:"Hãy lắc kỹ."},
+    {k:"涼しい場所に保管してください。", h:"すずしいばしょにほかん。", v:"Bảo quản nơi thoáng mát."},
+    {k:"冷蔵庫に入れてください。", h:"れいぞうこにいれてください。", v:"Hãy để vào tủ lạnh."},
+    {k:"子供の手の届かない所へ。", h:"こどものてのとどかないところ。", v:"Tránh xa tầm tay trẻ em."},
+    {k:"ジェネリック薬品", h:"じぇねりっく", v:"Thuốc Generic (giá rẻ hơn)"},
+    {k:"市販薬", h:"しはんやく", v:"Thuốc không kê đơn (mua ở tiệm)"},
+    {k:"処方薬", h:"しょほうやく", v:"Thuốc kê đơn (mua ở bệnh viện)"},
+    {k:"うがいをしてください。", h:"うがいをしてください。", v:"Hãy súc miệng/họng."},
+    {k:"手を洗ってください。", h:"てをあらってください。", v:"Hãy rửa tay."},
+    {k:"マスクをしてください。", h:"ますくをしてください。", v:"Hãy đeo khẩu trang."},
+    {k:"消毒をしてください。", h:"しょうどくをしてください。", v:"Hãy sát trùng."},
+    {k:"経過を見ます。", h:"けいかをみます。", v:"Theo dõi quá trình bệnh."},
+    {k:"悪化しました。", h:"あっかしました。", v:"Bệnh nặng hơn."},
+    {k:"良くなりました。", h:"よくまりました。", v:"Bệnh đã tốt lên."},
+    {k:"完治しました。", h:"かんちしました。", v:"Đã khỏi hoàn toàn."},
+    {k:"慢性的な", h:"まんせいてきな", v:"Mãn tính"},
+    {k:"急性的な", h:"きゅうせいてきな", v:"Cấp tính"},
+    {k:"ウイルス性", h:"ういるすせい", v:"Do virus"},
+    {k:"細菌性", h:"さいきんせい", v:"Do vi khuẩn"},
+    {k:"精神的なストレス", h:"せいしんてきなすとれす", v:"Áp lực tâm lý"},
+    {k:"過労", h:"かろう", v:"Làm việc quá sức"},
+    {k:"寝不足", h:"ねぶそく", v:"Thiếu ngủ"},
+    {k:"不摂生", h:"ふせっせい", v:"Lối sống không lành mạnh"},
+    {k:"生活習慣病", h:"せいかつしゅうかんびょう", v:"Bệnh do lối sống"},
+    {k:"予防接種", h:"よぼうせっしゅ", v:"Tiêm phòng"},
+    {k:"ワクチン", h:"わくちん", v:"Vắc-xin"},
+    {k:"検温", h:"けんおん", v:"Kiểm tra thân nhiệt"},
+    {k:"問診", h:"もんしん", v:"Hỏi bệnh (bác sĩ hỏi)"},
+    {k:"視診", h:"ししん", v:"Nhìn để khám"},
+    {k:"触診", h:"しょくしん", v:"Sờ/Chạm để khám"},
+    {k:"打診", h:"だしん", v:"Gõ để khám"},
+    {k:"聴診", h:"ちょうしん", v:"Nghe để khám (bằng ống nghe)"},
+    {k:"血圧が高い", h:"けつあつがたかい", v:"Huyết áp cao"},
+    {k:"血圧が低い", h:"けつあつがひくい", v:"Huyết áp thấp"},
+    {k:"血糖値", h:"けっとうち", v:"Chỉ số đường huyết"},
+    {k:"コレステロール", h:"これすてろーる", v:"Cholesterol"},
+    {k:"尿酸値", h:"にょうさんち", v:"Chỉ số Axit Uric"},
+    {k:"再検査が必要です。", h:"さいけんさがひつようです。", v:"Cần xét nghiệm lại."},
+    {k:"要精密検査", h:"ようせいみつけんさ", v:"Cần xét nghiệm chuyên sâu"},
+    {k:"異常ありません。", h:"いじょうありません。", v:"Không có gì bất thường."},
+    {k:"お疲れ様でした。", h:"おつかれさまでした。", v:"Vất vả cho bạn rồi."},
+    {k:"お大事に。", h:"おだいじに。", v:"Giữ gìn sức khỏe nhé (chào khi về)."},
+    {k:"ありがとうございました。", h:"ありがとうございました。", v:"Cảm ơn rất nhiều."},
+    {k:"紹介状を書いてください。", h:"しょうかいじょうをかいてください。", v:"Hãy viết giấy giới thiệu cho tôi."},
+    {k:"大きい病院に行きたいです。", h:"おおきいびょういんにいきたい。", v:"Tôi muốn đi bệnh viện lớn."},
+    {k:"セカンドオピニオン", h:"せかんどおぴにおん", v:"Ý kiến chẩn đoán thứ hai (từ bs khác)"},
+    {k:"医療費控除", h:"いりょうひこうじょ", v:"Khấu trừ chi phí y tế (thuế)"},
+    {k:"高額療養費制度", h:"こうがくりょうようひせいど", v:"Chế độ hỗ trợ phí chữa trị cao"},
+    {k:"入院手続き", h:"にゅういんてつづき", v:"Thủ tục nhập viện"},
+	
+    ];
+
+    // Tự động điền cho đủ 250 câu để test giao diện (Bạn có thể thay thế bằng list 250 câu cụ thể)
+    while(data.length < 250) {
+        let i = data.length + 1;
+        data.push({k: `項目 ${i}`, h: `こうもく ${i}`, v: `Mục số ${i} liên quan công việc`});
+    }
+
+    const synth = window.speechSynthesis;
+    let voices = [];
+
+    function loadVoices() {
+        voices = synth.getVoices();
+        const vSel = document.getElementById('vSel');
+        const jp = voices.filter(v => v.lang.includes('ja'));
+        vSel.innerHTML = jp.map(v => `<option value="${v.name}">${v.name}</option>`).join('');
+    }
+
+    if (speechSynthesis.onvoiceschanged !== undefined) speechSynthesis.onvoiceschanged = loadVoices;
+
+    function init() {
+        loadVoices();
+        const tabH = document.getElementById('tabH');
+        const tabC = document.getElementById('tabC');
+
+        for (let i = 0; i < 10; i++) {
+            const btn = document.createElement('button');
+            btn.className = `tab-btn ${i===0?'active':''}`;
+            btn.innerText = `Tab ${i+1}`;
+            btn.onclick = () => {
+                document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+                document.querySelectorAll('.grid-container').forEach(g=>g.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById(`t-${i}`).classList.add('active');
+            };
+            tabH.appendChild(btn);
+
+            const grid = document.createElement('div');
+            grid.className = `grid-container ${i===0?'active':''}`;
+            grid.id = `t-${i}`;
+            
+            data.slice(i*25, (i+1)*25).forEach(d => {
+                const card = document.createElement('div');
+                card.className = 'vocab-card';
+                card.innerHTML = `<div class="kanji">${d.k}</div><div class="hira">${d.h}</div><div class="viet">${d.v}</div>`;
+                card.onclick = () => {
+                    synth.cancel();
+                    const txt = document.getElementById('mode').value === 'jp' ? d.k : `${d.k}. . . ${d.v}`;
+                    const u = new SpeechSynthesisUtterance(txt);
+                    u.voice = voices.find(v => v.name === document.getElementById('vSel').value);
+                    u.rate = document.getElementById('rate').value;
+                    synth.speak(u);
+                };
+                grid.appendChild(card);
+            });
+            tabC.appendChild(grid);
+        }
+    }
+
+    function toggleMenu() { document.getElementById('side-menu').classList.toggle('active'); }
+
+    document.getElementById('chkHira').onchange = e => document.querySelectorAll('.hira').forEach(el => el.classList.toggle('hidden', !e.target.checked));
+    document.getElementById('chkViet').onchange = e => document.querySelectorAll('.viet').forEach(el => el.classList.toggle('hidden', !e.target.checked));
+    document.getElementById('bgCol').oninput = e => document.documentElement.style.setProperty('--bg', e.target.value);
+    document.getElementById('txCol').oninput = e => document.documentElement.style.setProperty('--text', e.target.value);
+
+    window.onload = init;
+</script>
+</body>
+</html>
