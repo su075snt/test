@@ -1,126 +1,131 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bé học đếm số 1-100</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Baby Alphabet & Numbers</title>
     <link href="https://fonts.googleapis.com" rel="stylesheet">
     <style>
-        :root {
-            --pink: #ff85a2;
-            --mint: #b5ead7;
-            --blue: #a0c4ff;
-            --bg: #fff9fb;
-        }
-
         body {
             font-family: 'Quicksand', sans-serif;
-            background-color: var(--bg);
-            margin: 0; padding: 20px;
-            display: flex; flex-direction: column; align-items: center;
-            -webkit-user-select: none; user-select: none;
+            background-color: #fffaf0;
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            -webkit-text-size-adjust: 100%;
         }
 
-        h1 { color: var(--pink); font-size: 2.2rem; margin-bottom: 5px; text-shadow: 2px 2px #fff; }
-        .hint { color: #888; margin-bottom: 25px; font-size: 0.9rem; }
+        h1 { color: #ff85a1; font-size: 22px; margin: 10px 0; }
 
         .grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            gap: 12px; width: 100%; max-width: 900px;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            width: 100%;
+            max-width: 380px;
         }
 
         .card {
             background: white;
-            border: 3px solid var(--mint);
             border-radius: 18px;
-            padding: 15px 5px;
-            text-align: center;
+            padding: 12px 5px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border: 3px solid #ffcad4;
+            box-shadow: 0 4px 0 #ffcad4;
             cursor: pointer;
-            transition: 0.2s;
-            box-shadow: 0 5px 0 var(--mint);
+            -webkit-tap-highlight-color: transparent;
         }
 
-        /* Hiệu ứng khi nhấn */
-        .card:active {
-            transform: translateY(4px);
-            box-shadow: 0 1px 0 var(--mint);
-        }
+        .card:active { transform: scale(0.95); box-shadow: 0 1px 0 #ffcad4; }
 
-        /* Hiệu ứng khi đang đọc */
-        .active {
-            border-color: var(--pink) !important;
-            box-shadow: 0 5px 0 var(--pink) !important;
-            background: #fff0f3 !important;
-            transform: scale(1.05);
-        }
+        .letter { font-size: 42px; color: #ff758f; line-height: 1.1; margin: 0; }
+        .num-text { font-size: 28px; color: #6a4c93; font-weight: 800; }
+        .emoji { font-size: 30px; margin: 5px 0; }
+        .word { font-size: 13px; font-weight: bold; color: #4ea8de; text-transform: uppercase; text-align: center; }
 
-        .n { font-size: 30px; font-weight: 700; color: #444; }
-        .e { font-size: 13px; color: var(--blue); font-weight: 700; text-transform: uppercase; }
-
-        @media (max-width: 480px) {
-            .grid { grid-template-columns: repeat(3, 1fr); }
-            .n { font-size: 24px; }
-        }
+        /* Color variations */
+        .card.num { border-color: #ffd6a5; box-shadow: 0 4px 0 #ffd6a5; }
+        .card:nth-child(4n) { border-color: #b9fbc0; box-shadow: 0 4px 0 #b9fbc0; }
     </style>
 </head>
 <body>
 
-    <h1>🌈 Number Kids 🌈</h1>
-    <p class="hint">Chạm vào ô để nghe giọng đọc bản xứ!</p>
-
-    <div class="grid" id="container"></div>
+    <h1>✨ ABC & NUMBERS ✨</h1>
+    <div class="grid" id="grid"></div>
 
     <script>
-        const container = document.getElementById('container');
-        const units = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine"];
-        const teens = ["Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"];
-        const tens = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
+        const data = [
+            {l: 'A', w: 'Apple', e: '🍎'}, {l: 'B', w: 'Ball', e: '⚽'}, {l: 'C', w: 'Cat', e: '🐱'},
+            {l: 'D', w: 'Dog', e: '🐶'}, {l: 'E', w: 'Elephant', e: '🐘'}, {l: 'F', w: 'Fish', e: '🐟'},
+            {l: 'G', w: 'Giraffe', e: '🦒'}, {l: 'H', w: 'Hat', e: '👒'}, {l: 'I', w: 'Ice cream', e: '🍦'},
+            {l: 'J', w: 'Jellyfish', e: '🪼'}, {l: 'K', w: 'Kangaroo', e: '🦘'}, {l: 'L', w: 'Lion', e: '🦁'},
+            {l: 'M', w: 'Monkey', e: '🐒'}, {l: 'N', w: 'Nurse', e: '👩‍⚕️'}, {l: 'O', w: 'Octopus', e: '🐙'},
+            {l: 'P', w: 'Panda', e: '🐼'}, {l: 'Q', w: 'Queen', e: '👸'}, {l: 'R', w: 'Rabbit', e: '🐰'},
+            {l: 'S', w: 'Sun', e: '☀️'}, {l: 'T', w: 'Tiger', e: '🐯'}, {l: 'U', w: 'Umbrella', e: '☂️'},
+            {l: 'V', w: 'Van', e: '🚐'}, {l: 'W', w: 'Whale', e: '🐳'}, {l: 'X', w: 'Xylophone', e: '🎹'},
+            {l: 'Y', w: 'Yo-yo', e: '🪀'}, {l: 'Z', w: 'Zebra', e: '🦓'},
+            // Số mới thêm vào
+            {l: '1,000', w: 'One Thousand', e: '🔢', isNum: true},
+            {l: '10,000', w: 'Ten Thousand', e: '🔢', isNum: true},
+            {l: '100,000', w: 'One Hundred Thousand', e: '🔢', isNum: true},
+            {l: '1,000,000', w: 'One Million', e: '🔢', isNum: true}
+        ];
 
-        // Tạo dữ liệu 100 số
-        for (let i = 1; i <= 100; i++) {
-            let text = "";
-            if (i < 10) text = units[i];
-            else if (i < 20) text = teens[i - 10];
-            else if (i < 100) {
-                text = tens[Math.floor(i / 10)] + (i % 10 !== 0 ? " " + units[i % 10] : "");
-            } else text = "One Hundred";
+        const synth = window.speechSynthesis;
 
-            const div = document.createElement('div');
-            div.className = 'card';
-            div.innerHTML = `<div class="n">${i}</div><div class="e">${text}</div>`;
-            div.onclick = () => speak(text, div);
-            container.appendChild(div);
+        function speak(text, rate = 0.8) {
+            const utter = new SpeechSynthesisUtterance(text);
+            utter.lang = 'en-US';
+            utter.rate = rate;
+            utter.pitch = 1.1;
+            
+            // Lấy giọng nữ chuẩn nhất của Apple/Google
+            const voices = synth.getVoices();
+            const preferredVoice = voices.find(v => 
+                v.name.includes('Samantha') || v.name.includes('Karen') || v.name.includes('Google US English')
+            );
+            if (preferredVoice) utter.voice = preferredVoice;
+            
+            synth.speak(utter);
+            return utter;
         }
 
-        // Cấu hình giọng đọc
-        let voices = [];
-        function getVoice() {
-            voices = window.speechSynthesis.getVoices();
-            // Ưu tiên chọn giọng nữ Mỹ "Google US English" hoặc "Samantha" (iOS)
-            return voices.find(v => v.lang.includes('en-US') && v.name.includes('Google')) || 
-                   voices.find(v => v.lang.includes('en-US')) || 
-                   voices[0];
+        function handlePlay(item) {
+            synth.cancel(); // Dừng ngay âm thanh cũ
+
+            // Đọc chữ cái hoặc con số trước
+            // Dấu phẩy giúp máy đọc số chuẩn (vd: 1,000 đọc là one thousand thay vì 1-0-0-0)
+            const firstPart = speak(item.l);
+
+            firstPart.onend = () => {
+                setTimeout(() => {
+                    // Đọc từ vựng
+                    speak(item.w, 0.75);
+                }, 600);
+            };
         }
 
-        function speak(text, el) {
-            window.speechSynthesis.cancel(); // Ngắt âm cũ ngay lập tức
+        const grid = document.getElementById('grid');
+        data.forEach(item => {
+            const card = document.createElement('div');
+            card.className = `card ${item.isNum ? 'num' : ''}`;
+            card.innerHTML = `
+                <div class="${item.isNum ? 'num-text' : 'letter'}">${item.l}</div>
+                <div class="emoji">${item.e}</div>
+                <div class="word">${item.w}</div>
+            `;
+            card.onclick = () => handlePlay(item);
+            grid.appendChild(card);
+        });
 
-            const msg = new SpeechSynthesisUtterance(text);
-            msg.voice = getVoice();
-            msg.rate = 0.85;  // Tốc độ hơi chậm cho bé dễ bắt chước
-            msg.pitch = 1.2;  // Giọng hơi cao một chút cho dễ thương
-
-            // Hiệu ứng màu sắc
-            document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
-            el.classList.add('active');
-
-            msg.onend = () => el.classList.remove('active');
-            window.speechSynthesis.speak(msg);
+        // Kích hoạt nạp giọng nói cho Safari
+        if (speechSynthesis.onvoiceschanged !== undefined) {
+            speechSynthesis.onvoiceschanged = () => synth.getVoices();
         }
-
-        // Load giọng đọc (quan trọng cho Chrome/Android)
-        window.speechSynthesis.onvoiceschanged = getVoice;
     </script>
 </body>
 </html>
