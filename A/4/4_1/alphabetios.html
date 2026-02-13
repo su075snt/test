@@ -3,15 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>たのしいアルファベット</title>
+    <title>アルファベット - Kyoko Voice</title>
     <link href="https://fonts.googleapis.com" rel="stylesheet">
     <style>
         :root {
-            --primary: #ff8fab;
+            --pink: #ff8fab;
             --bg: #fffbf0;
-            --card-border: #ffcad4;
+            --border: #ffcad4;
             --blue: #4fc3f7;
-            --active-bg: #fff9c4;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -27,146 +26,122 @@
         }
 
         h1 {
-            color: var(--primary);
-            font-size: clamp(1.2rem, 5vw, 1.8rem);
+            color: var(--pink);
+            font-size: 1.5rem;
             margin: 10px 0 20px 0;
-            text-align: center;
             background: white;
             padding: 8px 25px;
             border-radius: 50px;
-            box-shadow: 0 4px 0 var(--card-border);
+            box-shadow: 0 4px 0 var(--border);
         }
 
-        /* Tự động chia cột thông minh cho mọi thiết bị */
         .grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(85px, 1fr));
-            gap: 12px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
             width: 100%;
-            max-width: 600px;
+            max-width: 400px;
         }
 
         .card {
             background: white;
-            border: 3px solid var(--card-border);
+            border: 3px solid var(--border);
             border-radius: 20px;
-            aspect-ratio: 1 / 1.1; /* Giữ tỉ lệ thẻ cân đối */
+            height: 95px;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             cursor: pointer;
-            box-shadow: 0 5px 0 var(--card-border);
-            transition: transform 0.1s, box-shadow 0.1s;
+            box-shadow: 0 5px 0 var(--border);
+            position: relative;
         }
 
         .card:active {
             transform: translateY(4px);
-            box-shadow: 0 1px 0 var(--card-border);
-            background-color: var(--active-bg);
+            box-shadow: 0 1px 0 var(--border);
+            background-color: #fff9c4;
         }
 
-        .letter-group {
-            display: flex;
-            align-items: baseline;
-            gap: 2px;
-        }
-
+        .letter-group { display: flex; align-items: baseline; gap: 2px; }
         .upper { font-size: 2rem; color: var(--blue); }
         .lower { font-size: 1.4rem; color: var(--blue); }
 
         .reading {
-            font-size: 0.85rem;
-            color: var(--primary);
-            margin-top: 4px;
+            font-size: 0.8rem;
+            color: var(--pink);
+            margin-top: 2px;
             font-weight: bold;
             opacity: 0;
-            transition: opacity 0.2s;
         }
 
         .card.active .reading { opacity: 1; }
-        .card.active .upper, .card.active .lower { color: var(--primary); }
-
-        @media (max-width: 350px) {
-            .grid { grid-template-columns: repeat(3, 1fr); }
-            .upper { font-size: 1.6rem; }
-            .lower { font-size: 1.2rem; }
-        }
+        .card.active .upper, .card.active .lower { color: var(--pink); }
     </style>
 </head>
 <body>
 
-    <h1>🍎 アルファベット 🍎</h1>
-
+    <h1>🌸 アルファベット 🌸</h1>
     <div class="grid" id="alphabetGrid"></div>
 
     <script>
         const alphabet = [
-            ['A','a','エー'],['B','b','ビー'],['C','c','シー'],['D','d','ディー'],
-            ['E','e','イー'],['F','f','エフ'],['G','g','ジー'],['H','h','エイチ'],
-            ['I','i','アイ'],['J','j','ジェー'],['K','k','ケイ'],['L','l','エル'],
-            ['M','m','エム'],['N','n','エヌ'],['O','o','オー'],['P','p','ピー'],
-            ['Q','q','キュー'],['R','r','アール'],['S','s','エス'],['T','t','ティー'],
-            ['U','u','ユー'],['V','v','ヴィー'],['W','w','ダブリュー'],['X','x','エックス'],
-            ['Y','y','ワイ'],['Z','z','ゼット']
+            ['A','a','エー'],['B','b','ビー'],['C','c','シー'],['D','d','ディー'],['E','e','イー'],
+            ['F','f','エフ'],['G','g','ジー'],['H','h','エイチ'],['I','i','アイ'],['J','j','ジェー'],
+            ['K','k','ケイ'],['L','l','エル'],['M','m','エム'],['N','n','エヌ'],['O','o','オー'],
+            ['P','p','ピー'],['Q','q','キュー'],['R','r','アール'],['S','s','エス'],['T','t','ティー'],
+            ['U','u','ユー'],['V','v','ヴィー'],['W','w','ダブリュー'],['X','x','エックス'],['Y','y','ワイ'],['Z','z','ゼット']
         ];
 
-        let preferredVoice = null;
+        let femaleVoice = null;
 
-        // Hàm tìm giọng người bản địa (Kyoko/Otoya)
-        function getNativeVoice() {
+        // Hàm tìm giọng nữ Kyoko
+        function setVoice() {
             const voices = window.speechSynthesis.getVoices();
-            preferredVoice = voices.find(v => 
-                v.lang.includes('ja-JP') && (v.name.includes('Kyoko') || v.name.includes('Otoya'))
-            ) || voices.find(v => v.lang.includes('ja'));
+            // Ưu tiên Kyoko (Giọng nữ Nhật chuẩn nhất trên iOS)
+            femaleVoice = voices.find(v => v.name.includes('Kyoko')) || 
+                          voices.find(v => v.lang === 'ja-JP');
         }
 
-        // Đảm bảo voice được nạp trên tất cả các trình duyệt
-        if (speechSynthesis.onvoiceschanged !== undefined) {
-            speechSynthesis.onvoiceschanged = getNativeVoice;
-        }
-        getNativeVoice();
+        // Fix lỗi iOS không load voice ngay lập tức
+        window.speechSynthesis.onvoiceschanged = setVoice;
+        setVoice();
 
         const grid = document.getElementById('alphabetGrid');
 
-        alphabet.forEach(([upper, lower, kana]) => {
+        alphabet.forEach(([up, lo, kana]) => {
             const card = document.createElement('div');
             card.className = 'card';
-            card.innerHTML = `
-                <div class="letter-group">
-                    <span class="upper">${upper}</span>
-                    <span class="lower">${lower}</span>
-                </div>
-                <div class="reading">${kana}</div>
-            `;
+            card.innerHTML = `<div class="letter-group"><span class="upper">${up}</span><span class="lower">${lo}</span></div><div class="reading">${kana}</div>`;
 
-            const playSound = () => {
+            const handleAction = (e) => {
+                e.preventDefault();
+                
+                // Hiệu ứng
                 card.classList.add('active');
-                
-                window.speechSynthesis.cancel();
+                setTimeout(() => card.classList.remove('active'), 800);
+
+                // Phát âm
                 const uttr = new SpeechSynthesisUtterance(kana);
-                
-                if (preferredVoice) uttr.voice = preferredVoice;
+                if (femaleVoice) uttr.voice = femaleVoice;
                 uttr.lang = 'ja-JP';
                 uttr.rate = 0.9;
                 uttr.pitch = 1.1;
 
+                window.speechSynthesis.cancel();
                 window.speechSynthesis.speak(uttr);
-
-                setTimeout(() => card.classList.remove('active'), 1000);
             };
 
-            // Hỗ trợ cả Click và Touch cho thiết bị di động
-            card.addEventListener('mousedown', (e) => { e.preventDefault(); playSound(); });
-            card.addEventListener('touchstart', (e) => { e.preventDefault(); playSound(); });
+            // Dùng touchend cho iOS mượt hơn
+            card.addEventListener('touchend', handleAction);
+            card.addEventListener('click', handleAction);
 
             grid.appendChild(card);
         });
 
-        // Kích hoạt âm thanh ẩn cho iOS (iOS yêu cầu một tương tác người dùng đầu tiên để cho phép phát âm thanh)
-        document.body.addEventListener('touchstart', function() {
-            const silent = new SpeechSynthesisUtterance('');
-            window.speechSynthesis.speak(silent);
+        // "Mồi" âm thanh cho iOS: Khi bé chạm vào bất cứ đâu lần đầu, hệ thống âm thanh sẽ mở
+        document.addEventListener('touchstart', () => {
+            window.speechSynthesis.speak(new SpeechSynthesisUtterance(''));
         }, { once: true });
 
     </script>
