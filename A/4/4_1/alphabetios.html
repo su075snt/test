@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>キッズ・アルファベット</title>
+    <link href="https://fonts.googleapis.com" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #fff5f8;
+            --main: #ff8fa3;
+            --sub: #ffdae0;
+            --blue: #4fc3f7;
+        }
+
+        body {
+            font-family: 'M PLUS Rounded 1c', sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        h1 {
+            color: var(--main);
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 0 white;
+            text-align: center;
+        }
+
+        .alphabet-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+            gap: 15px;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .card {
+            background: white;
+            border: 4px solid var(--sub);
+            border-radius: 20px;
+            height: 90px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: 0.1s;
+            box-shadow: 0 6px 0 var(--sub);
+            position: relative;
+        }
+
+        .card:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 var(--sub);
+            background-color: #fff9c4;
+        }
+
+        .letter {
+            font-size: 2.2rem;
+            color: var(--blue);
+            line-height: 1;
+        }
+
+        .reading {
+            font-size: 0.9rem;
+            color: var(--main);
+            position: absolute;
+            bottom: 5px;
+            display: none; /* Chỉ hiện khi click */
+        }
+
+        .card.active .reading {
+            display: block;
+        }
+
+        .hint {
+            margin-top: 20px;
+            background: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            color: #888;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🎈 アルファベット おとあそび 🎈</h1>
+
+    <div class="alphabet-grid" id="grid"></div>
+
+    <p class="hint">文字(もじ)を おしてみてね！</p>
+
+    <script>
+        const alphabet = [
+            ['A','エー'],['B','ビー'],['C','シー'],['D','ディー'],['E','イー'],['F','エフ'],['G','ジー'],
+            ['H','エイチ'],['I','アイ'],['J','ジェー'],['K','ケイ'],['L','エル'],['M','エム'],['N','エヌ'],
+            ['O','オー'],['P','ピー'],['Q','キュー'],['R','アール'],['S','エス'],['T','ティー'],['U','ユー'],
+            ['V','ヴィー'],['W','ダブリュー'],['X','エックス'],['Y','ワイ'],['Z','ゼット']
+        ];
+
+        const grid = document.getElementById('grid');
+        let japaneseVoice = null;
+
+        // Hàm lấy giọng đọc Nhật Bản chuẩn nhất trên thiết bị
+        function loadVoices() {
+            const voices = window.speechSynthesis.getVoices();
+            // Ưu tiên giọng của Google hoặc Apple (Kyoko/Otoya)
+            japaneseVoice = voices.find(v => v.lang === 'ja-JP' || v.lang === 'ja_JP');
+        }
+
+        // Đợi trình duyệt tải danh sách giọng nói
+        window.speechSynthesis.onvoiceschanged = loadVoices;
+        loadVoices();
+
+        alphabet.forEach(([char, kana]) => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.innerHTML = `<span class="letter">${char}</span><span class="reading">${kana}</span>`;
+
+            card.onclick = () => {
+                // Hiển thị cách đọc
+                card.classList.add('active');
+                
+                // Phát âm giọng Nhật
+                const uttr = new SpeechSynthesisUtterance(kana);
+                if (japaneseVoice) {
+                    uttr.voice = japaneseVoice;
+                }
+                uttr.lang = 'ja-JP';
+                uttr.rate = 1.0;
+                
+                window.speechSynthesis.cancel();
+                window.speechSynthesis.speak(uttr);
+
+                // Tự động ẩn sau 1 giây
+                setTimeout(() => card.classList.remove('active'), 1000);
+            };
+
+            grid.appendChild(card);
+        });
+    </script>
+</body>
+</html>
