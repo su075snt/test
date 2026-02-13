@@ -125,87 +125,110 @@
         <div class="grid-yoon" id="yoon-container"></div>
     </div>
 
-    <script>
-        const data = {
-            seion: [
-                ['ア', '🍦', 'アイス'], ['イ', '🏠', 'イエ'], ['ウ', '🎻', 'ウクレレ'], ['エ', '📏', 'エプロン'], ['オ', '🟠', 'オレンジ'],
-                ['カ', '📸', 'カメラ'], ['キ', '🎸', 'ギター'], ['ク', '🎄', 'クリスマス'], ['ケ', '🎂', 'ケーキ'], ['コ', '☕', 'コーヒー'],
-                ['サ', '🥪', 'サンドイッチ'], ['シ', '🚿', 'シャワー'], ['ス', '🎿', 'スキー'], ['セ', '🌡️', 'センター'], ['ソ', '🍦', 'ソフト'],
-                ['タ', '🚕', 'タクシー'], ['チ', '🧀', 'チーズ'], ['ツ', '⚡', 'ツアー'], ['テ', '📺', 'テレビ'], ['ト', '🍅', 'トマト'],
-                ['ナ', '🔪', 'ナイフ'], ['ニ', '📰', 'ニュース'], ['ヌ', '🐕', 'ヌー'], ['ネ', '👔', 'ネクタイ'], ['ノ', '📔', 'ノート'],
-                ['ハ', '🍔', 'ハンバーガー'], ['ヒ', '☕', 'ヒーロー'], ['フ', '🍴', 'フォーク'], ['ヘ', '🚁', 'ヘリコプター'], ['ホ', '🏨', 'ホテル'],
-                ['マ', '🎛️', 'マイク'], ['ミ', '🥛', 'ミルク'], ['ム', '🎬', 'ムービー'], ['メ', '✉️', 'メール'], ['モ', '🏙️', 'モノレール'],
-                ['ヤ', '🌴', 'ヤシ'], ['empty', '', ''], ['ユ', '🦄', 'ユニコーン'], ['empty', '', ''], ['ヨ', '⛵', 'ヨット'],
-                ['ラ', '📻', 'ラジオ'], ['リ', '🎀', 'リボン'], ['ル', '💄', 'ルージュ'], ['レ', '🍋', 'レモン'], ['ロ', '🤖', 'ロボット'],
-                ['ワ', '🍷', 'ワイン'], ['empty', '', ''], ['empty', '', ''], ['empty', '', ''], ['ヲ', '🎌', 'ヲ'],
-                ['ン', '📏', 'ペン']
-            ],
-            dakuon: [
-                ['ガ', '⛽', 'ガス'], ['ギ', '🎸', 'ギター'], ['グ', '🍇', 'グレープ'], ['ゲ', '🎮', 'ゲーム'], ['ゴ', '⛳', 'ゴルフ'],
-                ['ザ', '⚡', 'ザザ'], ['ジ', '🥤', 'ジュース'], ['ズ', '👖', 'ズボン'], ['ゼ', '🍮', 'ゼリー'], ['ゾ', '🐘', 'ゾウ'],
-                ['ダ', '💃', 'ダンス'], ['ヂ', '🦷', 'ヂ'], ['ヅ', '📍', 'ヅ'], ['デ', '🧾', 'データ'], ['ド', '🍩', 'ドーナツ'],
-                ['バ', '🚌', 'バス'], ['ビ', '🍺', 'ビール'], ['ブ', '🍇', 'ブラシ'], ['ベ', '🛏️', 'ベッド'], ['ボ', '⛴️', 'ボート'],
-                ['パ', '🍞', 'パン'], ['ピ', '🎹', 'ピアノ'], ['プ', '🎁', 'プレゼント'], ['ペ', '🖊️', 'ペン'], ['ポ', '📮', 'ポスト']
-            ],
-            yoon: [
-                ['キャ', '🐱', 'キャベツ'], ['empty', '', ''], ['キュ', '🥒', 'キュウリ'], ['empty', '', ''], ['キョ', '⛺', 'キャンプ'],
-                ['シャ', '👕', 'シャツ'], ['empty', '', ''], ['シュ', '👟', 'シューズ'], ['empty', '', ''], ['ショ', '🛍️', 'ショップ'],
-                ['チャ', '⚡', 'チャート'], ['empty', '', ''], ['チュ', '🌷', 'チューリップ'], ['empty', '', ''], ['チョ', '🍫', 'チョコ'],
-                ['ニャ', '🐈', 'ニャー'], ['empty', '', ''], ['ニュ', '📰', 'ニュース'], ['empty', '', ''], ['ニョ', '🍄', 'ニョキ'],
-                ['ヒャ', '❄️', 'ヒャク'], ['empty', '', ''], ['ヒュ', '🌬️', 'ヒューム'], ['empty', '', ''], ['ヒョ', '🐆', 'ヒョウ'],
-                ['ミゃ', '🐈', 'ミャー'], ['empty', '', ''], ['ミュ', '🎨', 'ミュージアム'], ['empty', '', ''], ['ミョ', '💡', 'ミョウ'],
-                ['リャ', '🐲', 'リャク'], ['empty', '', ''], ['リュ', '🎒', 'リュック'], ['empty', '', ''], ['リョ', '🏢', 'リョカン'],
-                ['ギャ', 'ギャ', 'ギャグ'], ['empty', '', ''], ['ギュ', '🐄', 'ギュウ'], ['empty', '', ''], ['ギョ', '🥟', 'ギョウザ'],
-                ['ジャ', '🍞', 'ジャム'], ['empty', '', ''], ['ジュ', '🍹', 'ジュース'], ['empty', '', ''], ['ジョ', '🏃', 'ジョギング'],
-                ['ビャ', '🚑', 'ビョウイン'], ['empty', '', ''], ['ビュ', '뷔', 'ビュッフェ'], ['empty', '', ''], ['ビョ', '📈', 'ビョウ'],
-                ['ピャ', '🏢', 'ピャク'], ['empty', '', ''], ['ピュ', 'ピュー', 'ピューマ'], ['empty', '', ''], ['ピョ', '🐰', 'ピョン']
-            ]
+   <script>
+    const data = {
+        seion: [
+            ['ア', '🍦', 'アイス'], ['イ', '🏠', 'イエ'], ['ウ', '🎻', 'ウクレレ'], ['エ', '📏', 'エプロン'], ['オ', '🟠', 'オレンジ'],
+            ['カ', '📸', 'カメラ'], ['キ', '🎸', 'ギター'], ['ク', '🎄', 'クリスマス'], ['ケ', '🎂', 'ケーキ'], ['コ', '☕', 'コーヒー'],
+            ['サ', '🥪', 'サンドイッチ'], ['シ', '🚿', 'シャワー'], ['ス', '🎿', 'スキー'], ['セ', '🌡️', 'センター'], ['ソ', '🍦', 'ソフト'],
+            ['タ', '🚕', 'タクシー'], ['チ', '🧀', 'チーズ'], ['ツ', '⚡', 'ツアー'], ['テ', '📺', 'テレビ'], ['ト', '🍅', 'トマト'],
+            ['ナ', '🔪', 'ナイフ'], ['ニ', '📰', 'ニュース'], ['ヌ', '🐕', 'ヌー'], ['ネ', '👔', 'ネクタイ'], ['ノ', '📔', 'ノート'],
+            ['ハ', '🍔', 'ハンバーガー'], ['ヒ', '☕', 'ヒーロー'], ['フ', '🍴', 'フォーク'], ['ヘ', '🚁', 'ヘリコプター'], ['ホ', '🏨', 'ホテル'],
+            ['マ', '🎛️', 'マイク'], ['ミ', '🥛', 'ミルク'], ['ム', '🎬', 'ムービー'], ['メ', '✉️', 'メール'], ['モ', '🏙️', 'モノレール'],
+            ['ヤ', '🌴', 'ヤシ'], ['empty', '', ''], ['ユ', '🦄', 'ユニコーン'], ['empty', '', ''], ['ヨ', '⛵', 'ヨット'],
+            ['ラ', '📻', 'ラジオ'], ['リ', '🎀', 'リボン'], ['ル', '💄', 'ルージュ'], ['レ', '🍋', 'レモン'], ['ロ', '🤖', 'ロボット'],
+            ['ワ', '🍷', 'ワイン'], ['empty', '', ''], ['empty', '', ''], ['empty', '', ''], ['ヲ', '🎌', 'ヲ'],
+            ['ン', '📏', 'ペン']
+        ],
+        dakuon: [
+            ['ガ', '⛽', 'ガス'], ['ギ', '🎸', 'ギター'], ['グ', '🍇', 'グレープ'], ['ゲ', '🎮', 'ゲーム'], ['ゴ', '⛳', 'ゴルフ'],
+            ['ザ', '⚡', 'ザザ'], ['ジ', '🥤', 'ジュース'], ['ズ', '👖', 'ズボン'], ['ゼ', '🍮', 'ゼリー'], ['ゾ', '🐘', 'ゾウ'],
+            ['ダ', '💃', 'ダンス'], ['ヂ', '🦷', 'ヂ'], ['ヅ', '📍', 'ヅ'], ['デ', '🧾', 'データ'], ['ド', '🍩', 'ドーナツ'],
+            ['バ', '🚌', 'バス'], ['ビ', '🍺', 'ビール'], ['ブ', '🍇', 'ブラシ'], ['ベ', '🛏️', 'ベッド'], ['ボ', '⛴️', 'ボート'],
+            ['パ', '🍞', 'パン'], ['ピ', '🎹', 'ピアノ'], ['プ', '🎁', 'プレゼント'], ['ペ', '🖊️', 'ペン'], ['ポ', '📮', 'ポスト']
+        ],
+        yoon: [
+            ['キャ', '🐱', 'キャベツ'], ['empty', '', ''], ['キュ', '🥒', 'キュウリ'], ['empty', '', ''], ['キョ', '⛺', 'キャンプ'],
+            ['シャ', '👕', 'シャツ'], ['empty', '', ''], ['シュ', '👟', 'シューズ'], ['empty', '', ''], ['ショ', '🛍️', 'ショップ'],
+            ['チャ', '⚡', 'チャート'], ['empty', '', ''], ['チュ', '🌷', 'チューリップ'], ['empty', '', ''], ['チョ', '🍫', 'チョコ'],
+            ['ニャ', '🐈', 'ニャー'], ['empty', '', ''], ['ニュ', '📰', 'ニュース'], ['empty', '', ''], ['ニョ', '🍄', 'ニョキ'],
+            ['ヒャ', '❄️', 'ヒャク'], ['empty', '', ''], ['ヒュ', '🌬️', 'ヒューム'], ['empty', '', ''], ['ヒョ', '🐆', 'ヒョウ'],
+            ['ミゃ', '🐈', 'ミャー'], ['empty', '', ''], ['ミュ', '🎨', 'ミュージアム'], ['empty', '', ''], ['ミョ', '💡', 'ミョウ'],
+            ['リャ', '🐲', 'リャク'], ['empty', '', ''], ['リュ', '🎒', 'リュック'], ['empty', '', ''], ['リョ', '🏢', 'リョカン'],
+            ['ギャ', 'ギャ', 'ギャグ'], ['empty', '', ''], ['ギュ', '🐄', 'ギュウ'], ['empty', '', ''], ['ギョ', '🥟', 'ギョウザ'],
+            ['ジャ', '🍞', 'ジャム'], ['empty', '', ''], ['ジュ', '🍹', 'ジュース'], ['empty', '', ''], ['ジョ', '🏃', 'ジョギング'],
+            ['ビャ', '🚑', 'ビョウイン'], ['empty', '', ''], ['ビュ', '뷔', 'ビュッフェ'], ['empty', '', ''], ['ビョ', '📈', 'ビョウ'],
+            ['ピャ', '🏢', 'ピャク'], ['empty', '', ''], ['ピュ', 'ピュー', 'ピューマ'], ['empty', '', ''], ['ピョ', '🐰', 'ピョン']
+        ]
+    };
+
+    function createCard(item) {
+        if (item === 'empty' || item[0] === 'empty') {
+            const div = document.createElement('div');
+            div.className = 'empty-card';
+            return div;
+        }
+        const [char, emoji, vocab] = item;
+        const card = document.createElement('div');
+        card.className = 'char-card';
+        card.innerHTML = `
+            <div class="emoji">${emoji}</div>
+            <div class="jp-char">${char}</div>
+            <div class="vocab">${vocab}</div>
+        `;
+        card.onclick = () => speak(char, vocab);
+        return card;
+    }
+
+    // --- PHẦN SỬA ĐỔI GIỌNG ĐỌC VÀ GIÃN CÁCH ---
+    function speak(char, vocab) {
+        // Hủy các giọng đang đọc dở để tránh chồng chéo âm thanh
+        window.speechSynthesis.cancel();
+
+        // 1. Thiết lập giọng đọc cho Chữ cái
+        const msgChar = new SpeechSynthesisUtterance(char);
+        msgChar.lang = 'ja-JP';
+        msgChar.rate = 0.8;  // Tốc độ chậm (mặc định 1.0)
+        msgChar.pitch = 1.1; // Chỉnh giọng cao thanh thoát hơn
+
+        // 2. Thiết lập giọng đọc cho Từ vựng
+        const msgVocab = new SpeechSynthesisUtterance(vocab);
+        msgVocab.lang = 'ja-JP';
+        msgVocab.rate = 0.85; // Tốc độ từ vựng chậm vừa phải
+        msgVocab.pitch = 1.0;
+
+        // Đọc chữ cái trước
+        window.speechSynthesis.speak(msgChar);
+
+        // Tạo một khoảng nghỉ (delay) khoảng 600ms trước khi đọc từ vựng
+        msgChar.onend = () => {
+            setTimeout(() => {
+                window.speechSynthesis.speak(msgVocab);
+            }, 600); // Bạn có thể tăng 600 lên 1000 nếu muốn nghỉ lâu hơn
         };
+    }
+    // ------------------------------------------
 
-        function createCard(item) {
-            if (item === 'empty' || item[0] === 'empty') {
-                const div = document.createElement('div');
-                div.className = 'empty-card';
-                return div;
-            }
-            const [char, emoji, vocab] = item;
-            const card = document.createElement('div');
-            card.className = 'char-card';
-            card.innerHTML = `
-                <div class="emoji">${emoji}</div>
-                <div class="jp-char">${char}</div>
-                <div class="vocab">${vocab}</div>
-            `;
-            card.onclick = () => speak(char, vocab);
-            return card;
-        }
+    function openTab(tabName) {
+        document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        const targetTab = document.getElementById(tabName);
+        if(targetTab) targetTab.classList.add('active');
+        if(event) event.currentTarget.classList.add('active');
+    }
 
-        function speak(char, vocab) {
-            window.speechSynthesis.cancel();
-            const text = `${char}。${vocab}`;
-            const msg = new SpeechSynthesisUtterance(text);
-            msg.lang = 'ja-JP';
-            msg.rate = 1.2
-            window.speechSynthesis.speak(msg);
-        }
-
-        function openTab(tabName) {
-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.getElementById(tabName).classList.add('active');
-            event.currentTarget.classList.add('active');
-        }
-
-        function render() {
-            Object.keys(data).forEach(key => {
-                const container = document.getElementById(`${key}-container`);
+    function render() {
+        Object.keys(data).forEach(key => {
+            const container = document.getElementById(`${key}-container`);
+            if (container) {
                 data[key].forEach(item => {
                     container.appendChild(createCard(item));
                 });
-            });
-        }
+            }
+        });
+    }
 
-        render();
-    </script>
+    render();
+</script>
 </body>
 </html>
