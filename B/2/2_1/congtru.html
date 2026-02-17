@@ -64,11 +64,12 @@
             <option value="+">足し算 (Cộng ＋)</option>
             <option value="-">引き算 (Trừ －)</option>
         </select>
-        <select id="digit-select" class="nav-select" onchange="resetGame()">
-            <option value="1">1桁 (1 chữ số)</option>
-            <option value="2">2桁 (2 chữ số)</option>
-            <option value="3">3桁 (3 chữ số)</option>
-        </select>
+		<select id="digit-select" class="nav-select" onchange="resetGame()">
+    <option value="1-1">1桁 ± 1桁</option>
+    <option value="2-1">2桁 ± 1桁</option>
+    <option value="2-2">2桁 ± 2桁</option>
+    <option value="3-3">3桁 ± 3桁</option>
+</select>
         <select id="limit-select" class="nav-select" onchange="resetGame()">
             <option value="10">10問</option><option value="20">20問</option><option value="50">50問</option>
         </select>
@@ -136,8 +137,8 @@
 <script>
     let currentQuestion = { a: 0, b: 0, op: '+', ans: 0 };
     let stats = { right: 0, wrong: 0, total: 0 };
-    const complimentsJA = ["正解！素晴らしい", "すごいですね！", "よくできました", "天才ですね！", "その調子！"];
-    const complimentsVI = ["Đúng rồi! Tuyệt vời", "Giỏi quá!", "Làm tốt lắm", "Bạn là thiên tài!", "Cứ tiếp tục nhé!"];
+    const complimentsJA = ["正解！", "すごいですね！", "よくできました", "天才ですね！", "その調子！"];
+    const complimentsVI = ["Đúng rồi! ", "Giỏi quá!", "Làm tốt lắm", "Bạn là thiên tài!", "Cứ tiếp tục nhé!"];
 
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
@@ -151,16 +152,19 @@
 
     function getCoords(e) {
         const rect = canvas.getBoundingClientRect();
-        const clientX = e.touches ? e.touches.clientX : e.clientX;
-        const clientY = e.touches ? e.touches.clientY : e.clientY;
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
         return { x: clientX - rect.left, y: clientY - rect.top };
     }
 
     canvas.addEventListener('mousedown', (e) => { isDrawing = true; ctx.beginPath(); const p = getCoords(e); ctx.moveTo(p.x, p.y); });
     canvas.addEventListener('mousemove', (e) => { if (!isDrawing) return; const p = getCoords(e); ctx.lineTo(p.x, p.y); ctx.stroke(); });
     canvas.addEventListener('mouseup', () => isDrawing = false);
+    canvas.addEventListener('mouseleave', () => isDrawing = false);
     canvas.addEventListener('touchstart', (e) => { e.preventDefault(); isDrawing = true; ctx.beginPath(); const p = getCoords(e); ctx.moveTo(p.x, p.y); });
     canvas.addEventListener('touchmove', (e) => { e.preventDefault(); if (!isDrawing) return; const p = getCoords(e); ctx.lineTo(p.x, p.y); ctx.stroke(); });
+    canvas.addEventListener('touchend', (e) => { e.preventDefault(); isDrawing = false; });
+
     function clearCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
 
     const synth = window.speechSynthesis;
@@ -178,9 +182,9 @@
         const vJa = synth.getVoices().find(v => v.name === document.getElementById('voice-ja').value);
         const vVi = synth.getVoices().find(v => v.name === document.getElementById('voice-vi').value);
         
-        const utterJa = new SpeechSynthesisUtterance(`${currentQuestion.a} ${currentQuestion.op==='+'?'たす':'ひく'} ${currentQuestion.b} は？`);
+        const utterJa = new SpeechSynthesisUtterance(`${currentQuestion.a} ${currentQuestion.op === '+' ? 'たす' : 'ひく'} ${currentQuestion.b} は？`);
         utterJa.voice = vJa; utterJa.rate = rate;
-        const utterVi = new SpeechSynthesisUtterance(`${currentQuestion.a} ${currentQuestion.op==='+'?'cộng':'trừ'} ${currentQuestion.b} bằng bao nhiêu?`);
+        const utterVi = new SpeechSynthesisUtterance(`${currentQuestion.a} ${currentQuestion.op === '+' ? 'cộng' : 'trừ'} ${currentQuestion.b} bằng bao nhiêu?`);
         utterVi.voice = vVi; utterVi.rate = rate;
 
         if (mode === 'ja') synth.speak(utterJa);
@@ -193,10 +197,10 @@
         const rate = document.getElementById('speech-rate').value;
         const mode = document.getElementById('read-mode').value;
         const idx = Math.floor(Math.random() * complimentsJA.length);
-        const utterJa = new SpeechSynthesisUtterance(isCorrect ? complimentsJA[idx] : "残念、違います");
+        const utterJa = new SpeechSynthesisUtterance(isCorrect ? complimentsJA[idx] : "残念");
         utterJa.voice = synth.getVoices().find(v => v.name === document.getElementById('voice-ja').value);
         utterJa.rate = rate;
-        const utterVi = new SpeechSynthesisUtterance(isCorrect ? complimentsVI[idx] : "Sai rồi, thử lại nhé");
+        const utterVi = new SpeechSynthesisUtterance(isCorrect ? complimentsVI[idx] : "thử lại nhé");
         utterVi.voice = synth.getVoices().find(v => v.name === document.getElementById('voice-vi').value);
         utterVi.rate = rate;
 
@@ -218,41 +222,76 @@
         }
     }
 
+    // Hàm generateQuestion duy nhất - xử lý đúng các chế độ số
     function generateQuestion() {
-        const digits = parseInt(document.getElementById('digit-select').value);
-        let opMode = document.getElementById('op-select').value;
-        let op = opMode === 'mix' ? (Math.random() > 0.5 ? '+' : '-') : opMode;
-        let a, b, ans;
-        const min = Math.pow(10, digits - 1);
-        const max = Math.pow(10, digits) - 1;
+        // Lấy giá trị từ dropdown (ví dụ: "1-1", "2-1", "2-2", "3-3")
+        const chonCheDo = document.getElementById('digit-select').value;
+        
+        // Lấy phép tính (+ hoặc - hoặc mix)
+        let kieuToan = document.getElementById('op-select').value;
+        let phepTinh = (kieuToan === 'mix') ? (Math.random() > 0.5 ? '+' : '-') : kieuToan;
+        
+        let soA, soB, ketQua;
 
-        a = rand(min, max);
-        b = rand(min, max);
-
-        if (op === '-') {
-            if (a < b) [a, b] = [b, a]; // Đảm bảo không âm
-            ans = a - b;
+        // Xử lý theo từng chế độ
+        if (chonCheDo === "1-1") {
+            soA = Math.floor(Math.random() * 9) + 1; // 1-9
+            soB = Math.floor(Math.random() * 9) + 1; // 1-9
+        } else if (chonCheDo === "2-1") {
+            soA = Math.floor(Math.random() * 90) + 10; // 10-99
+            soB = Math.floor(Math.random() * 9) + 1;   // 1-9
+        } else if (chonCheDo === "2-2") {
+            soA = Math.floor(Math.random() * 90) + 10; // 10-99
+            soB = Math.floor(Math.random() * 90) + 10; // 10-99
+        } else if (chonCheDo === "3-3") {
+            soA = Math.floor(Math.random() * 900) + 100; // 100-999
+            soB = Math.floor(Math.random() * 900) + 100; // 100-999
         } else {
-            ans = a + b;
+            // fallback (phòng lỗi)
+            soA = 5; soB = 2;
+        }
+
+        // Đảm bảo phép trừ không âm
+        if (phepTinh === '-') {
+            if (soA < soB) {
+                [soA, soB] = [soB, soA];
+            }
+            ketQua = soA - soB;
+        } else {
+            ketQua = soA + soB;
         }
         
-        currentQuestion = { a, b, op, ans };
+        // Cập nhật câu hỏi hiện tại
+        currentQuestion = { a: soA, b: soB, op: phepTinh, ans: ketQua };
+        
+        // Hiển thị câu hỏi dạng ngang/dọc
         renderQuestion();
-        document.getElementById('vocab-display').innerText = document.getElementById('show-vocab').checked ? (op==='+'?"足し算 (＋)":"引き算 (－)") : "";
-        
-        let opts = [ans];
-        while(opts.length < 4) {
-            let fake = ans + rand(-10, 10);
-            if (fake !== ans && fake >= 0 && !opts.includes(fake)) opts.push(fake);
+
+        // Cập nhật từ vựng tiếng Nhật nếu được bật
+        const label = document.getElementById('vocab-display');
+        if (label) {
+            label.innerText = document.getElementById('show-vocab').checked ? 
+                (phepTinh === '+' ? "足し算 (＋)" : "引き算 (－)") : "";
         }
-        opts.sort(() => Math.random() - 0.5);
-        const container = document.getElementById('options');
-        container.innerHTML = '';
-        opts.forEach(o => {
-            const btn = document.createElement('button');
-            btn.className = 'opt-btn'; btn.innerText = o;
-            btn.onclick = () => checkAnswer(o);
-            container.appendChild(btn);
+
+        // Tạo 4 đáp án (1 đúng, 3 nhiễu)
+        let cacDapAn = [ketQua];
+        while (cacDapAn.length < 4) {
+            let sai = ketQua + (Math.floor(Math.random() * 11) - 5); // lệch ±5
+            if (sai !== ketQua && sai >= 0 && !cacDapAn.includes(sai)) {
+                cacDapAn.push(sai);
+            }
+        }
+        cacDapAn.sort(() => Math.random() - 0.5); // xáo trộn
+
+        const vungChon = document.getElementById('options');
+        vungChon.innerHTML = '';
+        cacDapAn.forEach(d => {
+            const nut = document.createElement('button');
+            nut.className = 'opt-btn'; 
+            nut.innerText = d;
+            nut.onclick = () => checkAnswer(d);
+            vungChon.appendChild(nut);
         });
     }
 
@@ -267,8 +306,12 @@
         setTimeout(() => {
             fb.style.display = 'none';
             updateStats();
-            if (stats.total >= parseInt(document.getElementById('limit-select').value)) showResults();
-            else { generateQuestion(); clearCanvas(); }
+            if (stats.total >= parseInt(document.getElementById('limit-select').value)) {
+                showResults();
+            } else {
+                generateQuestion();
+                clearCanvas();
+            }
         }, 1500);
     }
 
@@ -292,7 +335,9 @@
     function resetGame() {
         stats = { right: 0, wrong: 0, total: 0 };
         document.getElementById('result-overlay').style.display = 'none';
-        updateStats(); generateQuestion(); clearCanvas();
+        updateStats();
+        generateQuestion();
+        clearCanvas();
     }
     window.onload = () => { loadVoices(); resizeCanvas(); resetGame(); };
     window.onresize = resizeCanvas;
