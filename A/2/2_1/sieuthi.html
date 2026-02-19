@@ -344,27 +344,30 @@
                 const mode = document.getElementById('mode').value;
                 const speed = document.getElementById('rate').value;
                 
-                // Lấy danh sách giọng mới nhất để tránh lỗi trên iOS Safari
-                const currentVoices = window.speechSynthesis.getVoices();
+                // QUAN TRỌNG: Lấy lại danh sách giọng ngay khi click để iOS nhận diện được
+                const availableVoices = window.speechSynthesis.getVoices();
+                
+                // ƯU TIÊN GIỌNG KYOKO (Dùng cho iOS)
+                // Tìm theo tên chứa "Kyoko" trước, nếu không có thì tìm giọng Nhật chung
+                let voiceJp = availableVoices.find(v => v.name.includes('Kyoko')) || 
+                             availableVoices.find(v => v.lang.includes('ja')) ||
+                             availableVoices.find(v => v.name === document.getElementById('vSel').value);
 
-                // Ưu tiên Kyoko cho iPhone, nếu không có thì tìm giọng ja-JP bất kỳ
-                const voiceJp = currentVoices.find(v => v.name.includes('Kyoko')) || 
-                                currentVoices.find(v => v.lang.includes('ja')) ||
-                                currentVoices.find(v => v.name === document.getElementById('vSel').value);
-
-                const voiceVi = currentVoices.find(v => v.lang.includes('vi'));
+                let voiceVi = availableVoices.find(v => v.lang.includes('vi'));
 
                 // Đọc tiếng Nhật
                 const uJp = new SpeechSynthesisUtterance(d.k);
                 if (voiceJp) uJp.voice = voiceJp;
                 uJp.rate = speed;
+                uJp.lang = 'ja-JP'; // Gợi ý ngôn ngữ cho iOS
                 synth.speak(uJp);
 
-                // Nếu chế độ Nhật-Việt (jv) thì đọc tiếp tiếng Việt
+                // Nếu chế độ Nhật-Việt thì đọc tiếp tiếng Việt
                 if (mode === 'jv' && voiceVi) {
                     const uVi = new SpeechSynthesisUtterance(d.v);
                     uVi.voice = voiceVi;
                     uVi.rate = speed;
+                    uVi.lang = 'vi-VN';
                     synth.speak(uVi);
                 }
             };
