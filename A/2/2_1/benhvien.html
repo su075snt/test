@@ -317,43 +317,66 @@
     if (speechSynthesis.onvoiceschanged !== undefined) speechSynthesis.onvoiceschanged = loadVoices;
 
     function init() {
-        loadVoices();
-        const tabH = document.getElementById('tabH');
-        const tabC = document.getElementById('tabC');
+    loadVoices();
+    const tabH = document.getElementById('tabH');
+    const tabC = document.getElementById('tabC');
 
-        for (let i = 0; i < 10; i++) {
-            const btn = document.createElement('button');
-            btn.className = `tab-btn ${i===0?'active':''}`;
-            btn.innerText = `Tab ${i+1}`;
-            btn.onclick = () => {
-                document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-                document.querySelectorAll('.grid-container').forEach(g=>g.classList.remove('active'));
-                btn.classList.add('active');
-                document.getElementById(`t-${i}`).classList.add('active');
-            };
-            tabH.appendChild(btn);
+    for (let i = 0; i < 10; i++) {
+        const btn = document.createElement('button');
+        btn.className = `tab-btn ${i===0?'active':''}`;
+        btn.innerText = `Tab ${i+1}`;
+        btn.onclick = () => {
+            document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+            document.querySelectorAll('.grid-container').forEach(g=>g.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(`t-${i}`).classList.add('active');
+        };
+        tabH.appendChild(btn);
 
-            const grid = document.createElement('div');
-            grid.className = `grid-container ${i===0?'active':''}`;
-            grid.id = `t-${i}`;
+        const grid = document.createElement('div');
+        grid.className = `grid-container ${i===0?'active':''}`;
+        grid.id = `t-${i}`;
+        
+        data.slice(i*25, (i+1)*25).forEach(d => {
+            const card = document.createElement('div');
+            card.className = 'vocab-card';
+            card.innerHTML = `<div class="kanji">${d.k}</div><div class="hira">${d.h}</div><div class="viet">${d.v}</div>`;
             
-            data.slice(i*25, (i+1)*25).forEach(d => {
-                const card = document.createElement('div');
-                card.className = 'vocab-card';
-                card.innerHTML = `<div class="kanji">${d.k}</div><div class="hira">${d.h}</div><div class="viet">${d.v}</div>`;
-                card.onclick = () => {
-                    synth.cancel();
-                    const txt = document.getElementById('mode').value === 'jp' ? d.k : `${d.k}. . . ${d.v}`;
-                    const u = new SpeechSynthesisUtterance(txt);
-                    u.voice = voices.find(v => v.name === document.getElementById('vSel').value);
-                    u.rate = document.getElementById('rate').value;
-                    synth.speak(u);
-                };
-                grid.appendChild(card);
-            });
-            tabC.appendChild(grid);
-        }
+            card.onclick = () => {
+                synth.cancel();
+                const mode = document.getElementById('mode').value;
+                const speed = document.getElementById('rate').value;
+                
+                // Lấy danh sách giọng mới nhất (cần thiết cho iOS)
+                const currentVoices = window.speechSynthesis.getVoices();
+                
+                // ƯU TIÊN GIỌNG KYOKO CHO IPHONE
+                const voiceJp = currentVoices.find(v => v.name.includes('Kyoko')) || 
+                                currentVoices.find(v => v.lang.includes('ja-JP')) ||
+                                currentVoices.find(v => v.lang.includes('ja'));
+
+                const voiceVi = currentVoices.find(v => v.lang.includes('vi-VN')) || 
+                                currentVoices.find(v => v.lang.includes('vi'));
+
+                // Đọc tiếng Nhật
+                const uJp = new SpeechSynthesisUtterance(d.k);
+                if (voiceJp) uJp.voice = voiceJp;
+                uJp.rate = speed;
+                synth.speak(uJp);
+
+                // Nếu chế độ Nhật-Việt (jv) thì đọc tiếp tiếng Việt
+                if (mode === 'jv' && voiceVi) {
+                    const uVi = new SpeechSynthesisUtterance(d.v);
+                    uVi.voice = voiceVi;
+                    uVi.rate = speed;
+                    synth.speak(uVi);
+                }
+            };
+            grid.appendChild(card);
+        });
+        tabC.appendChild(grid);
     }
+}
 
     function toggleMenu() { document.getElementById('side-menu').classList.toggle('active'); }
 
