@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KAIWA TRUONG HOC · tra từ</title>
+    <style>
+        * { box-sizing: border-box; }
+        :root {
+            --bg: #434343;
+            --text: #111;
+            --card-bg: #ffffff;
+            --accent: #0984e3;
+        }
+        body {
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            margin: 0;
+            transition: background 0.2s, color 0.2s;
+            min-height: 100vh;
+        }
+        #side-menu {
+            position: fixed;
+            right: -300px;
+            top: 0;
+            width: 260px;
+            height: 100%;
+            background: #fff;
+            box-shadow: -2px 0 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+            padding: 20px;
+            transition: 0.3s;
+            overflow-y: auto;
+            color: #333;
+        }
+        #side-menu.active { right: 0; }
+        .menu-btn {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            z-index: 1001;
+            padding: 10px 15px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 500;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .tab-search-row {
+            position: relative;
+            padding: 60px 15px 10px;
+            text-align: center;
+            min-height: 100px;
+        }
+        .tabs {
+            display: inline-flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            justify-content: center;
+            margin: 0 auto;
+        }
+        .tab-btn {
+            padding: 8px 14px;
+            border: none;
+            background: #dfe6e9;
+            cursor: pointer;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 500;
+            transition: 0.2s;
+            white-space: nowrap;
+            color: #2d3436;
+        }
+        .tab-btn.active {
+            background: var(--accent);
+            color: white;
+        }
+        
+        #searchInput {
+            position: absolute;
+            right: 15px;
+            top: 60px;
+            width: 260px;
+            padding: 8px 16px 8px 36px;
+            border-radius: 40px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+            background: white url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%23666" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>') no-repeat 10px center;
+            background-size: 16px;
+            transition: 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            color: #333;
+        }
+        #searchInput:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(9,132,227,0.2);
+        }
+
+        .grid-container {
+            display: none;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+            padding: 15px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .grid-container.active {
+            display: grid;
+        }
+
+        #search-results {
+            display: none;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+            padding: 15px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        #search-results.active {
+            display: grid;
+        }
+
+        .vocab-card {
+            background: var(--card-bg);
+            padding: 15px 5px;
+            border-radius: 14px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+            cursor: pointer;
+            border: 1px solid #f0f0f0;
+            min-height: 130px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            transition: 0.2s;
+        }
+        .vocab-card:hover {
+            transform: scale(1.02);
+            border-color: var(--accent);
+            box-shadow: 0 8px 12px rgba(0,0,0,0.1);
+        }
+
+        .kanji {
+            font-size: 1.2em;
+            font-weight: 700;
+            margin-bottom: 4px;
+            color: var(--text);
+            line-height: 1.4;
+        }
+        .hira {
+            color: var(--text);
+            opacity: 0.7;
+            font-size: 0.9em;
+            margin-bottom: 4px;
+        }
+        .viet {
+            color: #c0392b;
+            opacity: 0.9;
+            font-size: 0.9em;
+            font-weight: 500;
+        }
+        .hidden { display: none !important; }
+        
+        @media (max-width: 800px) {
+            .grid-container, #search-results {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .tab-search-row {
+                text-align: left;
+                padding-bottom: 70px;
+            }
+            #searchInput {
+                position: static;
+                width: 100%;
+                margin-top: 15px;
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<button class="menu-btn" onclick="toggleMenu()">⚙ Cài đặt</button>
+
+<div id="side-menu">
+    <h3 style="margin-top: 0;">Cấu hình</h3>
+    <label>Màu nền: <input type="color" id="bgCol" value="#434343"></label><br><br>
+    <label>Màu chữ: <input type="color" id="txCol" value="#0b5394"></label><hr>
+    <label><input type="checkbox" id="chkHira" checked> Hiện Hiragana</label><br>
+    <label><input type="checkbox" id="chkViet" checked> Hiện Tiếng Việt</label><hr>
+
+    <label>🇯🇵 Giọng Nhật:</label>
+    <select id="voiceJp" style="width:100%; margin-bottom: 10px;"></select>
+
+    <label>🇻🇳 Giọng Việt:</label>
+    <select id="voiceVi" style="width:100%; margin-bottom: 10px;"></select>
+
+    <label>Tốc độ: <input type="range" id="rate" min="0.5" max="1.5" step="0.1" value="1"></label><br><br>
+
+    <label>Chế độ đọc: 
+        <select id="mode" style="width:100%">
+            <option value="jp">Chỉ tiếng Nhật</option>
+            <option value="jv" selected>Nhật - Việt (Chuẩn)</option>
+        </select>
+    </label><br><br>
+    <button onclick="toggleMenu()" style="width:100%; padding: 10px; background: #eee; border: none; border-radius: 4px; cursor: pointer;">Đóng</button>
+</div>
+
+<div class="tab-search-row">
+    <div class="tabs" id="tabH"></div>
+    <input type="text" id="searchInput" placeholder="Tìm kiếm Nhật–Việt..." autocomplete="off">
+</div>
+
+<div id="tabC"></div>
+<div id="search-results"></div>
+
+<script>
+    (function() {
+        // ==================== DỮ LIỆU 500 CÂU ====================
+        const data = [
+            {k:"初診ですか？", h:"しょしんですか？", v:"Bạn khám lần đầu phải không?"},
+            {k:"はい、初めてです。", h:"はい、はじめてです。", v:"Vâng, tôi khám lần đầu."},
+            {k:"再診です。診察券を持っています。", h:"さいしんです。しんさつけんをもっています。", v:"Tôi khám lại. Tôi có thẻ khám bệnh."},
+            {k:"保険証を見せてください。", h:"ほけんしょうをみせてください。", v:"Vui lòng cho xem thẻ bảo hiểm."},
+            {k:"有効期限が切れています。", h:"ゆうこうきげんがきれています。", v:"Thẻ bảo hiểm đã hết hạn rồi."},
+            {k:"住所の変更はありますか？", h:"じゅうしょのへんこうはありますか？", v:"Địa chỉ của bạn có thay đổi không?"},
+            {k:"いいえ、変わりありません。", h:"いいえ、かわりありません。", v:"Không, không có thay đổi gì."},
+            {k:"紹介状はお持ちですか？", h:"しょうかいじょうはおもちですか？", v:"Bạn có giấy giới thiệu không?"},
+            {k:"問診票に記入してください。", h:"もんしんひょうにきにゅうしてください。", v:"Vui lòng điền vào tờ khai y tế."},
+            {k:"ここにお名前を書いてください。", h:"ここにおなまえをかいてください。", v:"Hãy viết tên bạn vào đây."},
+            {k:"生年月日を教えてください。", h:"せいねんがっぴをおしえてください。", v:"Cho tôi biết ngày tháng năm sinh."},
+            {k:"電話番号もお願いします。", h:"でんわばんごうもおねがいします。", v:"Vui lòng cho cả số điện thoại."},
+            {k:"熱を測ってください。", h:"ねつをはかってください。", v:"Hãy đo nhiệt độ đi ạ."},
+            {k:"体温計はありますか？", h:"たいおんけいはありますか？", v:"Có nhiệt kế không?"},
+            {k:"脇に挟んでください。", h:"わきにはさんでください。", v:"Hãy kẹp vào nách nhé."},
+            {k:"38度あります。", h:"38どあります。", v:"Tôi bị sốt 38 độ."},
+            {k:"ここで座ってお待ちください。", h:"ここですわっておまちください。", v:"Hãy ngồi đây chờ nhé."},
+            {k:"予約はしていますか？", h:"よやくはしていますか？", v:"Bạn có đặt hẹn trước không?"},
+            {k:"いいえ、予約していません。", h:"いいえ、よやくしていません。", v:"Không, tôi không đặt hẹn."},
+            {k:"かなり待ち時間があります。", h:"かなりまちじかんがあります。", v:"Sẽ phải chờ khá lâu đấy."},
+            {k:"どのくらいかかりますか？", h:"どのくらいかかりますか？", v:"Mất khoảng bao lâu ạ?"},
+            {k:"1時間以上はかかると思います。", h:"1じかんいじょうはかかるとおもいます。", v:"Tôi nghĩ mất hơn 1 tiếng."},
+            {k:"外出してもいいですか？", h:"がいしゅつしてもいいですか？", v:"Tôi ra ngoài một lát được không?"},
+            {k:"戻ったら受付に言ってください。", h:"もどったらうけつけにいってください。", v:"Khi quay lại hãy báo với tiếp tân."},
+            {k:"番号札をお取りください。", h:"ばんごうふだをおとりください。", v:"Vui lòng lấy thẻ số."},
+            {k:"お名前を呼びます。", h:"おなまえをよびます。", v:"Tôi sẽ gọi tên bạn."},
+            {k:"診察室の前でお待ちください。", h:"しんさつしつのまえでおまちください。", v:"Hãy đợi trước phòng khám."},
+            {k:"日本語が話せますか？", h:"にほんごがはなせますか？", v:"Bạn có nói được tiếng Nhật không?"},
+            {k:"少しだけ話せます。", h:"すこしだけはなせます。", v:"Tôi nói được một chút."},
+            {k:"英語の通訳はいますか？", h:"えいごのつうやくはいまですか？", v:"Có thông dịch viên tiếng Anh không?"},
+            {k:"ベトナム語の資料はありますか？", h:"べとなむごのしりょうはありますか？", v:"Có tài liệu tiếng Việt không?"},
+            {k:"妊娠の可能性はありますか？", h:"にんしんのかのうせいはありますか？", v:"Bạn có khả năng đang mang thai không?"},
+            {k:"はい、あります。", h:"はい、あります。", v:"Vâng, có ạ."},
+            {k:"アレルギーはありますか？", h:"あれるぎーはありますか？", v:"Bạn có bị dị ứng không?"},
+            {k:"薬のアレルギーがあります。", h:"くすりのあれるぎーがあります。", v:"Tôi bị dị ứng thuốc."},
+            {k:"現在、何か薬を飲んでいますか？", h:"げんざい、なにかくすりをのんでいますか？", v:"Hiện tại bạn có đang uống thuốc gì không?"},
+            {k:"ビタミン剤を飲んでいます。", h:"びたみんざいをのんでいます。", v:"Tôi đang uống vitamin."},
+            {k:"お薬手帳を見せてください。", h:"おくすりてちょうをみせてください。", v:"Cho tôi xem sổ tay thuốc."},
+            {k:"忘れました。", h:"わすれました。", v:"Tôi quên mất rồi."},
+            {k:"今日は内科ですか？", h:"きょうはないかですか？", v:"Hôm nay bạn khám nội khoa phải không?"},
+            {k:"いいえ、外科へ行きたいです。", h:"いいえ、げかへいきたいです。", v:"Không, tôi muốn đi ngoại khoa."},
+            {k:"耳鼻科はどこですか？", h:"じびかはどこですか？", v:"Khoa tai mũi họng ở đâu?"},
+            {k:"2階の奥にあります。", h:"2かいのおくにあります。", v:"Ở phía trong tầng 2."},
+            {k:"エレベーターを使ってください。", h:"えれべーたーをつかってください。", v:"Hãy sử dụng thang máy."},
+            {k:"車椅子が必要ですか？", h:"くるまいすがひつようですか？", v:"Bạn có cần xe lăn không?"},
+            {k:"はい、お願いします。", h:"はい、おねがいします。", v:"Vâng, làm ơn."},
+            {k:"診察室に入ってください。", h:"しんさつしつにはいってください。", v:"Mời vào phòng khám."},
+            {k:"荷物はカゴに入れてください。", h:"にもつはかごにいれてください。", v:"Hãy để hành lý vào giỏ."},
+            {k:"靴を脱いでください。", h:"くつをぬいでください。", v:"Hãy cởi giày ra."},
+            {k:"椅子にかけてください。", h:"いすにかけてください。", v:"Mời ngồi xuống ghế."},
+            {k:"今日はどうされましたか？", h:"きょうはどうされましたか？", v:"Hôm nay bạn bị làm sao?"},
+            {k:"熱があって、喉が痛いです。", h:"ねつがあって、のどがいたいです。", v:"Tôi bị sốt và đau họng."},
+            {k:"いつからですか？", h:"いつからですか？", v:"Từ khi nào vậy?"},
+            {k:"昨日の夜からです。", h:"きのうのよるからです。", v:"Từ đêm qua ạ."},
+            {k:"咳は出ますか？", h:"せきはでますか？", v:"Có bị ho không?"},
+            {k:"はい、ひどい咳が出ます。", h:"はい、ひどいせきがでます。", v:"Vâng, tôi bị ho rất nặng."},
+            {k:"痰は絡みますか？", h:"たんはからみますか？", v:"Có bị vướng đờm không?"},
+            {k:"黄色い痰が出ます。", h:"きいろいたんがでます。", v:"Tôi ra đờm màu vàng."},
+            {k:"鼻水が止まりません。", h:"はなみずがとまりません。", v:"Nước mũi chảy không ngừng."},
+            {k:"鼻が詰まっています。", h:"はながつまっています。", v:"Tôi bị nghẹt mũi."},
+            {k:"寒気がします。", h:"さむけがします。", v:"Tôi thấy ớn lạnh."},
+            {k:"体がだるいです。", h:"からだがだるいです。", v:"Người tôi thấy uể oải."},
+            {k:"関節が痛いです。", h:"かんせつがいたいです。", v:"Tôi bị đau các khớp."},
+            {k:"頭痛がします。", h:"ずつうがします。", v:"Tôi bị đau đầu.nhức đầu"},
+            {k:"吐き気はありますか？", h:"はきけはありますか？", v:"Có buồn nôn không?"},
+            {k:"いいえ、ありません。", h:"いいえ、ありません。", v:"Không, tôi không bị."},
+            {k:"食欲はありますか？", h:"しょくよくはありますか？", v:"Bạn có thèm ăn không?"},
+            {k:"あまり食べられません。", h:"あまりたべられません。", v:"Tôi không ăn được mấy."},
+            {k:"味が分かりません。", h:"あじがわかりません。", v:"Tôi không thấy mùi vị gì."},
+            {k:"息苦しいですか？", h:"いきぐるしいですか？", v:"Bạn có thấy khó thở không?"},
+            {k:"少し胸が苦しいです。", h:"すこしむねがくるしいです。", v:"Hơi tức ngực một chút."},
+            {k:"下痢をしていますか？", h:"げりをつしていますか？", v:"Bạn có bị tiêu chảy không?"},
+            {k:"はい、昨日から3回しました。", h:"はい、きのうから3かいしました。", v:"Vâng, từ hôm qua tôi đi 3 lần rồi."},
+            {k:"腹痛はありますか？", h:"ふくつうはありますか？", v:"Bạn có đau bụng không?"},
+            {k:"お腹の真ん中が痛いです。", h:"おなかのまんなかがいたいです。", v:"Tôi đau ở giữa bụng."},
+            {k:"便秘が続いています。", h:"べんぴがつづいています。", v:"Tôi bị táo bón kéo dài."},
+            {k:"血便が出ました。", h:"けつべんがでました。", v:"Tôi đi ngoài ra máu."},
+            {k:"喉の奥を見せてください。", h:"のどのおくをみせてください。", v:"Hãy cho tôi xem họng."},
+            {k:"「あー」と言ってください。", h:"「あー」といってください。", v:"Hãy phát âm 'A-aaaa'."},
+            {k:"少し腫れていますね。", h:"すこしはれていますね。", v:"Hơi sưng một chút nhỉ."},
+            {k:"胸の音を聞きますね。", h:"むねのおとをききますね。", v:"Tôi sẽ nghe nhịp tim/phổi nhé."},
+            {k:"服をまくってください。", h:"ふくをまくってください。", v:"Hãy vén áo lên."},
+            {k:"深呼吸をしてください。", h:"しんこきゅうをしてください。", v:"Hãy hít thở sâu."},
+            {k:"背中の音も聞きます。", h:"せなかのおともききます。", v:"Tôi nghe cả phía sau lưng nữa."},
+            {k:"横になってください。", h:"よこになってください。", v:"Hãy nằm xuống."},
+            {k:"ここを押すと痛いですか？", h:"ここをおすといたいですか？", v:"Ấn vào đây có đau không?"},
+            {k:"はい、痛いです。", h:"はい、いたいです。", v:"Vâng, đau ạ."},
+            {k:"いつから痛みますか？", h:"いつからいたみますか？", v:"Đau từ khi nào?"},
+            {k:"1時間くらい前からです。", h:"1じかんくらいまえからです。", v:"Từ khoảng 1 tiếng trước."},
+            {k:"急に痛くなりましたか？", h:"きゅうにいたくなりましたか？", v:"Đau đột ngột phải không?"},
+            {k:"徐々に痛くなりました。", h:"じょじょにいたくなりました。", v:"Nó đau dần dần lên."},
+            {k:"めまいはしますか？", h:"めまいはしますか？", v:"Có bị chóng mặt không?"},
+            {k:"立ちくらみがします。", h:"たちくらみがします。", v:"Tôi bị hoa mắt khi đứng dậy."},
+            {k:"耳鳴りがしますか？", h:"みみなりがしますか？", v:"Có bị ù tai không?"},
+            {k:"キーンという音がします。", h:"きーんというおとがします。", v:"Có tiếng kêu lùng bùng trong tai."},
+            {k:"目が充血しています。", h:"めがじゅうけつしています。", v:"Mắt bị đỏ/xung huyết."},
+            {k:"目やにが出ます。", h:"めやにがでます。", v:"Có gỉ mắt."},
+            {k:"痒みはありますか？", h:"かゆみはありますか？", v:"Có bị ngứa không?"},
+            {k:"全身が痒いです。", h:"ぜんしんがかゆいです。", v:"Ngứa toàn thân."},
+            {k:"湿疹が出ています。", h:"しっしんがでています。", v:"Đang bị nổi phát ban."},
+            {k:"検査をしましょう。", h:"けんさをしましょう。", v:"Chúng ta hãy làm xét nghiệm."},
+            {k:"採血室へ行ってください。", h:"さいけつしつへいってください。", v:"Hãy đi đến phòng lấy máu."},
+            {k:"腕を出してください。", h:"うでをだしてください。", v:"Hãy đưa tay ra."},
+            {k:"アルコール消毒は大丈夫ですか？", h:"あるこーるしょうどくはだいじょうぶですか？", v:"Bạn có bị dị ứng cồn không?"},
+            {k:"はい、大丈夫です。", h:"はい、だいじょうぶです。", v:"Vâng, không sao."},
+            {k:"手を握ってください。", h:"てをにぎってください。", v:"Hãy nắm tay lại."},
+            {k:"力を抜いてください。", h:"ちからをぬいてください。", v:"Hãy thả lỏng ra."},
+            {k:"チクッとしますよ。", h:"ちくっとしますよ。", v:"Sẽ hơi nhói một chút."},
+            {k:"気分は悪くないですか？", h:"きぶんをわるくないですか？", v:"Bạn có thấy khó chịu không?"},
+            {k:"少しめまいがします。", h:"すこしめまいがします。", v:"Tôi hơi chóng mặt."},
+            {k:"終わりました。5分間押さえてください。", h:"おわりました。5ふんかんおさえてください。", v:"Xong rồi. Hãy ấn giữ trong 5 phút."},
+            {k:"揉まないでくださいね。", h:"もまないでくださいね。", v:"Đừng xoa nhé."},
+            {k:"次に尿検査をします。", h:"つぎににょうけんさをします。", v:"Tiếp theo sẽ xét nghiệm nước tiểu."},
+            {k:"このコップを持ってください。", h:"このこっぷをもってください。", v:"Hãy cầm lấy cái cốc này."},
+            {k:"トイレはあちらです。", h:"といれはあちらです。", v:"Nhà vệ sinh ở đằng kia."},
+            {k:"中間の尿を取ってください。", h:"ちゅうかんのにょうをとってください。", v:"Hãy lấy nước tiểu giữa dòng."},
+            {k:"棚に置いてください。", h:"たなにおいでください。", v:"Hãy để lên giá."},
+            {k:"結果が出るまで30分かかります。", h:"けっかがでるまで30ぷんかかります。", v:"Mất 30 phút để có kết quả."},
+            {k:"ロビーでお待ちください。", h:"ろびーでおまちください。", v:"Vui lòng đợi ở sảnh."},
+            {k:"心電図を測ります。", h:"しんでんずをはかります。", v:"Chúng ta sẽ đo điện tâm đồ."},
+            {k:"手足の力を抜いてください。", h:"てあしのちからをぬいてください。", v:"Thả lỏng tay chân ra."},
+            {k:"動かないでください。", h:"うごかないでください。", v:"Đừng cử động."},
+            {k:"血圧をもう一度測ります。", h:"けつあつをもういちどはかります。", v:"Tôi sẽ đo huyết áp lại lần nữa."},
+            {k:"少し高いですね。", h:"すこしたかいですね。", v:"Hơi cao một chút nhỉ."},
+            {k:"緊張していますか？", h:"きんちょうしていますか？", v:"Bạn có đang căng thẳng không?"},
+            {k:"はい、少し緊張しています。", h:"はい、すこしきんちょうしています。", v:"Vâng, hơi căng thẳng ạ."},
+            {k:"深呼吸をしましょう。", h:"しんこきゅうをしましょう。", v:"Hãy hít thở sâu nào."},
+            {k:"体重を測ってください。", h:"たいじゅうをはかってください。", v:"Hãy đo cân nặng."},
+            {k:"身長も測ります。", h:"しんちょうもはかります。", v:"Đo cả chiều cao nữa."},
+            {k:"視力検査をします。", h:"しりょくけんさをします。", v:"Kiểm tra thị lực nhé."},
+            {k:"右目は見えますか？", h:"みぎめはみえますか？", v:"Mắt phải có nhìn rõ không?"},
+            {k:"いいえ、ぼやけています。", h:"いいえ、ぼやけています。", v:"Không, bị mờ ạ."},
+            {k:"聴力検査室へどうぞ。", h:"ちょうりょくけんさしつへどうぞ。", v:"Mời vào phòng kiểm tra thính giác."},
+            {k:"音が聞こえたらボタンを押してください。", h:"おとがきこえたらぼたんをおしてください。", v:"Khi nghe thấy tiếng hãy bấm nút."},
+            {k:"左耳が聞こえにくいです。", h:"ひだりみみがきこえにくいです。", v:"Tai trái hơi khó nghe."},
+            {k:"エコー検査をします。", h:"えこーけんさをします。", v:"Tôi sẽ siêu âm."},
+            {k:"お腹を出しください。", h:"おなかをだしください。", v:"Hãy để lộ bụng ra."},
+            {k:"ジェルを塗ります。", h:"じぇるをぬります。", v:"Tôi bôi gel nhé."},
+            {k:"冷たいですよ。", h:"つめたいですよ。", v:"Lạnh đấy nhé."},
+            {k:"画面を見てください。", h:"がめんをみてください。", v:"Hãy nhìn lên màn hình."},
+            {k:"ここに影があります。", h:"ここにかげがあります。", v:"Có vết bóng ở đây."},
+            {k:"再検査が必要です。", h:"さいけんさがひつようです。", v:"Cần phải xét nghiệm lại."},
+            {k:"心配しすぎないでください。", h:"しんぱいしすぎないでください。", v:"Đừng quá lo lắng."},
+            {k:"詳しい検査をしましょう。", h:"くわしいけんさをしましょう。", v:"Hãy làm kiểm tra chi tiết."},
+            {k:"紹介状を書きます。", h:"しょうかいじょうをかきます。", v:"Tôi sẽ viết giấy giới thiệu."},
+            {k:"大きな病院へ行ってください。", h:"おおきなびょういんへいってください。", v:"Hãy đến bệnh viện lớn."},
+            {k:"予約を取りましょうか？", h:"よやくをとりましょうか？", v:"Tôi đặt lịch hẹn giúp nhé?"},
+            {k:"はい、お願いします。", h:"はい、おねがいします。", v:"Vâng, làm ơn."},
+            {k:"明日の10時でいいですか？", h:"あしたの10じでいいですか？", v:"10 giờ sáng mai được không?"},
+            {k:"大丈夫です。", h:"だいじょうぶです。", v:"Được ạ."},
+            {k:"結果を説明します。", h:"けっかをせつめいします。", v:"Tôi sẽ giải thích kết quả."},
+            {k:"特に異常はありませんでした。", h:"とくにいじょうはありませんでした。", v:"Không có bất thường gì đặc biệt."},
+            {k:"風邪ですね。", h:"かぜですね。", v:"Bạn bị cảm thôi."},
+            {k:"インフルエンザの陽性反応が出ました。", h:"いんふるえんざのようせいはんのうがでました。", v:"Kết quả dương tính với cúm."},
+            {k:"ウイルス性の胃腸炎です。", h:"ういるすせいのいちょうえんです。", v:"Viêm dạ dày ruột do virus."},
+            {k:"食中毒かもしれません。", h:"しょくちゅうどくかもしれません。", v:"Có thể là ngộ độc thực phẩm."},
+            {k:"しばらく安静にしてください。", h:"しばらくあんせいにしてください。", v:"Hãy nghỉ ngơi tĩnh dưỡng một thời gian."},
+            {k:"水分をしっかり摂ってください。", h:"すいぶんをしっかりとってください。", v:"Hãy bổ sung đủ nước."},
+            {k:"仕事は休めますか？", h:"しごとはやすめますか？", v:"Bạn có thể nghỉ việc không?"},
+            {k:"数日は家で休んでください。", h:"すうじつはいえでやすんでください。", v:"Hãy nghỉ ở nhà vài ngày."},
+            {k:"熱が下がったら来てください。", h:"ねつがさがったらきてください。", v:"Khi nào hết sốt hãy đến."},
+            {k:"診断書が必要ですか？", h:"しんだんしょがひつようですか？", v:"Bạn có cần giấy chứng nhận không?"},
+            {k:"はい、会社に出します。", h:"はい、かいしゃにだします。", v:"Vâng, để nộp cho công ty."},
+            {k:"発行には手数料がかかります。", h:"はっこうにはてすうりょうがかかります。", v:"Việc cấp giấy sẽ mất phí."},
+            {k:"血圧が高いので注意してください。", h:"けつあつがたかいのでちゅういしてください。", v:"Huyết áp cao nên hãy chú ý."},
+            {k:"塩分を控えてください。", h:"えんぶんをひかえてください。", v:"Hãy giảm lượng muối ăn."},
+            {k:"適度な運動をしてください。", h:"てきどなうんどうをしてください。", v:"Hãy vận động vừa sức."},
+            {k:"タバコはやめてください。", h:"たばこはやめてください。", v:"Hãy bỏ thuốc lá."},
+            {k:"お酒も控えめにしてください。", h:"おさけもひかえめにしてください。", v:"Rượu cũng hãy uống hạn chế thôi."},
+            {k:"不規則な生活をしていませんか？", h:"ふきそくなせいかつをしていませんか？", v:"Bạn có đang sinh hoạt không điều độ không?"},
+            {k:"最近、忙しくて寝不足です。", h:"さいきん、いそがしくてねぶそくです。", v:"Gần đây tôi bận nên thiếu ngủ."},
+            {k:"ストレスを溜めないように。", h:"すとれすをためないように。", v:"Đừng để bị tích tụ stress."},
+            {k:"また来週、様子を見せてください。", h:"またらいしゅう、ようすをみせてください。", v:"Tuần sau lại cho tôi xem tình trạng nhé."},
+            {k:"貧血の数値が出ています。", h:"ひんけつのすうちがでています。", v:"Chỉ số cho thấy bạn bị thiếu máu."},
+            {k:"鉄分の多い食事を心がけてください。", h:"てつぶんのおおいしょくじをこころがけてください。", v:"Hãy chú ý ăn đồ nhiều sắt."},
+            {k:"レバーやほうれん草がいいですよ。", h:"ればーやほうれんそうがいいですよ。", v:"Gan và rau chân vịt rất tốt đấy."},
+            {k:"精密検査の結果を待ちましょう。", h:"せいみつけんさのけっかをまちましょう。", v:"Hãy đợi kết quả kiểm tra chi tiết."},
+            {k:"少し時間がかかります。", h:"すこしじかんがかかります。", v:"Sẽ mất một chút thời gian."},
+            {k:"何か質問はありますか？", h:"なにかしつもんはありますか？", v:"Bạn có câu hỏi nào không?"},
+            {k:"この病気は治りますか？", h:"このびょうきはなおりますか？", v:"Bệnh này có chữa khỏi được không?"},
+            {k:"しっかり治療すれば治ります。", h:"しっかりちりょうすればなおります。", v:"Nếu điều trị tử tế sẽ khỏi thôi."},
+            {k:"薬で様子を見ましょう。", h:"くすりでようすをみましょう。", v:"Hãy dùng thuốc rồi theo dõi xem sao."},
+            {k:"手術が必要になるかもしれません。", h:"しゅじゅつがひつようになるかもしれません。", v:"Có thể sẽ cần phải phẫu thuật."},
+            {k:"えっ、手術ですか？", h:"えっ、しゅじゅつですか？", v:"Hả, phẫu thuật ạ?"},
+            {k:"はい、でも簡単な手術です。", h:"はい、でもかんたんなしゅじゅつです。", v:"Vâng, nhưng là phẫu thuật đơn giản thôi."},
+            {k:"入院期間はどのくらいですか？", h:"にゅういんきかんはどのくらいですか？", v:"Thời gian nằm viện là bao lâu?"},
+            {k:"1週間程度です。", h:"1しゅうかんていどです。", v:"Khoảng 1 tuần thôi."},
+            {k:"家族と相談します。", h:"かぞくとそうだんします。", v:"Tôi sẽ bàn bạc với gia đình."},
+            {k:"分かりました。返事を待っています。", h:"わかりました。へんじをまっています。", v:"Tôi hiểu rồi. Tôi chờ câu trả lời."},
+            {k:"アレルギーの原因を調べましょう。", h:"あれるぎーのげんいんをしらべましょう。", v:"Hãy tìm nguyên nhân dị ứng."},
+            {k:"パッチテストをします。", h:"ぱっちてすとをします。", v:"Tôi sẽ làm xét nghiệm áp da (patch test)."},
+            {k:"背中にシールを貼ります。", h:"せなかにしーるをはります。", v:"Tôi sẽ dán miếng dán lên lưng."},
+            {k:"2日間剥がさないでください。", h:"2にちかんはがさないでください。", v:"Đừng bóc ra trong vòng 2 ngày."},
+            {k:"お風呂も入らないでください。", h:"おふろもはいらないでください。", v:"Cũng đừng tắm bồn nhé."},
+            {k:"痒くなっても我慢してください。", h:"かゆくなってもがまんしてください。", v:"Dù ngứa cũng hãy cố nhịn nhé."},
+            {k:"アトピー性皮膚炎ですね。", h:"あとぴーせいひふえんですね。", v:"Bạn bị viêm da cơ địa (Atopy)."},
+            {k:"ステロイドを処方します。", h:"すてろいどをしょほうします。", v:"Tôi sẽ kê thuốc steroid."},
+            {k:"副作用が怖いのですが。", h:"ふくさようがこわいのですが。", v:"Tôi sợ tác dụng phụ lắm..."},
+            {k:"正しく使えば安全ですよ。", h:"ただしくつかえばあんぜんですよ。", v:"Nếu dùng đúng cách thì an toàn thôi."},
+            {k:"塗り方を教えますね。", h:"ぬりかたをおしえますね。", v:"Tôi sẽ chỉ cách bôi nhé."},
+            {k:"レントゲンを撮ります。", h:"れんとげんをとります。", v:"Chúng ta sẽ chụp X-quang."},
+            {k:"レントゲン室へ行ってください。", h:"れんとげんしつへいってください。", v:"Hãy đi đến phòng chụp X-quang."},
+            {k:"着替える必要があります。", h:"きがえるひつようがあります。", v:"Bạn cần phải thay đồ."},
+            {k:"金具のある下着を脱いでください。", h:"かなぐのあるしたぎをぬいでください。", v:"Hãy cởi đồ lót có kim loại ra."},
+            {k:"このガウンを着てください。", h:"このがうんをきてください。", v:"Hãy mặc cái áo choàng này vào."},
+            {k:"ネックレスも外してください。", h:"ねっくれすもはずしてください。", v:"Tháo cả dây chuyền nữa nhé."},
+            {k:"こちらに立ってください。", h:"こちらにたってください。", v:"Hãy đứng ở đây."},
+            {k:"胸をぴったりつけてください。", h:"むねをぴったりつけてください。", v:"Áp sát ngực vào nhé."},
+            {k:"息を吸って、止めてください。", h:"いきをすって、とめてください。", v:"Hít vào, nín thở."},
+            {k:"はい、楽にしてください。", h:"はい、らくにしてください。", v:"Rồi, thả lỏng đi ạ."},
+            {k:"次は横を向いてください。", h:"つぎはよこをむいてください。", v:"Tiếp theo hãy quay sang ngang."},
+            {k:"動かないでくださいね。", h:"うごかないでくださいね。", v:"Đừng cử động nhé."},
+            {k:"終わりました。着替えてください。", h:"おわりました。きがえてください。", v:"Xong rồi. Hãy thay đồ đi ạ."},
+            {k:"骨に異常はありません。", h:"ほねにいじょうはありません。", v:"Xương không có gì bất thường."},
+            {k:"ヒビが入っています。", h:"ひびがはいっています。", v:"Có vết rạn xương."},
+            {k:"骨折していますね。", h:"こっせつしていますね。", v:"Bị gãy xương rồi."},
+            {k:"ギプスを固定します。", h:"ぎぷすをこていします。", v:"Tôi sẽ cố định bằng băng bột."},
+            {k:"濡らさないようにしてください。", h:"ぬらさないようにしてください。", v:"Đừng để bị ướt nhé."},
+            {k:"松葉杖を使いますか？", h:"まつばづえをつかいますか？", v:"Bạn có dùng nạng không?"},
+            {k:"はい、借りたいです。", h:"はい、かりたいです。", v:"Vâng, tôi muốn mượn."},
+            {k:"使い方の練習をしましょう。", h:"つかいかたのれんしゅうをしましょう。", v:"Chúng ta hãy tập cách dùng nhé."},
+            {k:"足を地面につけないでください。", h:"あしをじめんにつけないでください。", v:"Đừng để chân chạm đất."},
+            {k:"捻挫ですね。", h:"ねんざですね。", v:"Bị bong gân rồi."},
+            {k:"シップを貼っておきます。", h:"しっぷをはっておきます。", v:"Tôi sẽ dán miếng dán giảm đau."},
+            {k:"冷やしたほうがいいですか？", h:"ひやしたほうがいいですか？", v:"Có nên chườm lạnh không ạ?"},
+            {k:"はい、今日は冷やしてください。", h:"はい、きょうはひやしてください。", v:"Vâng, hôm nay hãy chườm lạnh."},
+            {k:"打撲です。数日で良くなります。", h:"だぼくです。すうじつでよくなります。", v:"Chỉ là vết bầm thôi. Vài ngày sẽ khỏi."},
+            {k:"リハビリが必要です。", h:"りはびりがひつようです。", v:"Cần phải vật lý trị liệu."},
+            {k:"リハビリ室は3階です。", h:"りはびりしつは3かいです。", v:"Phòng vật lý trị liệu ở tầng 3."},
+            {k:"毎日通えますか？", h:"まいにちかよえますか？", v:"Bạn có thể đến hàng ngày không?"},
+            {k:"週に2回なら来られます。", h:"しゅうに2かいならこられます。", v:"Tuần 2 lần thì tôi đến được."},
+            {k:"無理のない範囲でやりましょう。", h:"むりのないはんいでやりましょう。", v:"Hãy làm trong phạm vi không quá sức."},
+            {k:"腰を痛めました。", h:"こしをいためました。", v:"Tôi bị đau lưng."},
+            {k:"重いものを持たないでください。", h:"おもいものをもたないでください。", v:"Đừng mang vật nặng nhé."},
+            {k:"コルセットを巻きますか？", h:"こるせっとをまきますか？", v:"Bạn có muốn đeo đai lưng (corset) không?"},
+            {k:"楽になるならお願いします。", h:"らくになるならおねがいします。", v:"Nếu thấy đỡ thì làm ơn."},
+            {k:"サイズを測りますね。", h:"さいずをはかりますね。", v:"Để tôi đo kích cỡ nhé."},
+            {k:"突き指をしました。", h:"つきゆびをしました。", v:"Tôi bị trật khớp ngón tay."},
+            {k:"テーピングをします。", h:"てーぴんぐをします。", v:"Tôi sẽ quấn băng cố định."},
+            {k:"消毒をします。染みますよ。", h:"しょうどくをします。しみますよ。", v:"Tôi sát trùng nhé. Sẽ hơi rát đấy."},
+            {k:"痛っ！少し我慢してください。", h:"いたっ！すこしがまんしてください。", v:"Á! Hãy chịu khó một chút."},
+            {k:"傷口を縫う必要があります。", h:"きずぐちをぬうひつようがあります。", v:"Cần phải khâu vết thương."},
+            {k:"麻酔をしますね。", h:"ますいをしますね。", v:"Tôi sẽ tiêm thuốc tê nhé."},
+            {k:"何針縫いますか？", h:"なにはりぬいますか？", v:"Khâu mấy mũi ạ?"},
+            {k:"5針くらいですね。", h:"5はりくらいですね。", v:"Khoảng 5 mũi nhé."},
+            {k:"来週、抜糸に来てください。", h:"らいしゅう、ばっしにきてください。", v:"Tuần sau hãy đến cắt chỉ."},
+            {k:"それまで濡らさないでください。", h:"それまでぬらさないでください。", v:"Đến lúc đó đừng để bị ướt nhé."},
+            {k:"絆創膏を貼っておきます。", h:"ばんそうこうをはっておきます。", v:"Tôi dán băng cá nhân cho nhé."},
+            {k:"自分で取り替えていいですか？", h:"じぶんでとりかえていいですか？", v:"Tôi tự thay có được không?"},
+            {k:"はい、毎日替えてください。", h:"はい、まいにちかえてください。", v:"Vâng, hãy thay hàng ngày."},
+            {k:"お薬を出しておきます。", h:"おくすりをだしておきます。", v:"Tôi sẽ kê thuốc cho bạn."},
+            {k:"飲み薬が3種類あります。", h:"のみぐすりが3しゅるいあります。", v:"Có 3 loại thuốc uống."},
+            {k:"痛み止めはありますか？", h:"いたみどめはありますか？", v:"Có thuốc giảm đau không ạ?"},
+            {k:"はい、痛い時だけ飲んでください。", h:"はい、いたいときだけのんでください。", v:"Có, chỉ uống khi thấy đau thôi."},
+            {k:"空腹時は避けてください。", h:"くうふくじはさけてください。", v:"Đừng uống lúc bụng đói."},
+            {k:"食後に飲んでください。", h:"しょくごにのんでください。", v:"Hãy uống sau khi ăn."},
+            {k:"1日3回、食後です。", h:"1にち3かい、しょくごです。", v:"Ngày 3 lần, sau ăn."},
+            {k:"抗生物質は最後まで飲んでください。", h:"こうせいぶっしつはさいごまでのんでください。", v:"Thuốc kháng sinh hãy uống cho đến hết."},
+            {k:"途中でやめないでくださいね。", h:"とちゅうでやめないでくださいね。", v:"Đừng bỏ giữa chừng nhé."},
+            {k:"副作用が出るかもしれません。", h:"ふくさようがでるかもしれません。", v:"Có thể sẽ có tác dụng phụ."},
+            {k:"眠くなることがあります。", h:"ねむくなることがあります。", v:"Có thể sẽ thấy buồn ngủ."},
+            {k:"運転はしないでください。", h:"うんてんはしないでください。", v:"Đừng lái xe nhé."},
+            {k:"湿疹が出たら教えてください。", h:"しっしんがでたらおしえてください。", v:"Nếu bị phát ban hãy báo tôi biết."},
+            {k:"胃が荒れることがあります。", h:"いがあれることがあります。", v:"Có thể sẽ bị hại dạ dày."},
+            {k:"胃薬も一緒に出しますね。", h:"いぐすりもいっしょにだしますね。", v:"Tôi sẽ kê cả thuốc dạ dày cùng luôn."},
+            {k:"漢方薬がいいですか？", h:"かんぽうやくがいいですか？", v:"Bạn có thích thuốc Đông y không?"},
+            {k:"いいえ、普通の薬がいいです。", h:"いいえ、ふつうのくすりがいいです。", v:"Không, thuốc Tây bình thường là được ạ."},
+            {k:"粉薬は飲めますか？", h:"こなぐすりはのめますか？", v:"Bạn có uống được thuốc bột không?"},
+            {k:"苦手なので錠剤がいいです。", h:"にがてなのでじょうざいがいいです。", v:"Tôi không thích nên cho tôi thuốc viên đi."},
+            {k:"分かりました。錠剤に変えます。", h:"わかりました。じょうざいにかえます。", v:"Tôi hiểu rồi. Tôi đổi sang thuốc viên."},
+            {k:"トローチは噛まないでください。", h:"とろーちはかまないでください。", v:"Thuốc ngậm ho đừng nhai nhé."},
+            {k:"ゆっくり溶かしてください。", h:"ゆっくりとかしてください。", v:"Hãy để nó tan từ từ."},
+            {k:"うがい薬も出します。", h:"うがいぐすりもだします。", v:"Tôi kê cả thuốc súc miệng nữa."},
+            {k:"1日数回うがいをしてください。", h:"1にちすうかいうがいをしてください。", v:"Hãy súc miệng ngày vài lần."},
+            {k:"目薬の使い方を知っていますか？", h:"めぐすりのつかいかたをしっていますか？", v:"Bạn có biết cách dùng thuốc nhỏ mắt không?"},
+            {k:"いいえ、教えてください。", h:"いいえ、おしえてください。", v:"Không, hãy chỉ tôi với."},
+            {k:"1滴ずつさしてください。", h:"1てきずつさしてください。", v:"Hãy nhỏ từng giọt một."},
+            {k:"しばらく目を閉じてください。", h:"しばらくめをとじてください。", v:"Hãy nhắm mắt lại một lát."},
+            {k:"容器の先が目に触れないように。", h:"ようきのさきがめにふれないように。", v:"Đừng để đầu lọ thuốc chạm vào mắt."},
+            {k:"塗り薬の使い方です。", h:"ぬりぐすりのつかいかたです。", v:"Đây là cách dùng thuốc bôi."},
+            {k:"お風呂上がりに塗ってください。", h:"おふろあがりにぬってください。", v:"Hãy bôi sau khi tắm xong."},
+            {k:"薄く伸ばして塗ってください。", h:"うすくのばしてぬってください。", v:"Hãy bôi một lớp mỏng và xoa đều."},
+            {k:"強く擦らないでください。", h:"つよくこすらないでください。", v:"Đừng chà xát mạnh nhé."},
+            {k:"絆創膏は貼らなくていいです。", h:"ばんそうこうははらなくていいです。", v:"Không cần dán băng cá nhân đâu."},
+            {k:"座薬は使ったことがありますか？", h:"ざやくはつかったことがありますか？", v:"Bạn đã từng dùng thuốc đặt hậu môn chưa?"},
+            {k:"ありません。不安です。", h:"ありません。ふあんです。", v:"Chưa ạ. Tôi thấy lo quá."},
+            {k:"説明書をよく読んでください。", h:"せつめいしょをよくよんでください。", v:"Hãy đọc kỹ tờ hướng dẫn nhé."},
+            {k:"冷蔵庫に保管してください。", h:"れいぞうこにほかんしてください。", v:"Hãy bảo quản trong tủ lạnh."},
+            {k:"吸入器の使い方です。", h:"きゅうにゅうきのつかいかたです。", v:"Đây là cách dùng máy xịt định liều (hít)."},
+            {k:"しっかり吸い込んでください。", h:"しっかりすいこんでください。", v:"Hãy hít vào thật sâu."},
+            {k:"そのあと、うがいをしてください。", h:"そのあと、うがいをしてください。", v:"Sau đó hãy súc miệng nhé."},
+            {k:"2週間分出しておきますね。", h:"2しゅうかんぶんだしておきますね。", v:"Tôi kê đơn cho 2 tuần nhé."},
+            {k:"そんなにたくさんですか？", h:"そんなにたくさんですか？", v:"Nhiều thế ạ?"},
+            {k:"はい、飲み切ることが大切です。", h:"はい、のみきることがたいせつです。", v:"Vâng, uống hết liều là rất quan trọng."},
+            {k:"分かりました。頑張ります。", h:"わかりました。がんばります。", v:"Tôi hiểu rồi. Tôi sẽ cố gắng."},
+            {k:"今の薬がなくなったら来てください。", h:"いまのくすりがなくなったらきてください。", v:"Khi nào hết thuốc hiện tại hãy đến nhé."},
+            {k:"予約はいりません。", h:"よやくはいりません。", v:"Không cần đặt hẹn đâu."},
+            {k:"午前中に来てください。", h:"ごぜんちゅうにきてください。", v:"Hãy đến vào buổi sáng."},
+            {k:"何かあったら連絡してください。", h:"なにかあったられんらくしてください。", v:"Nếu có chuyện gì hãy liên lạc nhé."},
+            {k:"お大事にしてください。", h:"おだいじにしてください。", v:"Chúc bạn mạnh khỏe."},
+            {k:"お会計をします。", h:"おかいけいをします。", v:"Chúng ta thanh toán nhé."},
+            {k:"待合室でお待ちください。", h:"まちあいしつでおまちください。", v:"Vui lòng đợi ở phòng chờ."},
+            {k:"番号を呼びます。", h:"ばんごうをよびます。", v:"Tôi sẽ gọi số."},
+            {k:"15番の方、どうぞ。", h:"15ばんのかた、どうぞ。", v:"Số 15, mời bạn."},
+            {k:"合計で3500円です。", h:"ごうけいで3500えんです。", v:"Tổng cộng là 3500 Yên."},
+            {k:"クレジットカードは使えますか？", h:"くれじっとかーどはつかえますか？", v:"Có dùng được thẻ tín dụng không?"},
+            {k:"はい、使えます。", h:"はい、つかえます。", v:"Có, dùng được ạ."},
+            {k:"一括払いでよろしいですか？", h:"いっかつばらいでよろしいですか？", v:"Thanh toán một lần có được không?"},
+            {k:"電子マネーは使えません。", h:"でんしまねーはつかえません。", v:"Không dùng được tiền điện tử."},
+            {k:"現金で払います。", h:"げんきんではらいます。", v:"Tôi sẽ trả bằng tiền mặt."},
+            {k:"領収書をお受け取りください。", h:"りょうしゅうしょをおうけとりください。", v:"Vui lòng nhận hóa đơn."},
+            {k:"再発行はできません。", h:"さいはっこうはできません。", v:"Không thể cấp lại đâu ạ."},
+            {k:"明細書はこちらです。", h:"めいさいしょはこちらです。", v:"Đây là bản kê chi tiết."},
+            {k:"処方箋を渡しますね。", h:"しょほうせんをわたしますね。", v:"Tôi đưa đơn thuốc.toa thuốc cho bạn nhé."},
+            {k:"有効期限は4日間です。", h:"ゆうこうきげんはよっかかんです。", v:"Thời hạn hiệu lực là 4 ngày."},
+            {k:"期限が切れると無効になります。", h:"きげんがきれるとむこうになります。", v:"Nếu quá hạn sẽ không còn hiệu lực."},
+            {k:"外の薬局へ行ってください。", h:"そとのやっきょくへいってください。", v:"Hãy đi đến nhà thuốc bên ngoài."},
+            {k:"一番近い薬局はどこですか？", h:"いちばんちかいやっきょくはどこですか？", v:"Nhà thuốc gần nhất ở đâu ạ?"},
+            {k:"病院を出て右側にあります。", h:"びょういんをでてみぎがわにあります。", v:"Ra khỏi bệnh viện rồi nằm ở phía bên phải."},
+            {k:"保険証を返しますね。", h:"ほけんしょうをかえしますね。", v:"Tôi trả lại thẻ bảo hiểm nhé."},
+            {k:"忘れ物はないですか？", h:"わすれものはないですか？", v:"Bạn có quên đồ gì không?"},
+            {k:"カバンがあります。よかったです。", h:"かばんがあります。よかったです。", v:"Có cái túi đây rồi. May quá."},
+            {k:"次の予約はいつですか？", h:"つぎのよやくはいつですか？", v:"Lịch hẹn tiếp theo là khi nào?"},
+            {k:"来週の木曜日、14時です。", h:"らいしゅうのもくようび、14じです。", v:"Thứ Năm tuần sau, lúc 14 giờ."},
+            {k:"予約票を渡しますね。", h:"よやくひょうをわたしますね。", v:"Tôi đưa phiếu hẹn cho bạn nhé."},
+            {k:"変更したい時は電話してください。", h:"へんこうしたいときはでんわしてください。", v:"Nếu muốn thay đổi hãy gọi điện nhé."},
+            {k:"前日までに連絡をお願いします。", h:"ぜんじつまでにれんらくをおねがいします。", v:"Vui lòng liên lạc trước ít nhất một ngày."},
+            {k:"診断書代はいくらですか？", h:"しんだんしょだいはいくらですか？", v:"Phí viết giấy chứng nhận là bao nhiêu?"},
+            {k:"3300円かかります。", h:"3300えんかかります。", v:"Mất 3300 Yên ạ."},
+            {k:"今日払いますか？", h:"きょうはらいますか？", v:"Hôm nay có trả luôn không?"},
+            {k:"はい、一緒に払います。", h:"はい、いっしょにはらいます。", v:"Vâng, trả cùng luôn ạ."},
+            {k:"保険が適用されていません。", h:"ほけんがてきようされていません。", v:"Chưa áp dụng bảo hiểm vào cái này."},
+            {k:"どうしてですか？", h:"どうしてですか？", v:"Tại sao vậy ạ?"},
+            {k:"これは自費診療だからです。", h:"これはじひしんりょうだからです。", v:"Vì đây là khám tự túc."},
+            {k:"全額負担になります。", h:"ぜんがくふたんになります。", v:"Bạn phải chịu 100% chi phí."},
+            {k:"高いですね。", h:"たかいですね。", v:"Đắt quá nhỉ."},
+            {k:"日本の保険制度のルールです。", h:"にほんのほけんせいどのるーるです。", v:"Đó là quy định của hệ thống bảo hiểm Nhật Bản."},
+            {k:"医療費控除に使えますか？", h:"いりょうひこうじょにつかえますか？", v:"Có dùng để giảm trừ thuế y tế được không?"},
+            {k:"はい、領収書を保管してください。", h:"はい、りょうしゅうしょをほかんしてください。", v:"Có, hãy giữ lại hóa đơn nhé."},
+            {k:"マイナンバーカードを使いましたか？", h:"まいなんばーかーどをつかいましたか？", v:"Bạn có dùng thẻ My Number không?"},
+            {k:"はい、使いました。", h:"はい、つかいました。", v:"Vâng, có dùng ạ."},
+            {k:"窓口での支払いが安くなることがあります。", h:"まどぐちでのしはらいがやすくなることがあります。", v:"Có trường hợp chi phí trả tại quầy sẽ rẻ hơn đấy."},
+            {k:"限度額適用認定証はありますか？", h:"げんどがくてきようにんていしょうはありますか？", v:"Bạn có giấy chứng nhận áp dụng mức giới hạn không?"},
+            {k:"持っていません。", h:"もっていません。", v:"Tôi không có."},
+            {k:"後で申請できますよ。", h:"あとでしんせいできますよ。", v:"Sau này có thể đăng ký được đấy."},
+            {k:"役所へ行って聞いてください。", h:"やくしょへいってきいてください。", v:"Hãy đến văn phòng hành chính quận/thành phố để hỏi nhé."},
+            {k:"分かりました。ありがとうございます。", h:"わかりました。ありがとうございます。", v:"Tôi hiểu rồi. Cảm ơn nhiều."},
+            {k:"お気をつけてお帰りください。", h:"おきをつけておかえりください。", v:"Đi đường cẩn thận nhé."},
+            {k:"お大事に。", h:"おだいじに。", v:"Chúc mau khỏe."},
+            {k:"失礼します。", h:"しつれいします。", v:"Tôi xin phép (ra về)."},
+            {k:"入院の手続きをします。", h:"にゅういんのてつづきをします。", v:"Tôi sẽ làm thủ tục nhập viện."},
+            {k:"入院申込書を書いてください。", h:"にゅういんもうしこみしょをかいてください。", v:"Vui lòng điền đơn đăng ký nhập viện."},
+            {k:"保証人は必要ですか？", h:"ほしょうにんはひつようですか？", v:"Có cần người bảo lãnh không?"},
+            {k:"はい、お一人必要です。", h:"はい、おひとりひつようです。", v:"Vâng, cần một người ạ."},
+            {k:"印鑑を持っていますか？", h:"いんかんをもっていますか？", v:"Bạn có mang theo con dấu không?"},
+            {k:"サインでも大丈夫です。", h:"さいんでもだいじょうぶです。", v:"Ký tên cũng được ạ."},
+            {k:"病室へ案内します。", h:"びょうしつへあんないします。", v:"Tôi sẽ dẫn bạn đến phòng bệnh."},
+            {k:"荷物はこれだけですか？", h:"にもつはこれだけですか？", v:"Hành lý chỉ có thế này thôi ạ?"},
+            {k:"家族が後で持ってきます。", h:"かぞくがあとでもってきます。", v:"Gia đình tôi sẽ mang đến sau."},
+            {k:"ここは4人部屋です。", h:"ここはよにんべやです。", v:"Đây là phòng 4 người."},
+            {k:"個室がいいのですが。", h:"こしつがいいのですが。", v:"Tôi muốn phòng đơn..."},
+            {k:"空きがあるか確認します。", h:"あきがあるかかくにんします。", v:"Để tôi kiểm tra xem còn trống không."},
+            {k:"差額ベッド代がかかります。", h:"さがくべっどだいがかかります。", v:"Sẽ mất thêm phí chênh lệch giường bệnh."},
+            {k:"1日5000円追加です。", h:"いちにちごせんえんついかです。", v:"Thêm 5000 Yên mỗi ngày."},
+            {k:"テレビカードを買ってください。", h:"てれびかーどをかってください。", v:"Vui lòng mua thẻ xem tivi."},
+            {k:"冷蔵庫も有料です。", h:"れいぞうこもゆうりょうです。", v:"Tủ lạnh cũng phải trả phí."},
+            {k:"パジャマを借りたいです。", h:"ぱじゃまをかりたいです。", v:"Tôi muốn mượn bộ đồ ngủ bệnh viện."},
+            {k:"1日100円で借りられます。", h:"いちにちひゃくえんでかりられます。", v:"Có thể mượn với giá 100 Yên/ngày."},
+            {k:"洗面用具はありますか？", h:"せんめんようぐはありますか？", v:"Bạn có đồ dùng vệ sinh cá nhân không?"},
+            {k:"売店で売っています。", h:"ばいてんでうっています。", v:"Cửa hàng tiện lợi có bán đấy."},
+            {k:"消灯時間は22時です。", h:"しょうとうじかんは22じです。", v:"Giờ tắt đèn là 22 giờ."},
+            {k:"夜間は静かにしてください。", h:"やかんはしずかにしてください。", v:"Ban đêm vui lòng giữ yên lặng."},
+            {k:"検温の時間です。", h:"けんおんのじかんです。", v:"Đến giờ đo thân nhiệt."},
+            {k:"体温と血圧を測ります。", h:"たいおんとけつあつをはかります。", v:"Tôi đo nhiệt độ và huyết áp nhé."},
+            {k:"気分はどうですか？", h:"きぶんはどうですか？", v:"Cảm giác của bạn thế nào?"},
+            {k:"少し眠れました。", h:"すこしねむれました。", v:"Tôi đã ngủ được một chút."},
+            {k:"食事の時間です。", h:"しょくじのじかんです。", v:"Đến giờ ăn rồi."},
+            {k:"アレルギー食にしています。", h:"あれるぎーしょくにしています。", v:"Tôi đã chuẩn bị suất ăn cho người dị ứng."},
+            {k:"お茶を持ってきますね。", h:"おちゃをもってきますね。", v:"Tôi sẽ mang trà đến nhé."},
+            {k:"シャワーは予約制です。", h:"しゃわーはよやくせいです。", v:"Tắm vòi sen phải đặt trước."},
+            {k:"ここに名前を書いてください。", h:"ここになまえをかいてください。", v:"Hãy viết tên vào đây."},
+            {k:"面会時間は14時から18時です。", h:"めんかいじかんは14じから18じです。", v:"Giờ thăm bệnh là từ 14h đến 18h."},
+            {k:"面会者は受付を通ってください。", h:"めんかいしゃはうけつけをとおってください。", v:"Người thăm bệnh phải qua quầy tiếp tân."},
+            {k:"ナースコールを渡します。", h:"なーすこーるをわたします。", v:"Tôi đưa nút bấm gọi y tá cho bạn."},
+            {k:"何かあったら押してください。", h:"なにかあったらおしてください。", v:"Nếu có chuyện gì hãy bấm nút nhé."},
+            {k:"点滴が終わりそうです。", h:"てんてきがおわりそうです。", v:"Dịch truyền sắp hết rồi."},
+            {k:"今、取り替えますね。", h:"いま、とりかえますね。", v:"Bây giờ tôi thay luôn nhé."},
+            {k:"針を抜きます。", h:"はりをぬきます。", v:"Tôi rút kim đây."},
+            {k:"明日、退院できますよ。", h:"あした、たいいんできますよ。", v:"Ngày mai bạn có thể xuất viện."},
+            {k:"本当ですか？嬉しいです。", h:"ほんとうですか？うれしいです。", v:"Thật sao? Tôi vui quá."},
+            {k:"退院後の注意を説明します。", h:"たいいんごのちゅういをせつめいします。", v:"Tôi giải thích lưu ý sau xuất viện."},
+            {k:"まだ無理はしないでください。", h:"まだむりはしないでください。", v:"Vẫn chưa được làm quá sức đâu."},
+            {k:"食事制限はありますか？", h:"しょくじせいげんはありますか？", v:"Có phải kiêng ăn gì không?"},
+            {k:"特にありません。何でも食べていいです。", h:"とくにありません。なんでもたべていいです。", v:"Không có gì đặc biệt. Ăn gì cũng được."},
+            {k:"お酒はもう少し待ってください。", h:"おさけはもうすこしまってください。", v:"Rượu thì hãy đợi thêm một thời gian nữa."},
+            {k:"退院祝いをしてもいいですか？", h:"たいいんいわいをしてもいいですか？", v:"Tôi tổ chức tiệc mừng xuất viện được không?"},
+            {k:"外食は控えめにお願いします。", h:"がいしょくはひかえめにおねがいします。", v:"Vui lòng hạn chế ăn ngoài."},
+            {k:"お世話になりました。", h:"おせわになりました。", v:"Cảm ơn vì đã chăm sóc tôi."},
+            {k:"お大事にしてください。", h:"おだいじにしてください。", v:"Chúc bạn giữ gìn sức khỏe."},
+            {k:"ありがとうございました。", h:"ありがとうございました。", v:"Xin cảm ơn rất nhiều."},
+            {k:"お薬の説明をしますね。", h:"おくすりのせつめいをしますね。", v:"Tôi sẽ giải thích về thuốc nhé."},
+            {k:"この薬は食前に飲んでください。", h:"このくすりはしょくぜんにのんでください。", v:"Thuốc này uống trước khi ăn."},
+            {k:"食事の30分前です。", h:"しょくじの30ぷんまえです。", v:"Là 30 phút trước khi ăn."},
+            {k:"食後の薬はこれです。", h:"しょくごのくすりはこれです。", v:"Thuốc sau khi ăn là loại này."},
+            {k:"30分以内に飲んでください。", h:"30ぷんいないにのんでください。", v:"Hãy uống trong vòng 30 phút (sau ăn)."},
+            {k:"食間とはいつですか？", h:"しょっかんとはいつですか？", v:"'Giữa bữa ăn' là khi nào ạ?"},
+            {k:"食事と食事の間、約2時間後です。", h:"しょくじとしょくじのあいだ、やく2じかんごです。", v:"Là giữa các bữa ăn, khoảng 2 tiếng sau ăn."},
+            {k:"寝る前の薬もあります。", h:"ねるまえのくすりもあります。", v:"Cũng có thuốc uống trước khi ngủ."},
+            {k:"寝る30分前に飲んでください。", h:"ねる30ぷんまえにのんでください。", v:"Uống 30 phút trước khi ngủ."},
+            {k:"飲み忘れたらどうしますか？", h:"のみわすれたらどうしますか？", v:"Nếu quên uống thì làm sao?"},
+            {k:"気づいた時にすぐ飲んでください。", h:"きづいたときにすぐのんでください。", v:"Hãy uống ngay khi nhớ ra."},
+            {k:"2回分を一度に飲まないでください。", h:"2かいぶんをいちどにのまないでください。", v:"Đừng uống gấp đôi liều một lúc."},
+            {k:"この薬は眠くなります。", h:"このくすりはねむくなります。", v:"Thuốc này gây buồn ngủ."},
+            {k:"車の運転は控えてください。", h:"くるまのうんてんはひかえてください。", v:"Hạn chế lái xe ô tô nhé."},
+            {k:"お酒と一緒に飲まないでください。", h:"おさけといっしょにのまないでください。", v:"Đừng uống chung với rượu."},
+            {k:"水かぬるま湯で飲んでください。", h:"みずかぬるまゆでのんでください。", v:"Hãy uống với nước hoặc nước ấm."},
+            {k:"お茶やジュースはダメですか？", h:"おちゃやじゅーすはだめですか？", v:"Trà hay nước hoa quả có được không?"},
+            {k:"水が一番いいですよ。", h:"みずがいちばんいいですよ。", v:"Nước lọc là tốt nhất đấy."},
+            {k:"錠剤が大きくて飲めません。", h:"じょうざいがおおきくてのめません。", v:"Viên thuốc to quá tôi không uống được."},
+            {k:"砕いてもいいですか？", h:"くだいてもいいですか？", v:"Tôi nghiền ra được không?"},
+            {k:"この薬は砕いてはいけません。", h:"このくすりはくだいてはいけません。", v:"Thuốc này không được nghiền."},
+            {k:"粉薬に変えられますか？", h:"こなぐすりにかえられますか？", v:"Có thể đổi sang thuốc bột không?"},
+            {k:"確認しますのでお待ちください。", h:"かくにんしますのでおまちください。", v:"Đợi chút để tôi kiểm tra."},
+            {k:"吸入薬の使い方です。", h:"きゅうにゅうやくのつかいかたです。", v:"Đây là cách dùng thuốc hít."},
+            {k:"深く吸い込んでください。", h:"ふかくすいこんでください。", v:"Hãy hít vào thật sâu."},
+            {k:"その後、必ずうがいをしてください。", h:"そのあと、かならずうがいをしてください。", v:"Sau đó nhất định phải súc miệng."},
+            {k:"塗り薬は1日2回です。", h:"ぬりぐすりはいちにちにかいです。", v:"Thuốc bôi ngày 2 lần."},
+            {k:"お風呂上がりが効果的です。", h:"おふろあがりがこうかてきです。", v:"Bôi sau khi tắm là hiệu quả nhất."},
+            {k:"目薬は1回1滴です。", h:"めぐすりはいっかいひとてきです。", v:"Thuốc nhỏ mắt mỗi lần 1 giọt."},
+            {k:"何種類かある時は間隔を空けてください。", h:"なんしゅるいかあるときはかんかくをあけてください。", v:"Nếu có vài loại hãy nhỏ cách quãng ra."},
+            {k:"5分くらい空けてください。", h:"5ふんくらいあけてください。", v:"Hãy cách nhau khoảng 5 phút."},
+            {k:"座薬は冷蔵庫で保管してください。", h:"ざやくはれいぞうこでほかんしてください。", v:"Thuốc đặt hãy bảo quản trong tủ lạnh."},
+            {k:"子供の手の届かない所に置いてください。", h:"こどものてのとどかないところにおいでください。", v:"Để xa tầm tay trẻ em."},
+            {k:"副作用が心配です。", h:"ふくさようがしんぱいです。", v:"Tôi lo về tác dụng phụ."},
+            {k:"発疹が出たら中止してください。", h:"ほっしんがでたらちゅうししてください。", v:"Nếu nổi phát ban hãy ngưng thuốc."},
+            {k:"下痢になることがあります。", h:"げりになることがあります。", v:"Có thể sẽ bị tiêu chảy."},
+            {k:"ひどい時は連絡してください。", h:"ひどいときはれんらくしてください。", v:"Nếu nặng hãy liên lạc nhé."},
+            {k:"この薬はいつまで飲みますか？", h:"このくすりはいつまでのみますか？", v:"Thuốc này uống đến khi nào?"},
+            {k:"全部飲み切ってください。", h:"ぜんぶのみきってください。", v:"Hãy uống cho hết đơn."},
+            {k:"症状が良くなってもやめないでください。", h:"しょうじょうがよくなってもやめないでください。", v:"Dù triệu chứng đỡ hơn cũng đừng bỏ thuốc."},
+            {k:"特に抗生物質は大切です。", h:"とくにこうせいぶっしつはたいせつです。", v:"Đặc biệt là kháng sinh, rất quan trọng."},
+            {k:"薬の組み合わせを確認します。", h:"くすりのくみあわせをかくにんします。", v:"Tôi sẽ kiểm tra sự kết hợp các loại thuốc."},
+            {k:"他の病院の薬はありますか？", h:"ほかのびょういんのくすりはありますか？", v:"Bạn có thuốc của bệnh viện khác không?"},
+            {k:"お薬手帳に貼っておきますね。", h:"おくすりてちょうにはっておきますね。", v:"Tôi sẽ dán (thông tin) vào sổ tay thuốc nhé."},
+            {k:"次回の診察時に持ってきてください。", h:"じかいのしんさつじにもってきてください。", v:"Lần khám tới hãy mang theo nhé."},
+            {k:"領収書と明細書です。", h:"りょうしゅうしょとめいさいしょです。", v:"Đây là hóa đơn và bảng kê chi tiết."},
+            {k:"お薬代は2000円です。", h:"おくすりだいは2000えんです。", v:"Tiền thuốc là 2000 Yên."},
+            {k:"ジェネリック医薬品にしますか？", h:"じぇねりっくいやくひんにしますか？", v:"Bạn có muốn dùng thuốc Generic (thuốc cùng loại giá rẻ) không?"},
+            {k:"安くなるならお願いします。", h:"やすくなるならおねがいします。", v:"Nếu rẻ hơn thì làm ơn."},
+            {k:"はい、ではこちらになります。", h:"はい、ではこちらになります。", v:"Vâng, vậy là loại này ạ."},
+            {k:"救急車を呼んでください！", h:"きゅうきゅうしゃをよんでください！", v:"Hãy gọi xe cấp cứu giúp tôi!"},
+            {k:"意識はありますか？", h:"いしきはありますか？", v:"Người đó có còn ý thức không?"},
+            {k:"返事がありません。", h:"へんじがありません。", v:"Không có phản hồi."},
+            {k:"呼吸をしていますか？", h:"こきゅうをしていますか？", v:"Có đang thở không?"},
+            {k:"苦しそうです。", h:"くるしそうです。", v:"Trông có vẻ đang đau đớn/khó thở."},
+            {k:"AEDを持ってきてください！", h:"AEDをもってきてください！", v:"Hãy mang máy AED đến đây!"},
+            {k:"胸骨圧迫をしてください。", h:"きょうこつあっぱくをしてください。", v:"Hãy ép tim ngoài lồng ngực."},
+            {k:"救急外来はどこですか？", h:"きゅうきゅうがいらいはどこですか？", v:"Khoa cấp cứu ở đâu?"},
+            {k:"夜間入り口から入ってください。", h:"やかんいりぐちからはいってください。", v:"Hãy đi vào từ cổng ban đêm."},
+            {k:"頭を強く打ちました。", h:"あたまをつよくうちました。", v:"Tôi bị đập đầu rất mạnh."},
+            {k:"出血が止まりません。", h:"しゅっけつがとまりません。", v:"Máu chảy không ngừng."},
+            {k:"傷口を押さえてください。", h:"きずぐちをおさえてください。", v:"Hãy ấn chặt vào vết thương."},
+            {k:"骨が突き出ています。", h:"ほねがつきでています。", v:"Xương bị lòi ra ngoài."},
+            {k:"動かさないでください。", h:"うごかさないでください。", v:"Đừng cử động người đó."},
+            {k:"火傷をしました。", h:"やけどをしました。", v:"Tôi bị bỏng."},
+            {k:"すぐに冷やしてください。", h:"すぐにひやしてください。", v:"Hãy làm mát ngay lập tức."},
+            {k:"水道水で20分流してください。", h:"すいどうすいで20ぷんながしてください。", v:"Xả dưới vòi nước trong 20 phút."},
+            {k:"痙攣を起こしています。", h:"けいれんをおこしています。", v:"Đang bị co giật."},
+            {k:"口の中に何も入れないでください。", h:"くちのなかになにもいれないでください。", v:"Đừng cho bất cứ thứ gì vào miệng."},
+            {k:"時間を測ってください。", h:"じかんをはかってください。", v:"Hãy đo thời gian (co giật)."},
+            {k:"誤飲をしました。", h:"ごいんをしました。", v:"Đã nuốt nhầm vật lạ/hóa chất."},
+            {k:"何を飲みましたか？", h:"なにをのみましたか？", v:"Đã uống nhầm cái gì?"},
+            {k:"洗剤を飲んでしまいました。", h:"せんざいをのんでしまいました。", v:"Đã lỡ uống nhầm nước tẩy rửa."},
+            {k:"無理に吐かせないでください。", h:"むりにはかせないでください。", v:"Đừng cố ép nôn ra."},
+            {k:"容器を持ってきてください。", h:"ようきをもってきてください。", v:"Hãy mang theo vỏ hộp đựng."},
+            {k:"蜂に刺されました。", h:"はちにさされました。", v:"Tôi bị ong đốt."},
+            {k:"息が苦しくなりましたか？", h:"いきがくるしくなりましたか？", v:"Có bị khó thở không?"},
+            {k:"じんましんが出てきました。", h:"じんましんがでてきました。", v:"Bị nổi mề đay rồi."},
+            {k:"アナフィラキシーの可能性があります。", h:"あなふぃらきしーのかのうせいがあります。", v:"Có khả năng bị sốc phản vệ."},
+            {k:"すぐに処置をします。", h:"すぐにしょちをします。", v:"Chúng tôi sẽ xử lý ngay lập tức."},
+            {k:"点滴に薬を入れますね。", h:"てんてきにくすりをいれますね。", v:"Tôi sẽ cho thuốc vào dịch truyền."},
+            {k:"落ち着いてください。", h:"おちついてください。", v:"Hãy bình tĩnh lại."},
+            {k:"もう大丈夫ですよ。", h:"もうだいじょうぶですよ。", v:"Bây giờ thì ổn rồi."},
+            {k:"今日は入院して様子を見ましょう。", h:"きょうはにゅういんしてようすをみましょう。", v:"Hôm nay hãy nhập viện để theo dõi thêm."},
+            {k:"付き添いは必要ですか？", h:"つきそいはひつようですか？", v:"Có cần người ở lại chăm sóc không?"},
+            {k:"いいえ、看護師がいますので大丈夫です。", h:"いいえ、かんごしがいますのでだいじょうぶです。", v:"Không, có y tá rồi nên không sao ạ."},
+            {k:"貴重品は預けられますか？", h:"きちょうひんはあずけられますか？", v:"Tôi có thể gửi đồ quý giá không?"},
+            {k:"セーフティボックスを使ってください。", h:"せーふてぃぼっくすをつかってください。", v:"Hãy sử dụng két an toàn."},
+            {k:"明日の朝、先生が来ます。", h:"あしたのあさ、せんせいがきます。", v:"Sáng mai bác sĩ sẽ đến."},
+            {k:"体調に変化があったら教えてください。", h:"たいちょうにへんかがあったらおしえてください。", v:"Nếu có thay đổi gì về sức khỏe hãy báo nhé."},
+            {k:"夜中のトイレは呼んでください。", h:"よなかのといれはよんでください。", v:"Nửa đêm đi vệ sinh hãy gọi chúng tôi."},
+            {k:"転倒に気をつけてください。", h:"てんとうにきをつけてください。", v:"Hãy cẩn thận đừng để bị ngã."},
+            {k:"リハビリを始めましょう。", h:"りはびりをはじめましょう。", v:"Chúng ta bắt đầu vật lý trị liệu nhé."},
+            {k:"ゆっくり歩いてください。", h:"ゆっくりあるいてください。", v:"Hãy đi bộ chậm rãi."},
+            {k:"痛い時は無理しないで。", h:"いたいときはむりしないで。", v:"Lúc đau thì đừng quá sức."},
+            {k:"よく頑張りましたね。", h:"よくがんばりましたね。", v:"Bạn đã vất vả/cố gắng nhiều rồi."},
+            {k:"退院おめでとうございます。", h:"たいいんおめでとうございます。", v:"Chúc mừng bạn được xuất viện."},
+            {k:"忘れ物がないか確認してください。", h:"わすれものがないかかくにんしてください。", v:"Hãy kiểm tra xem có quên đồ gì không."},
+            {k:"お世話になりました。さようなら。", h:"おせわになりました。さようなら。", v:"Cảm ơn vì đã giúp đỡ. Chào tạm biệt."},
+            {k:"お大事に。また何かあればどうぞ。", h:"おだいじに。またなにかあればどうぞ。", v:"Chúc sức khỏe. Nếu có chuyện gì lại đến nhé."}
+        ];
+
+        // ==================== BIẾN TOÀN CỤC ====================
+        const synth = window.speechSynthesis;
+        let voices = [];
+        let activeTab = 0;
+
+        // ==================== GIỌNG NÓI ====================
+        function populateVoices() {
+            voices = synth.getVoices();
+            const voiceJpSelect = document.getElementById('voiceJp');
+            const voiceViSelect = document.getElementById('voiceVi');
+            
+            const jpVoices = voices.filter(v => v.lang.includes('ja'));
+            voiceJpSelect.innerHTML = jpVoices.map(v => 
+                `<option value="${v.name}" ${v.name.includes('Kyoko') ? 'selected' : ''}>${v.name} (${v.lang})</option>`
+            ).join('');
+            if (jpVoices.length > 0 && !jpVoices.some(v => v.name.includes('Kyoko'))) {
+                voiceJpSelect.selectedIndex = 0;
+            }
+
+            const viVoices = voices.filter(v => v.lang.includes('vi'));
+            voiceViSelect.innerHTML = viVoices.map(v => 
+                `<option value="${v.name}">${v.name} (${v.lang})</option>`
+            ).join('');
+            if (viVoices.length > 0) voiceViSelect.selectedIndex = 0;
+        }
+
+        if (speechSynthesis.onvoiceschanged !== undefined) {
+            speechSynthesis.onvoiceschanged = populateVoices;
+        }
+
+        function getVoiceByName(name) {
+            return voices.find(v => v.name === name) || null;
+        }
+
+        // ==================== TẠO THẺ ====================
+        function createCard(d) {
+            const card = document.createElement('div');
+            card.className = 'vocab-card';
+            card.innerHTML = `<div class="kanji">${d.k}</div><div class="hira">${d.h}</div><div class="viet">${d.v}</div>`;
+            
+            card.onclick = function() {
+                try { synth.cancel(); } catch (e) {}
+
+                const mode = document.getElementById('mode').value;
+                const speed = parseFloat(document.getElementById('rate').value);
+
+                const jpVoiceName = document.getElementById('voiceJp').value;
+                let jpVoice = getVoiceByName(jpVoiceName);
+                if (!jpVoice) jpVoice = voices.find(v => v.lang.includes('ja'));
+
+                if (jpVoice) {
+                    const uJp = new SpeechSynthesisUtterance(d.h);
+                    uJp.voice = jpVoice;
+                    uJp.rate = speed;
+                    try { synth.speak(uJp); } catch (e) {}
+                }
+
+                if (mode === 'jv') {
+                    const viVoiceName = document.getElementById('voiceVi').value;
+                    let viVoice = getVoiceByName(viVoiceName);
+                    if (!viVoice) viVoice = voices.find(v => v.lang.includes('vi'));
+                    if (viVoice) {
+                        const uVi = new SpeechSynthesisUtterance(d.v);
+                        uVi.voice = viVoice;
+                        uVi.rate = speed;
+                        try { synth.speak(uVi); } catch (e) {}
+                    }
+                }
+            };
+            return card;
+        }
+
+        // ==================== XÂY DỰNG TAB ====================
+        function buildTabs() {
+            const tabH = document.getElementById('tabH');
+            const tabC = document.getElementById('tabC');
+            tabH.innerHTML = '';
+            tabC.innerHTML = '';
+
+            for (let t = 0; t < 10; t++) {
+                const btn = document.createElement('button');
+                btn.className = `tab-btn ${t === activeTab ? 'active' : ''}`;
+                btn.innerText = `Tab ${t+1}`;
+                btn.setAttribute('data-tab', t);
+                btn.onclick = function() {
+                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    activeTab = t;
+                    
+                    const searchInput = document.getElementById('searchInput');
+                    if (searchInput.value.trim() === '') {
+                        document.querySelectorAll('.grid-container').forEach(g => g.classList.remove('active'));
+                        document.getElementById(`t-${t}`).classList.add('active');
+                        document.getElementById('search-results').classList.remove('active');
+                    } else {
+                        performSearch(searchInput.value);
+                    }
+                };
+                tabH.appendChild(btn);
+
+                const grid = document.createElement('div');
+                grid.className = `grid-container ${t === activeTab ? 'active' : ''}`;
+                grid.id = `t-${t}`;
+                
+                data.slice(t*50, (t+1)*50).forEach(d => {
+                    grid.appendChild(createCard(d));
+                });
+                tabC.appendChild(grid);
+            }
+        }
+
+        // ==================== TÌM KIẾM ====================
+        function performSearch(term) {
+            term = term.trim().toLowerCase();
+            const resultsContainer = document.getElementById('search-results');
+            
+            if (term === '') {
+                resultsContainer.classList.remove('active');
+                resultsContainer.innerHTML = '';
+                document.querySelectorAll('.grid-container').forEach(g => g.classList.remove('active'));
+                document.getElementById(`t-${activeTab}`).classList.add('active');
+                return;
+            }
+
+            const matchedData = data.filter(d => 
+                d.k.toLowerCase().includes(term) ||
+                d.h.toLowerCase().includes(term) ||
+                d.v.toLowerCase().includes(term)
+            );
+
+            resultsContainer.innerHTML = '';
+            matchedData.forEach(d => {
+                resultsContainer.appendChild(createCard(d));
+            });
+
+            document.querySelectorAll('.grid-container').forEach(g => g.classList.remove('active'));
+            resultsContainer.classList.add('active');
+        }
+
+        function searchHandler(e) {
+            performSearch(e.target.value);
+        }
+
+        // ==================== KHỞI TẠO ====================
+        function init() {
+            populateVoices();
+            buildTabs();
+
+            const searchInput = document.getElementById('searchInput');
+            searchInput.removeEventListener('input', searchHandler);
+            searchInput.addEventListener('input', searchHandler);
+
+            document.getElementById('chkHira').dispatchEvent(new Event('change'));
+            document.getElementById('chkViet').dispatchEvent(new Event('change'));
+        }
+
+        window.toggleMenu = function() {
+            document.getElementById('side-menu').classList.toggle('active');
+        };
+
+        document.getElementById('chkHira').onchange = e => {
+            document.querySelectorAll('.hira').forEach(el => el.classList.toggle('hidden', !e.target.checked));
+        };
+        document.getElementById('chkViet').onchange = e => {
+            document.querySelectorAll('.viet').forEach(el => el.classList.toggle('hidden', !e.target.checked));
+        };
+        document.getElementById('bgCol').oninput = e => {
+            document.documentElement.style.setProperty('--bg', e.target.value);
+        };
+        document.getElementById('txCol').oninput = e => {
+            document.documentElement.style.setProperty('--text', e.target.value);
+        };
+
+        window.onload = function() {
+            init();
+            if (synth.onvoiceschanged) synth.onvoiceschanged = populateVoices;
+        };
+    })();
+</script>
+</body>
+</html>

@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KAIWA TRUONG　HOC</title>
+    <style>
+        :root { --bg: #434343; --text: #0b5394; --card: #ffffff; --accent: #0984e3; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); color: var(--text); margin: 0; transition: 0.3s; }
+        #side-menu { position: fixed; right: -300px; top: 0; width: 260px; height: 100%; background: #fff; box-shadow: -2px 0 10px rgba(0,0,0,0.1); z-index: 1000; padding: 20px; transition: 0.3s; overflow-y: auto; color: #333; }
+        #side-menu.active { right: 0; }
+        .menu-btn { position: fixed; top: 15px; right: 15px; z-index: 1001; padding: 10px 15px; background: var(--accent); color: white; border: none; border-radius: 5px; cursor: pointer; }
+        .tabs { display: flex; flex-wrap: wrap; gap: 5px; padding: 60px 10px 10px; justify-content: center; }
+        .tab-btn { padding: 8px 12px; border: none; background: #dfe6e9; cursor: pointer; border-radius: 4px; font-size: 13px; }
+        .tab-btn.active { background: var(--accent); color: white; }
+        .grid-container { display: none; grid-template-columns: repeat(5, 1fr); gap: 10px; padding: 15px; max-width: 1200px; margin: 0 auto; }
+        .grid-container.active { display: grid; }
+        .vocab-card { background: var(--card); padding: 15px 5px; border-radius: 8px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); cursor: pointer; border: 1px solid #eee; min-height: 120px; display: flex; flex-direction: column; justify-content: center; }
+        .kanji { font-size: 1.2em; font-weight: bold; margin-bottom: 5px; color: #2d3436; }
+        .hira { color: #636e72; font-size: 0.9em; margin-bottom: 5px; }
+        .viet { color: #d63031; font-size: 0.85em; font-weight: 500; }
+        .hidden { display: none !important; }
+        @media (max-width: 800px) { .grid-container { grid-template-columns: repeat(2, 1fr); } }
+    </style>
+</head>
+<body>
+
+<button class="menu-btn" onclick="toggleMenu()">⚙ Cài đặt</button>
+
+<div id="side-menu">
+    <h3>Cấu hình</h3>
+    <label>Màu nền: <input type="color" id="bgCol" value="#434343"></label><br><br>
+    <label>Màu chữ: <input type="color" id="txCol" value="#0b5394"></label><hr>
+    <label><input type="checkbox" id="chkHira" checked> Hiện Hiragana</label><br>
+    <label><input type="checkbox" id="chkViet" checked> Hiện Tiếng Việt</label><hr>
+    <label>Giọng mặc định: <select id="vSel" style="width:100%"></select></label><p style="font-size: 11px; color: gray;">* Hệ thống sẽ tự ưu tiên giọng đúng ngôn ngữ khi đọc Nhật-Việt.</p>
+    <label>Tốc độ: <input type="range" id="rate" min="0.5" max="1.5" step="0.1" value="1"></label><br><br>
+    <label>Chế độ đọc: 
+        <select id="mode" style="width:100%">
+            <option value="jp">Chỉ tiếng Nhật</option>
+            <option value="jv" selected>Nhật - Việt (Chuẩn)</option>
+        </select>
+    </label><br><br>
+    <button onclick="toggleMenu()" style="width:100%; padding: 10px; background: #eee; border: none; border-radius: 4px; cursor: pointer;">Đóng</button>
+</div>
+
+<div class="tabs" id="tabH"></div>
+<div id="tabC"></div>
+
+<script>
+    const data = [
+	  {k:"お疲れ様です", h:"おつかれさまです", v:"Chào anh/chị (dùng khi gặp nhau trong công ty)"},
+  {k:"おはようございます", h:"おはようございます", v:"Chào buổi sáng"},
+  {k:"お先に失礼します", h:"おさきにしつれいします", v:"Tôi xin phép về trước"},
+  {k:"お疲れ様でした", h:"おつかれさまでした", v:"Anh chị đã vất vả rồi (nói khi tan làm)"},
+  {k:"行って参ります", h:"いってまいります", v:"Tôi xin phép đi ra ngoài (đi gặp khách/có việc)"},
+  {k:"行ってらっしゃい", h:"いってらっしゃい", v:"Anh/chị đi nhé"},
+  {k:"ただいま戻りました", h:"ただいまもどりました", v:"Tôi đã quay lại công ty rồi ạ"},
+  {k:"お帰りなさい", h:"おかえりなさい", v:"Chào mừng anh/chị đã quay về"},
+  {k:"失礼いたします", h:"しつれいいたします", v:"Tôi xin phép (khi vào phòng/ngắt lời)"},
+  {k:"少々お待ちください", h:"しょうしょうおまちください", v:"Xin vui lòng đợi một chút"},
+  {k:"お待たせいたしました", h:"おまたせいたしました", v:"Xin lỗi vì đã để anh/chị phải đợi"},
+  {k:"かしこまりました", h:"かしこまりました", v:"Tôi đã hiểu rõ rồi ạ (trang trọng)"},
+  {k:"承知いたしました", h:"しょうちいたしました", v:"Tôi đã nắm được thông tin rồi ạ"},
+  {k:"申し訳ございません", h:"もうしわけございません", v:"Tôi thành thật xin lỗi"},
+  {k:"おそれいりますが", h:"おそれいりますが", v:"Tôi xin mạn phép/ngại quá nhưng mà..."},
+  {k:"おかげさまで", h:"おかげさまで", v:"Nhờ có anh/chị (mà công việc thuận lợi)"},
+  {k:"ご苦労様です", h:"ごくろうさまです", v:"Anh làm tốt lắm (cấp trên nói với cấp dưới)"},
+  {k:"お世話になっております", h:"おせわになっております", v:"Cảm ơn anh chị đã luôn giúp đỡ (với đối tác)"},
+  {k:"今後ともよろしくお願いします", h:"こんごともよろしくおねがいします", v:"Từ nay về sau cũng mong được giúp đỡ"},
+  {k:"部長、お時間よろしいでしょうか", h:"ぶちょう、おじかんよろしいでしょうか", v:"Thưa trưởng phòng, ngài có thời gian không ạ?"},
+  {k:"確認をお願いします", h:"かくにんをおねがいします", v:"Nhờ anh/chị xác nhận giúp"},
+  {k:"資料を拝見しました", h:"しりょうをはいけんしました", v:"Tôi đã xem qua tài liệu rồi ạ"},
+  {k:"承諾いたしました", h:"しょうだくいたしました", v:"Tôi đã đồng ý/chấp thuận"},
+  {k:"検討させていただきます", h:"けんとうさせていただきます", v:"Chúng tôi xin phép được xem xét/suy nghĩ thêm"},
+  {k:"担当者は不在です", h:"たんとうしゃはふざいです", v:"Người phụ trách hiện đang vắng mặt"},
+  {k:"折り返しお電話します", h:"おりかえしおでんわします", v:"Tôi sẽ gọi điện lại sau"},
+  {k:"伝言をお願いできますか", h:"でんごんをおねがいできますか", v:"Tôi có thể để lại lời nhắn không?"},
+  {k:"名刺を頂戴します", h:"めいしをちょうだいします", v:"Tôi xin phép nhận danh thiếp"},
+  {k:"初めまして", h:"はじめまして", v:"Rất vui được lần đầu gặp mặt"},
+  {k:"～と申します", h:"～ともうします", v:"Tôi tên là ~ (khiêm nhường)"},
+  {k:"席を外しております", h:"せきをはずしております", v:"(Ai đó) hiện đang rời khỏi chỗ ngồi"},
+  {k:"外出中です", h:"がいしゅつちゅうです", v:"Hiện đang đi ra ngoài"},
+  {k:"会議中です", h:"かいぎちゅうです", v:"Hiện đang họp"},
+  {k:"来客中です", h:"らいきゃくちゅうです", v:"Hiện đang tiếp khách"},
+  {k:"電話中ですのでお待ちください", h:"でんわちゅうですのでおまちください", v:"Vì đang nghe điện thoại nên vui lòng đợi"},
+  {k:"お電話ありがとうございます", h:"おでんわありがとうございます", v:"Cảm ơn anh/chị đã gọi điện"},
+  {k:"どちら様でしょうか", h:"どちらさまでしょうか", v:"Xin hỏi quý khách là ai ạ?"},
+  {k:"社名をお願いします", h:"しゃめいをおねがいします", v:"Xin cho biết tên công ty ạ"},
+  {k:"聞き取れませんでした", h:"ききとれませんでした", v:"Tôi đã không nghe rõ"},
+  {k:"もう一度仰ってください", h:"もういちどおっしゃってください", v:"Xin anh/chị nói lại một lần nữa"},
+  {k:"復唱いたします", h:"ふくしょういたします", v:"Tôi xin phép được nhắc lại"},
+  {k:"内容に間違いありませんか", h:"ないようにまちがいありませんか", v:"Nội dung có sai sót gì không ạ?"},
+  {k:"締め切りはいつですか", h:"しめきりはいつですか", v:"Hạn chót là khi nào?"},
+  {k:"定時で帰ります", h:"ていじでかえります", v:"Tôi về đúng giờ"},
+  {k:"残業をします", h:"ざんぎょうをします", v:"Tôi sẽ làm thêm giờ"},
+  {k:"有給休暇を申請します", h:"ゆうきゅうきゅうかしんせいします", v:"Tôi xin nghỉ phép có lương"},
+  {k:"体調を崩しました", h:"たいちょうをくずしました", v:"Tôi cảm thấy không khỏe"},
+  {k:"遅刻しそうです", h:"ちこくしそうです", v:"Tôi có vẻ sẽ đến muộn"},
+  {k:"電車が遅れています", h:"でんしゃがおくれています", v:"Tàu đang bị trễ"},
+  {k:"直行いたします", h:"ちょっこういたします", v:"Tôi sẽ đi thẳng đến nơi đó (không ghé công ty)"},
+  {k:"直帰いたします", h:"ちょっきいたします", v:"Tôi sẽ về nhà luôn từ nơi đó"},
+  {k:"打ち合わせをしましょう", h:"うちあわせをしましょう", v:"Chúng ta hãy thảo luận/họp nhanh nào"},
+  {k:"アポを取る", h:"あぽをとる", v:"Hẹn gặp/Đặt lịch hẹn"},
+  {k:"予定を確認します", h:"よていをかくにんします", v:"Tôi sẽ kiểm tra lại lịch trình"},
+  {k:"場所はどこですか", h:"ばしょはどこですか", v:"Địa điểm ở đâu vậy ạ?"},
+  {k:"会議室を予約します", h:"かいぎしつをよやくします", v:"Tôi sẽ đặt phòng họp"},
+  {k:"準備ができました", h:"じゅんびができました", v:"Đã chuẩn bị xong rồi ạ"},
+  {k:"忘れ物はありませんか", h:"わすれものはありませんか", v:"Có quên đồ gì không?"},
+  {k:"戸締りをお願いします", h:"とじまりをおねがいします", v:"Nhờ anh/chị khóa cửa giúp"},
+  {k:"消灯します", h:"しょうとうします", v:"Tôi tắt điện đây"},
+  {k:"お先にどうぞ", h:"おさきにどうぞ", v:"Mời anh/chị đi trước/về trước"},
+  {k:"助かりました", h:"たすかりました", v:"May quá có anh giúp"},
+  {k:"力になれずすみません", h:"ちからになれずすみません", v:"Xin lỗi vì đã không giúp được gì"},
+  {k:"ご指導お願いします", h:"ごしどうおねがいします", v:"Mong được anh chị chỉ bảo"},
+  {k:"勉強になりました", h:"べんきょうになりました", v:"Tôi đã học hỏi được rất nhiều"},
+  {k:"貴重なご意見ありがとうございます", h:"きちょうなごいけんありがとうございます", v:"Cảm ơn ý kiến quý báu của anh/chị"},
+  {k:"賛成です", h:"さんせいです", v:"Tôi đồng ý"},
+  {k:"異議ありません", h:"いぎありません", v:"Tôi không có ý kiến phản đối"},
+  {k:"結論から言いますと", h:"けつろんからいいますと", v:"Nói từ kết luận thì là..."},
+  {k:"要点をまとめます", h:"ようてんをまとめます", v:"Tôi xin tóm tắt các điểm chính"},
+  {k:"進捗はどうですか", h:"しんちょくはどうですか", v:"Tiến độ công việc thế nào rồi?"},
+  {k:"順調に進んでいます", h:"じゅんちょうにすすんでいます", v:"Đang tiến triển thuận lợi ạ"},
+  {k:"少し遅れています", h:"すこしおくれていま", v:"Đang bị chậm một chút ạ"},
+  {k:"問題ありません", h:"もんだいありません", v:"Không có vấn đề gì ạ"},
+  {k:"相談したいことがあります", h:"そうだんしたいことがあります", v:"Tôi có việc muốn thảo luận"},
+  {k:"アドバイスをください", h:"あどばいすをください", v:"Cho tôi xin lời khuyên"},
+  {k:"至急お願いします", h:"しきゅうをおねがいします", v:"Làm ơn hãy làm khẩn cấp"},
+  {k:"なるべく早くします", h:"なるべくはやくします", v:"Tôi sẽ cố gắng làm sớm nhất có thể"},
+  {k:"手伝いましょうか", h:"てつだいましょうか", v:"Tôi giúp một tay nhé?"},
+  {k:"お願いします", h:"おねがいします", v:"Vâng, nhờ anh/chị"},
+  {k:"報告があります", h:"ほうこくがあります", v:"Tôi có báo cáo ạ"},
+  {k:"連絡を回します", h:"れんらくをまわします", v:"Tôi sẽ chuyển thông tin liên lạc"},
+  {k:"相談に乗ってください", h:"そうだんにのってください", v:"Xin hãy cho tôi lời khuyên/thảo luận cùng tôi"},
+  {k:"結論はまだ出ていません", h:"けつろんはまだでていません", v:"Vẫn chưa có kết luận cuối cùng"},
+  {k:"会議を始めましょう", h:"かいぎをはじめましょう", v:"Chúng ta bắt đầu cuộc họp thôi"},
+  {k:"議事録を取ってください", h:"ぎじろくをとってください", v:"Hãy ghi biên bản cuộc họp"},
+  {k:"資料を配ります", h:"しりょうをくばります", v:"Tôi sẽ phát tài liệu"},
+  {k:"画面を共有します", h:"がめんをきょうゆうします", v:"Tôi xin phép chia sẻ màn hình"},
+  {k:"マイクをオンにしてください", h:"まいくをおんにしてください", v:"Vui lòng bật mic lên"},
+  {k:"声が聞こえにくいです", h:"こえがきこえにくいです", v:"Tiếng hơi khó nghe ạ"},
+  {k:"電波が悪いです", h:"でんぱがわるいです", v:"Sóng yếu/Kết nối mạng kém"},
+  {k:"一度退出します", h:"いちどたいしゅつします", v:"Tôi xin phép thoát ra (khỏi họp online) một chút"},
+  {k:"再接続します", h:"さいせつぞくします", v:"Tôi sẽ kết nối lại"},
+  {k:"プレゼンを始めます", h:"ぷぜぜんをはじめます", v:"Tôi xin bắt đầu bài thuyết trình"},
+  {k:"質問を受け付けます", h:"しつもんをうけつけます", v:"Tôi xin nhận các câu hỏi"},
+  {k:"鋭いご指摘ですね", h:"わるいごしてきですね", v:"Một sự chỉ dẫn/nhận xét rất sắc sảo"},
+  {k:"持ち帰って検討します", h:"もちかえってけんとうします", v:"Tôi sẽ mang về xem xét (trả lời sau)"},
+  {k:"期限を厳守してください", h:"きげんをげんしゅしてください", v:"Hãy tuân thủ nghiêm ngặt thời hạn"},
+  {k:"進め方に問題はありますか", h:"すすめかたにもんだいはありますか", v:"Cách tiến hành có vấn đề gì không?"},
+  {k:"改善案を出してください", h:"かいぜんあんをだしてください", v:"Hãy đưa ra phương án cải thiện"},
+  {k:"効率を上げましょう", h:"こうりつをあげましょう", v:"Hãy nâng cao hiệu suất"},
+  {k:"コストを削減します", h:"こすとをさくげんします", v:"Cắt giảm chi phí"},
+  {k:"売り上げが伸びています", h:"うりあげがのびています", v:"Doanh thu đang tăng"},
+  {k:"目標を達成しました", h:"もくひょうをたっせいしました", v:"Đã đạt được mục tiêu"},
+  {k:"赤字が出ています", h:"あかじがでています", v:"Đang bị thua lỗ"},
+  {k:"予算を組みます", h:"よさんをくみます", v:"Lập ngân sách"},
+  {k:"経費で落とせますか", h:"けいひでおとせますか", v:"Có thể tính vào chi phí công ty không?"},
+  {k:"領収書をください", h:"りょうしゅうしょをください", v:"Cho tôi xin hóa đơn"},
+  {k:"精算をお願いします", h:"せいさんをおねがいします", v:"Nhờ anh/chị quyết toán giúp"},
+  {k:"承認をお願いします", h:"しょうにんをおねがいします", v:"Nhờ anh/chị phê duyệt giúp"},
+  {k:"印鑑を押してください", h:"いんかんをおしてください", v:"Vui lòng đóng dấu"},
+  {k:"サインをお願いします", h:"さいんをおねがいします", v:"Vui lòng ký tên"},
+  {k:"修正してください", h:"しゅうせいしてください", v:"Hãy sửa lại giúp"},
+  {k:"差し戻します", h:"さしもどします", v:"Tôi xin gửi trả lại (yêu cầu làm lại)"},
+  {k:"再提出してください", h:"さいていしゅつしてください", v:"Hãy nộp lại lần nữa"},
+  {k:"共有フォルダに入れて", h:"きょうゆうふぉるだにいれて", v:"Hãy cho vào thư mục dùng chung"},
+  {k:"パスワードをかけて", h:"ぱすわーどをかけて", v:"Hãy đặt mật khẩu"},
+  {k:"メールを送りました", h:"めーるをおくりました", v:"Tôi đã gửi email rồi"},
+  {k:"添付ファイルを確認して", h:"てんぷふぁいるをかくにんして", v:"Hãy kiểm tra file đính kèm"},
+  {k:"ccに入れてください", h:"ccにいれてください", v:"Hãy cho tôi vào phần CC"},
+  {k:"bccで送ります", h:"bccでおくります", v:"Tôi sẽ gửi bằng BCC"},
+  {k:"返信をお待ちしています", h:"へんしんをおまちしています", v:"Tôi chờ hồi âm của anh/chị"},
+  {k:"取り急ぎお礼まで", h:"とりいそぎおれいまで", v:"Tôi viết mail này nhanh để cảm ơn"},
+  {k:"ご自愛ください", h:"ごじあいください", v:"Xin hãy giữ gìn sức khỏe (cuối mail)"},
+  {k:"不備がありました", h:"ふびがありました", v:"Có sai sót/thiếu sót"},
+  {k:"お詫び申し上げます", h:"おわびもうしあげます", v:"Tôi xin thành thật xin lỗi"},
+  {k:"二度と致しません", h:"にどといたしません", v:"Tôi sẽ không để xảy ra lần thứ hai"},
+  {k:"以後気をつけます", h:"いごきをつけます", v:"Từ nay tôi sẽ cẩn thận hơn"},
+  {k:"原因を調査します", h:"げんいんをちょうさします", v:"Tôi sẽ điều tra nguyên nhân"},
+  {k:"対策を立てます", h:"たいさくをたてます", v:"Tôi sẽ lập đối sách"},
+  {k:"再発防止に努めます", h:"さいはつぼうしにつとめます", v:"Sẽ cố gắng ngăn chặn tái phát"},
+  {k:"担当を代わります", h:"たんとうをかわります", v:"Tôi sẽ thay đổi người phụ trách"},
+  {k:"引き継ぎをします", h:"ひきつぎをします", v:"Tôi sẽ bàn giao công việc"},
+  {k:"マニュアルを読みます", h:"まにゅあるをよみます", v:"Tôi sẽ đọc sách hướng dẫn"},
+  {k:"研修を受けます", h:"けんしゅうをうけます", v:"Tôi sẽ tham gia đào tạo"},
+  {k:"スキルアップしたい", h:"すきるあっぷしたい", v:"Tôi muốn nâng cao kỹ năng"},
+  {k:"出張に行きます", h:"しゅっちょうにいきます", v:"Tôi đi công tác"},
+  {k:"出張手当が出ます", h:"しゅっちょうてあてがでます", v:"Có trợ cấp công tác"},
+  {k:"宿泊先を予約した", h:"しゅくはくさきをよやくした", v:"Tôi đã đặt chỗ ở rồi"},
+  {k:"領収書を取っておいて", h:"りょうしゅうしょをとっておいて", v:"Hãy giữ lại hóa đơn nhé"},
+  {k:"現地集合です", h:"げんちしゅうごうです", v:"Tập trung tại địa điểm đó luôn"},
+  {k:"移動に時間がかかります", h:"いどうにじかんがかかります", v:"Mất thời gian di chuyển"},
+  {k:"打ち上げをしましょう", h:"うちあげをしましょう", v:"Chúng ta hãy liên hoan mừng xong việc nào"},
+  {k:"飲み会に参加します", h:"のみかいにさんかします", v:"Tôi tham gia tiệc nhậu"},
+  {k:"お酒は飲めません", h:"おさけはのめません", v:"Tôi không uống được rượu"},
+  {k:"ソフトドリンクでお願いします", h:"そふとどりんくでおねがいします", v:"Cho tôi đồ uống không cồn"},
+  {k:"割り勘にしましょう", h:"わりかんにしましょう", v:"Chúng ta chia tiền nhé"},
+  {k:"私が払います", h:"わたしがはらいます", v:"Tôi sẽ trả tiền"},
+  {k:"ごちそうさまです", h:"ごちそうさまです", v:"Cảm ơn anh vì bữa ăn"},
+  {k:"名刺を切らしております", h:"めいしをきらしております", v:"Tôi vừa hết danh thiếp mất rồi"},
+  {k:"改めてお伺いします", h:"あらためておうかがいします", v:"Tôi sẽ xin phép ghé thăm lại sau"},
+  {k:"ご都合はいかがですか", h:"ごつごうはいかがですか", v:"Tiện cho anh/chị khi nào ạ?"},
+  {k:"来週なら空いています", h:"らいしゅうならあいています", v:"Tuần sau thì tôi rảnh"},
+  {k:"調整がつきました", h:"ちょうせいがつきました", v:"Đã điều chỉnh được lịch rồi ạ"},
+  {k:"急な用事が入りました", h:"きゅうなようじがはいりました", v:"Có việc đột xuất xảy ra"},
+  {k:"リスケをお願いします", h:"りすけをおねがいします", v:"Cho tôi xin đổi lại lịch (Reschedule)"},
+  {k:"場所を変更します", h:"ばしょをへんこうします", v:"Thay đổi địa điểm"},
+  {k:"遅れて申し訳ありません", h:"おくれてもうしわけありません", v:"Thành thật xin lỗi vì đến muộn"},
+  {k:"先に始めていてください", h:"さきにはじめていてください", v:"Mọi người cứ bắt đầu trước đi ạ"},
+  {k:"お邪魔しました", h:"おじゃましました", v:"Xin lỗi vì đã làm phiền (khi ra về)"},
+  {k:"いらっしゃいませ", h:"いらっしゃいませ", v:"Chào mừng quý khách"},
+  {k:"お掛けになってお待ちください", h:"おかけになっておまちください", v:"Mời anh/chị ngồi đợi một chút"},
+  {k:"お飲み物は何がいいですか", h:"おのみものはなにがいいですか", v:"Anh/chị uống nước gì ạ?"},
+  {k:"どうぞ召し上がってください", h:"どうぞめしあがってください", v:"Mời anh/chị dùng (đồ ăn/nước)"},
+  {k:"本日はありがとうございます", h:"ほんじつはありがとうございます", v:"Cảm ơn anh/chị vì ngày hôm nay"},
+  {k:"遠いところ恐縮です", h:"とおいいところきょうしゅくです", v:"Thật ngại quá vì anh/chị đã lặn lội đường xa"},
+  {k:"ご案内いたします", h:"ごあんないいたします", v:"Tôi xin phép được hướng dẫn"},
+  {k:"こちらへどうぞ", h:"こちらへどうぞ", v:"Mời đi lối này ạ"},
+  {k:"エレベーターに乗ります", h:"えれべーたーにのります", v:"Chúng ta đi thang máy ạ"},
+  {k:"お先に失礼します（昇降時）", h:"おさきにしつれいします", v:"Tôi xin phép vào/ra trước (thang máy)"},
+  {k:"お気をつけて", h:"おきをつけて", v:"Anh chị đi cẩn thận"},
+  {k:"またのお越しをお待ちします", h:"またのおこしをおまちします", v:"Mong sớm gặp lại quý khách"},
+  {k:"見積もりを出します", h:"みつもりをだします", v:"Tôi sẽ gửi báo giá"},
+  {k:"契約を結びます", h:"けいやくをむすびます", v:"Ký kết hợp đồng"},
+  {k:"条件を確認します", h:"じょうけんをかくにんします", v:"Xác nhận các điều khoản"},
+  {k:"納期を早めてください", h:"のうきをはやめてください", v:"Làm ơn đẩy sớm thời hạn giao hàng"},
+  {k:"在庫がありません", h:"ざいこがありません", v:"Hết hàng trong kho rồi ạ"},
+  {k:"発注をお願いします", h:"はっちゅうをおねがいします", v:"Nhờ anh/chị đặt hàng giúp"},
+  {k:"納品されました", h:"のうひんされました", v:"Hàng đã được giao rồi"},
+  {k:"検品をします", h:"けんぴんをします", v:"Kiểm tra hàng hóa"},
+  {k:"返品します", h:"へんぴんします", v:"Trả lại hàng"},
+  {k:"クレームが入りました", h:"くれーむがはいりました", v:"Có khiếu nại khách hàng"},
+  {k:"迅速に対応します", h:"じんそくにたいおうします", v:"Sẽ xử lý nhanh chóng"},
+  {k:"誠意を持って対応します", h:"せいいをもってたいおうします", v:"Xử lý với thái độ thành khẩn"},
+  {k:"納得いただけました", h:"なっとくいただけました", v:"Khách hàng đã đồng ý/thỏa mãn"},
+  {k:"評判がいいです", h:"ひょうばんがいいです", v:"Đánh giá rất tốt"},
+  {k:"新商品を開発します", h:"しんしょうひんをかいはつします", v:"Phát triển sản phẩm mới"},
+  {k:"市場調査をします", h:"しじょうちょうさをします", v:"Khảo sát thị trường"},
+  {k:"競合他社を調べます", h:"きょうごうたしゃをしらべます", v:"Tìm hiểu đối thủ cạnh tranh"},
+  {k:"強みを活かします", h:"つよみをいかします", v:"Tận dụng thế mạnh"},
+  {k:"弱点を補います", h:"じゃくてんをおぎないます", v:"Khắc phục điểm yếu"},
+  {k:"戦略を練ります", h:"せんりゃくをねります", v:"Hoạch định chiến lược"},
+  {k:"プロジェクトを立ち上げる", h:"ぷろじぇくとをたちあげる", v:"Khởi động dự án"},
+  {k:"メンバーを招集します", h:"めんばーをしょうしゅうします", v:"Triệu tập các thành viên"},
+  {k:"役割分担を決めます", h:"やくわりぶんたんをきめます", v:"Quyết định phân công nhiệm vụ"},
+  {k:"リーダーを務めます", h:"りーだーをつとめます", v:"Đảm nhận vị trí trưởng nhóm"},
+  {k:"サポートをお願いします", h:"さぽーとおねがいします", v:"Nhờ anh/chị hỗ trợ"},
+  {k:"一丸となって頑張りましょう", h:"いちがんとなってがんばりましょう", v:"Hãy cùng đoàn kết cố gắng nhé"},
+  {k:"成功させましょう", h:"せいこうさせましょう", v:"Hãy làm cho nó thành công"},
+  {k:"トラブルが発生しました", h:"とらぶるがはっせいしました", v:"Đã xảy ra rắc rối"},
+  {k:"パニックにならないで", h:"ぱにっくにならないで", v:"Đừng hoảng loạn"},
+  {k:"冷静に判断します", h:"れいせいにはんだんします", v:"Phán đoán bình tĩnh"},
+  {k:"指示を仰ぎます", h:"しじをあおぎます", v:"Xin chỉ thị từ cấp trên"},
+  {k:"私の責任です", h:"わたしのせきにんです", v:"Đó là trách nhiệm của tôi"},
+  {k:"挽回します", h:"ばんかいします", v:"Tôi sẽ cứu vãn/lấy lại phong độ"},
+  {k:"期待に応えます", h:"きたいにこたえます", v:"Đáp ứng kỳ vọng"},
+  {k:"評価されました", h:"ひょうかされました", v:"Được đánh giá cao"},
+  {k:"昇進しました", h:"しょうしんしました", v:"Đã được thăng chức"},
+  {k:"昇給しました", h:"しょうきゅうしました", v:"Đã được tăng lương"},
+  {k:"ボーナスが出ました", h:"ぼーなすがでました", v:"Có tiền thưởng"},
+  {k:"おめでとうございます", h:"おめでとうございます", v:"Xin chúc mừng"},
+  {k:"さすがですね", h:"さすがですね", v:"Quả đúng là anh/chị (khen ngợi)"},
+  {k:"尊敬します", h:"そんけいします", v:"Tôi rất tôn trọng anh"},
+  {k:"見習いたいです", h:"みならいたいです", v:"Tôi muốn học tập theo anh"},
+  {k:"飲み物を買ってきます", h:"のみものをかってきます", v:"Tôi đi mua nước đây"},
+  {k:"何か要りますか", h:"なにかいりますか", v:"Anh chị có cần gì không?"},
+  {k:"ついでにこれもお願いします", h:"ついでにこれもおねがいします", v:"Tiện thể nhờ anh làm cái này luôn"},
+  {k:"コピー機が壊れました", h:"こぴーきがこわれました", v:"Máy photo hỏng rồi"},
+  {k:"修理を依頼します", h:"しゅうりをいらいします", v:"Yêu cầu sửa chữa"},
+  {k:"トナーを交換します", h:"となーをこうかんします", v:"Thay mực máy in"},
+  {k:"用紙がありません", h:"ようしがありません", v:"Hết giấy rồi ạ"},
+  {k:"掃除をしましょう", h:"そうじをしましょう", v:"Chúng ta dọn dẹp nào"},
+  {k:"デスクを整理します", h:"ですくをせいりします", v:"Sắp xếp lại bàn làm việc"},
+  {k:"ゴミを分別します", h:"ごみをぶんべつします", v:"Phân loại rác"},
+  {k:"空調を調節します", h:"くうちょうをちょうせつします", v:"Điều chỉnh điều hòa"},
+  {k:"少し寒いです", h:"すこしさむいです", v:"Hơi lạnh một chút ạ"},
+  {k:"温度を上げてください", h:"おんどをあげてください", v:"Vui lòng tăng nhiệt độ"},
+  {k:"換気をしましょう", h:"かんきをしましょう", v:"Thông gió chút nào"},
+  {k:"窓を開けます", h:"まどをあけます", v:"Tôi mở cửa sổ nhé"},
+  {k:"名札を忘れないで", h:"なふだをわすれないで", v:"Đừng quên đeo bảng tên"},
+  {k:"社員証を持ってますか", h:"しゃいんしょうをもってますか", v:"Bạn có mang thẻ nhân viên không?"},
+  {k:"セキュリティが厳しいです", h:"せきゅりてぃがきびしいです", v:"An ninh rất nghiêm ngặt"},
+  {k:"喫煙所はどこですか", h:"きつえんじょはどこですか", v:"Khu vực hút thuốc ở đâu?"},
+  {k:"禁煙です", h:"きんえんです", v:"Cấm hút thuốc"},
+  {k:"ランチに行きましょう", h:"らんちにいきましょう", v:"Đi ăn trưa thôi"},
+  {k:"おすすめの店はありますか", h:"おすすめのみせはありますか", v:"Có quán nào ngon gợi ý không?"},
+  {k:"定食を食べます", h:"ていしょくをたべます", v:"Tôi ăn cơm suất"},
+  {k:"お腹いっぱいです", h:"おなかいっぱいです", v:"Tôi no quá"},
+  {k:"午後も頑張りましょう", h:"ごごもがんばりましょう", v:"Chiều nay cũng cố gắng nhé"},
+  {k:"眠気覚ましにコーヒー", h:"ねむけざましにこーひー", v:"Uống cà phê cho tỉnh ngủ"},
+  {k:"集中力が切れた", h:"しゅうちゅうりょくがきれた", v:"Bị mất tập trung rồi"},
+  {k:"一息つきましょう", h:"ひといきつきましょう", v:"Nghỉ tay một lát nào"},
+  {k:"リフレッシュしました", h:"りふれっしゅしました", v:"Đã thấy sảng khoái lại rồi"},
+  {k:"定時まであと少し", h:"ていじまであとすこし", v:"Còn chút nữa là đến giờ về"},
+  {k:"明日の段取りを確認", h:"あしたのだんどりをかくにん", v:"Xác nhận kế hoạch cho ngày mai"},
+  {k:"戸締りヨシ！", h:"とじまりよし！", v:"Khóa cửa, Ok!"},
+  {k:"忘れ物ナシ！", h:"わすれものなし！", v:"Không quên đồ, Ok!"},
+  {k:"お疲れ様でした！", h:"おつかれさまでした！", v:"Vất vả rồi! (Chào khi về)"},
+  {k:"また明日もよろしく", h:"またあしたもよろしく", v:"Mai cũng nhờ anh chị giúp đỡ nhé"},
+  {k:"良い週末を", h:"よいしゅうまつを", v:"Chúc cuối tuần vui vẻ"},
+	];
+    while(data.length < 250) {
+        let i = data.length + 1;
+        data.push({k: `項目 ${i}`, h: `こうもく ${i}`, v: `Mục số ${i} liên quan công việc`});
+    }
+
+    const synth = window.speechSynthesis;
+    let voices = [];
+
+    function loadVoices() {
+        voices = synth.getVoices();
+        const vSel = document.getElementById('vSel');
+        // Lọc giọng Nhật (ja) và Việt (vi)
+        const filtered = voices.filter(v => v.lang.includes('ja') || v.lang.includes('vi'));
+        
+        vSel.innerHTML = filtered.map(v => {
+            const langName = v.lang.includes('ja') ? 'Nhật' : 'Việt';
+            return `<option value="${v.name}">${v.name} (${langName})</option>`;
+        }).join('');
+
+        // Mặc định chọn giọng Nhật đầu tiên tìm thấy
+        const defaultJp = filtered.find(v => v.lang.includes('ja'));
+        if(defaultJp) vSel.value = defaultJp.name;
+    }
+
+    if (speechSynthesis.onvoiceschanged !== undefined) {
+        speechSynthesis.onvoiceschanged = loadVoices;
+    }
+
+    function init() {
+    loadVoices();
+    const tabH = document.getElementById('tabH');
+    const tabC = document.getElementById('tabC');
+
+    for (let i = 0; i < 10; i++) {
+        const btn = document.createElement('button');
+        btn.className = `tab-btn ${i===0?'active':''}`;
+        btn.innerText = `Tab ${i+1}`;
+        btn.onclick = () => {
+            document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+            document.querySelectorAll('.grid-container').forEach(g=>g.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(`t-${i}`).classList.add('active');
+        };
+        tabH.appendChild(btn);
+
+        const grid = document.createElement('div');
+        grid.className = `grid-container ${i===0?'active':''}`;
+        grid.id = `t-${i}`;
+        
+        data.slice(i*25, (i+1)*25).forEach(d => {
+            const card = document.createElement('div');
+            card.className = 'vocab-card';
+            card.innerHTML = `<div class="kanji">${d.k}</div><div class="hira">${d.h}</div><div class="viet">${d.v}</div>`;
+            
+           card.onclick = () => {
+    synth.cancel();
+    const mode = document.getElementById('mode').value;
+    const speed = document.getElementById('rate').value;
+    
+    const currentVoices = window.speechSynthesis.getVoices();
+    
+    const voiceJp = currentVoices.find(v => v.name.includes('Kyoko')) || 
+                    currentVoices.find(v => v.lang.includes('ja-JP')) ||
+                    currentVoices.find(v => v.lang.includes('ja'));
+
+    const voiceVi = currentVoices.find(v => v.lang.includes('vi-VN')) || 
+                    currentVoices.find(v => v.lang.includes('vi'));
+
+    // THAY ĐỔI TẠI ĐÂY: Sử dụng d.h (Hiragana) thay vì d.k (Kanji)
+    const uJp = new SpeechSynthesisUtterance(d.h); 
+    
+    if (voiceJp) uJp.voice = voiceJp;
+    uJp.rate = speed;
+    synth.speak(uJp);
+
+    if (mode === 'jv' && voiceVi) {
+        const uVi = new SpeechSynthesisUtterance(d.v);
+        uVi.voice = voiceVi;
+        uVi.rate = speed;
+        synth.speak(uVi);
+    }
+};
+            grid.appendChild(card);
+        });
+        tabC.appendChild(grid);
+    }
+}
+
+    function toggleMenu() { document.getElementById('side-menu').classList.toggle('active'); }
+
+    document.getElementById('chkHira').onchange = e => document.querySelectorAll('.hira').forEach(el => el.classList.toggle('hidden', !e.target.checked));
+    document.getElementById('chkViet').onchange = e => document.querySelectorAll('.viet').forEach(el => el.classList.toggle('hidden', !e.target.checked));
+    document.getElementById('bgCol').oninput = e => document.documentElement.style.setProperty('--bg', e.target.value);
+    document.getElementById('txCol').oninput = e => document.documentElement.style.setProperty('--text', e.target.value);
+
+    window.onload = init;
+</script>
+</body>
+</html>

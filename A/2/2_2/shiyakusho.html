@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KAIWA TRUONG HOC · tra từ</title>
+    <style>
+        * { box-sizing: border-box; }
+        :root {
+            --bg: #434343;
+            --text: #111;
+            --card-bg: #ffffff;
+            --accent: #0984e3;
+        }
+        body {
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            margin: 0;
+            transition: background 0.2s, color 0.2s;
+            min-height: 100vh;
+        }
+        #side-menu {
+            position: fixed;
+            right: -300px;
+            top: 0;
+            width: 260px;
+            height: 100%;
+            background: #fff;
+            box-shadow: -2px 0 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+            padding: 20px;
+            transition: 0.3s;
+            overflow-y: auto;
+            color: #333;
+        }
+        #side-menu.active { right: 0; }
+        .menu-btn {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            z-index: 1001;
+            padding: 10px 15px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 500;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .tab-search-row {
+            position: relative;
+            padding: 60px 15px 10px;
+            text-align: center;
+            min-height: 100px;
+        }
+        .tabs {
+            display: inline-flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            justify-content: center;
+            margin: 0 auto;
+        }
+        .tab-btn {
+            padding: 8px 14px;
+            border: none;
+            background: #dfe6e9;
+            cursor: pointer;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 500;
+            transition: 0.2s;
+            white-space: nowrap;
+            color: #2d3436;
+        }
+        .tab-btn.active {
+            background: var(--accent);
+            color: white;
+        }
+        
+        #searchInput {
+            position: absolute;
+            right: 15px;
+            top: 60px;
+            width: 260px;
+            padding: 8px 16px 8px 36px;
+            border-radius: 40px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+            background: white url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%23666" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>') no-repeat 10px center;
+            background-size: 16px;
+            transition: 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            color: #333;
+        }
+        #searchInput:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(9,132,227,0.2);
+        }
+
+        .grid-container {
+            display: none;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+            padding: 15px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .grid-container.active {
+            display: grid;
+        }
+
+        #search-results {
+            display: none;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+            padding: 15px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        #search-results.active {
+            display: grid;
+        }
+
+        .vocab-card {
+            background: var(--card-bg);
+            padding: 15px 5px;
+            border-radius: 14px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+            cursor: pointer;
+            border: 1px solid #f0f0f0;
+            min-height: 130px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            transition: 0.2s;
+        }
+        .vocab-card:hover {
+            transform: scale(1.02);
+            border-color: var(--accent);
+            box-shadow: 0 8px 12px rgba(0,0,0,0.1);
+        }
+
+        .kanji {
+            font-size: 1.2em;
+            font-weight: 700;
+            margin-bottom: 4px;
+            color: var(--text);
+            line-height: 1.4;
+        }
+        .hira {
+            color: var(--text);
+            opacity: 0.7;
+            font-size: 0.9em;
+            margin-bottom: 4px;
+        }
+        .viet {
+            color: #c0392b;
+            opacity: 0.9;
+            font-size: 0.9em;
+            font-weight: 500;
+        }
+        .hidden { display: none !important; }
+        
+        @media (max-width: 800px) {
+            .grid-container, #search-results {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .tab-search-row {
+                text-align: left;
+                padding-bottom: 70px;
+            }
+            #searchInput {
+                position: static;
+                width: 100%;
+                margin-top: 15px;
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<button class="menu-btn" onclick="toggleMenu()">⚙ Cài đặt</button>
+
+<div id="side-menu">
+    <h3 style="margin-top: 0;">Cấu hình</h3>
+    <label>Màu nền: <input type="color" id="bgCol" value="#434343"></label><br><br>
+    <label>Màu chữ: <input type="color" id="txCol" value="#0b5394"></label><hr>
+    <label><input type="checkbox" id="chkHira" checked> Hiện Hiragana</label><br>
+    <label><input type="checkbox" id="chkViet" checked> Hiện Tiếng Việt</label><hr>
+
+    <label>🇯🇵 Giọng Nhật:</label>
+    <select id="voiceJp" style="width:100%; margin-bottom: 10px;"></select>
+
+    <label>🇻🇳 Giọng Việt:</label>
+    <select id="voiceVi" style="width:100%; margin-bottom: 10px;"></select>
+
+    <label>Tốc độ: <input type="range" id="rate" min="0.5" max="1.5" step="0.1" value="1"></label><br><br>
+
+    <label>Chế độ đọc: 
+        <select id="mode" style="width:100%">
+            <option value="jp">Chỉ tiếng Nhật</option>
+            <option value="jv" selected>Nhật - Việt (Chuẩn)</option>
+        </select>
+    </label><br><br>
+    <button onclick="toggleMenu()" style="width:100%; padding: 10px; background: #eee; border: none; border-radius: 4px; cursor: pointer;">Đóng</button>
+</div>
+
+<div class="tab-search-row">
+    <div class="tabs" id="tabH"></div>
+    <input type="text" id="searchInput" placeholder="Tìm kiếm Nhật–Việt..." autocomplete="off">
+</div>
+
+<div id="tabC"></div>
+<div id="search-results"></div>
+
+<script>
+    (function() {
+        // ==================== DỮ LIỆU 500 CÂU ====================
+        const data = [
+         
+  {k:"住民登録をしたいです。", h:"じゅうみんとうろくをしたいです。", v:"Tôi muốn đăng ký cư trú."},
+  {k:"在留カードを見せてください。", h:"ざいりゅうかーどをみせてください。", v:"Vui lòng cho xem thẻ cư trú."},
+  {k:"転入届を出します。", h:"てんにゅうとどけをだします。", v:"Tôi nộp giấy báo chuyển đến."},
+  {k:"転出届は済ませましたか？", h:"てんしゅつとどけはすませましたか？", v:"Bạn đã làm giấy báo chuyển đi chưa?"},
+  {k:"新しい住所はここです。", h:"あたらしいじゅうしょはここです。", v:"Địa chỉ mới của tôi là đây."},
+  {k:"世帯主は誰ですか？", h:"せたいぬしはだれですか？", v:"Chủ hộ là ai?"},
+  {k:"私が世帯主です。", h:"わたしがせたいぬしです。", v:"Tôi là chủ hộ."},
+  {k:"印鑑は必要ですか？", h:"いんかんはひつようですか？", v:"Có cần con dấu không?"},
+  {k:"サインでも構いません。", h:"さいんでもかまいません。", v:"Ký tên cũng được."},
+  {k:"健康保険に加入します。", h:"けんこうほけんにかにゅうします。", v:"Tôi đăng ký tham gia bảo hiểm y tế."},
+  {k:"年金の手続きをしたいです。", h:"ねんきんのてつづきをしたいです。", v:"Tôi muốn làm thủ tục hưu trí."},
+  {k:"マイナンバーカードを作りたいです。", h:"まいなんばーかーどをつくりたいです。", v:"Tôi muốn làm thẻ My Number."},
+  {k:"写真は必要ですか？", h:"しゃしんはひつようですか？", v:"Có cần ảnh không?"},
+  {k:"パスポートをコピーします。", h:"ぱすぽーとをこぴーします。", v:"Tôi sẽ sao chụp hộ chiếu."},
+  {k:"こちらに記入してください。", h:"こちらにきにゅうしてください。", v:"Vui lòng điền vào chỗ này."},
+  {k:"住所はカタカナで書いてください。", h:"じゅうしょはかたかなでかいてください。", v:"Vui lòng viết địa chỉ bằng katakana."},
+  {k:"国籍はどちらですか？", h:"こくせきはどちらですか？", v:"Quốc tịch của bạn là gì?"},
+  {k:"ベトナムです。", h:"べとなむです。", v:"Việt Nam."},
+  {k:"在留資格は何ですか？", h:"ざいりゅうしかくはなんですか？", v:"Tư cách lưu trú của bạn là gì?"},
+  {k:"技術・人文知識・国際業務です。", h:"ぎじゅつ・じんぶんちしき・こくさいぎょうむです。", v:"Kỹ thuật - Tri thức nhân văn - Nghiệp vụ quốc tế."},
+  {k:"在留期限を確認します。", h:"ざいりゅうきげんをかくにんします。", v:"Tôi xác nhận thời hạn lưu trú."},
+  {k:"更新の申請に来ました。", h:"こうしんのしんせいにきました。", v:"Tôi đến để xin gia hạn."},
+  {k:"パスポートを拝見します。", h:"ぱすぽーとをはいけんします。", v:"Tôi xem hộ chiếu."},
+  {k:"申請書に記入しました。", h:"しんせいしょにきにゅうしました。", v:"Tôi đã điền vào đơn."},
+  {k:"身分証明書はありますか？", h:"みぶんしょうめいしょはありますか？", v:"Bạn có giấy tờ tùy thân không?"},
+  {k:"運転免許証でいいですか？", h:"うんてんめんきょしょうでいいですか？", v:"Bằng lái xe được không?"},
+  {k:"はい、結構です。", h:"はい、けっこうです。", v:"Vâng, được."},
+  {k:"住民票を発行してください。", h:"じゅうみんひょうをはっこうしてください。", v:"Vui lòng cấp giấy chứng nhận cư trú."},
+  {k:"印鑑登録をしたいです。", h:"いんかんとうろくをしたいです。", v:"Tôi muốn đăng ký con dấu."},
+  {k:"登録済みの印鑑を持っていますか？", h:"とうろくずみのいんかんをもっていますか？", v:"Bạn có con dấu đã đăng ký không?"},
+  {k:"婚姻届を出したいです。", h:"こんいんとどけをだしたいです。", v:"Tôi muốn nộp giấy đăng ký kết hôn."},
+  {k:"離婚届を出します。", h:"りこんとどけをだします。", v:"Tôi nộp giấy báo ly hôn."},
+  {k:"出生届を出しました。", h:"しゅっせいとどけをだしました。", v:"Tôi đã nộp giấy khai sinh."},
+  {k:"死亡届を出しに来ました。", h:"しぼうとどけをだしにきました。", v:"Tôi đến để nộp giấy báo tử."},
+  {k:"戸籍謄本が必要です。", h:"こせきとうほんがひつようです。", v:"Tôi cần bản sao hộ tịch."},
+  {k:"税務署はどこですか？", h:"ぜいむしょはどこですか？", v:"Cơ quan thuế ở đâu?"},
+  {k:"確定申告をしたいです。", h:"かくていしんこくをしたいです。", v:"Tôi muốn khai thuế thu nhập."},
+  {k:"源泉徴収票を添付します。", h:"げんせんちょうしゅうひょうをてんぷします。", v:"Tôi đính kèm giấy chứng nhận khấu trừ thuế."},
+  {k:"還付金はいつ振り込まれますか？", h:"かんぷきんはいつふりこまれますか？", v:"Tiền hoàn thuế sẽ được chuyển khi nào?"},
+  {k:"納税証明書をください。", h:"のうぜいしょうめいしょをください。", v:"Cho tôi xin giấy chứng nhận nộp thuế."},
+  {k:"国民健康保険の脱退手続きです。", h:"こくみんけんこうほけんのだったいてつづきです。", v:"Thủ tục thoát bảo hiểm y tế quốc dân."},
+  {k:"年金手帳をなくしました。", h:"ねんきんてちょうをなくしました。", v:"Tôi bị mất sổ hưu trí."},
+  {k:"再発行できますか？", h:"さいはっこうできますか？", v:"Có thể cấp lại không?"},
+  {k:"手数料はいくらですか？", h:"てすうりょうはいくらですか？", v:"Lệ phí là bao nhiêu?"},
+  {k:"収入印紙を貼ってください。", h:"しゅうにゅういんしをはってください。", v:"Vui lòng dán tem thu nhập."},
+  {k:"書留で送ります。", h:"かきとめでおくります。", v:"Tôi sẽ gửi bằng thư bảo đảm."},
+  {k:"申請書に不備があります。", h:"しんせいしょにふびがあります。", v:"Đơn đăng ký có thiếu sót."},
+  {k:"ここを訂正してください。", h:"ここをていせいしてください。", v:"Hãy sửa chỗ này."},
+  {k:"再来週に結果が出ます。", h:"さらいしゅうにけっかがでます。", v:"Kết quả sẽ có vào tuần sau nữa."},
+  {k:"電話で連絡します。", h:"でんわでれんらくします。", v:"Tôi sẽ liên lạc qua điện thoại."},
+  {k:"住所変更の届出です。", h:"じゅうしょへんこうのとどけでです。", v:"Tôi đến báo thay đổi địa chỉ."},
+  {k:"在留カードの再交付申請です。", h:"ざいりゅうかーどのさいこうふしんせいです。", v:"Tôi xin cấp lại thẻ cư trú."},
+  {k:"パスポートの更新はここですか？", h:"ぱすぽーとのこうしんはここですか？", v:"Gia hạn hộ chiếu ở đây phải không?"},
+  {k:"写真のサイズは何センチですか？", h:"しゃしんのさいずはなんせんちですか？", v:"Kích thước ảnh là bao nhiêu cm?"},
+  {k:"予約が必要ですか？", h:"よやくがひつようですか？", v:"Có cần đặt hẹn không?"},
+  {k:"予約なしでも大丈夫です。", h:"よやくなしでもだいじょうぶです。", v:"Không đặt hẹn cũng được."},
+  {k:"番号札を取ってお待ちください。", h:"ばんごうふだをとっておまちください。", v:"Hãy lấy thẻ số và chờ."},
+  {k:"窓口は3番です。", h:"まどぐちは3ばんです。", v:"Quầy số 3."},
+  {k:"外国人登録をしたいです。", h:"がいこくじんとうろくをしたいです。", v:"Tôi muốn đăng ký người nước ngoài."},
+  {k:"就労資格証明書が必要です。", h:"しゅうろうしかくしょうめいしょがひつようです。", v:"Cần giấy chứng nhận tư cách làm việc."},
+  {k:"資格外活動許可を申請します。", h:"しかくがいかつどうきょかをしんせいします。", v:"Tôi xin phép hoạt động ngoài tư cách."},
+  {k:"週28時間以内なら働けます。", h:"しゅう28じかんいないならはたらけます。", v:"Có thể làm việc dưới 28 giờ/tuần."},
+  {k:"留学から就労へ変更します。", h:"りゅうがくからしゅうろうへへんこうします。", v:"Tôi chuyển từ du học sang làm việc."},
+  {k:"在留特別許可を希望します。", h:"ざいりゅうとくべつきょかをきぼうします。", v:"Tôi xin phép cư trú đặc biệt."},
+  {k:"申請は本人でなければなりませんか？", h:"しんせいはほんにんでなければなりませんか？", v:"Có bắt buộc phải tự mình đến nộp không?"},
+  {k:"代理人でも大丈夫です。", h:"だいりにんでもだいじょうぶです。", v:"Người đại diện cũng được."},
+  {k:"委任状が必要です。", h:"いにんじょうがひつようです。", v:"Cần giấy ủy quyền."},
+  {k:"パスポートのコピーを取ります。", h:"ぱすぽーとのこぴーをとります。", v:"Tôi sẽ sao chụp hộ chiếu."},
+  {k:"この書類は自署してください。", h:"このしょるいはじしょしてください。", v:"Hãy tự tay ký vào văn bản này."},
+  {k:"記入例を見せてください。", h:"きにゅうれいをみせてください。", v:"Cho tôi xem mẫu điền."},
+  {k:"こちらが記入例です。", h:"こちらがきにゅうれいです。", v:"Đây là mẫu điền."},
+  {k:"漢字で書けますか？", h:"かんじでかけますか？", v:"Bạn có thể viết bằng chữ Hán không?"},
+  {k:"ひらがなで書きます。", h:"ひらがなでかきます。", v:"Tôi viết bằng hiragana."},
+  {k:"婚姻要件具備証明書が必要です。", h:"こんいんようけんぐびしょうめいしょがひつようです。", v:"Cần giấy chứng nhận đủ điều kiện kết hôn."},
+  {k:"本国で発行してもらってください。", h:"ほんごくではっこうしてもらってください。", v:"Hãy xin cấp ở nước bạn."},
+  {k:"翻訳を付けてください。", h:"ほんやくをつけてください。", v:"Hãy đính kèm bản dịch."},
+  {k:"日本語の翻訳が必要です。", h:"にほんごのほんやくがひつようです。", v:"Cần bản dịch tiếng Nhật."},
+  {k:"翻訳者の名前を書いてください。", h:"ほんやくしゃのなまえをかいてください。", v:"Hãy viết tên người dịch."},
+  {k:"在学証明書を提出します。", h:"ざいがくしょうめいしょをていしゅつします。", v:"Tôi nộp giấy chứng nhận đang đi học."},
+  {k:"成績証明書も必要ですか？", h:"せいせきしょうめいしょもひつようですか？", v:"Có cần bảng điểm không?"},
+  {k:"卒業証明書をください。", h:"そつぎょうしょうめいしょをください。", v:"Cho tôi xin giấy chứng nhận tốt nghiệp."},
+  {k:"申請料は現金のみです。", h:"しんせいりょうはげんきんのみです。", v:"Phí nộp đơn chỉ nhận tiền mặt."},
+  {k:"クレジットカードは使えません。", h:"くれじっとかーどはつかえません。", v:"Không dùng được thẻ tín dụng."},
+  {k:"お釣りのないようにお願いします。", h:"おつりのないようにおねがいします。", v:"Vui lòng chuẩn bị tiền lẻ."},
+  {k:"受付票をお渡しします。", h:"うけつけひょうをおわたしします。", v:"Tôi đưa phiếu tiếp nhận."},
+  {k:"この番号に電話してください。", h:"このばんごうにでんわしてください。", v:"Hãy gọi điện đến số này."},
+  {k:"平日の9時から5時までです。", h:"へいじつの9じから5じまでです。", v:"Từ 9h đến 17h các ngày trong tuần."},
+  {k:"土日祝日は休みです。", h:"どにちしゅくじつはやすみです。", v:"Thứ 7, Chủ nhật và ngày lễ nghỉ."},
+  {k:"次の書類を持ってきてください。", h:"つぎのしょるいをもってきてください。", v:"Hãy mang theo các giấy tờ sau."},
+  {k:"在留カードとパスポートです。", h:"ざいりゅうかーどとぱすぽーとです。", v:"Thẻ cư trú và hộ chiếu."},
+  {k:"写真は3ヶ月以内に撮ったものですか？", h:"しゃしんは3かげついないにとったものですか？", v:"Ảnh chụp trong vòng 3 tháng không?"},
+  {k:"はい、先月撮りました。", h:"はい、せんげつとりました。", v:"Vâng, tôi chụp tháng trước."},
+  {k:"申請書はダウンロードできます。", h:"しんせいしょはだうんろーどできます。", v:"Bạn có thể tải đơn từ mạng."},
+  {k:"ホームページを見てください。", h:"ほーむぺーじをみてください。", v:"Hãy xem trang web."},
+  {k:"パスワードを設定してください。", h:"ぱすわーどをせっていしてください。", v:"Vui lòng đặt mật khẩu."},
+  {k:"マイナンバーカードの暗証番号を入力してください。", h:"まいなんばーかーどのあんしょうばんごうをにゅうりょくしてください。", v:"Nhập mã số PIN của thẻ My Number."},
+  {k:"指紋を登録します。", h:"しもんをとうろくします。", v:"Tôi sẽ đăng ký vân tay."},
+  {k:"右の人差し指を置いてください。", h:"みぎのひとさしゆびをおいてください。", v:"Hãy đặt ngón trỏ phải lên."},
+  {k:"写真を撮ります。目を開けてください。", h:"しゃしんをとります。めをあけてください。", v:"Chụp ảnh nhé. Hãy mở mắt ra."},
+  {k:"受取は本人限りです。", h:"うけとりはほんにんかぎりです。", v:"Chỉ người đó mới được nhận."},
+  {k:"代理の者が受け取れますか？", h:"だいりのものがうけとれますか？", v:"Người đại diện có nhận được không?"},
+  {k:"委任状があれば可能です。", h:"いにんじょうがあればかのうです。", v:"Nếu có giấy ủy quyền thì được."},
+  {k:"内容を確認してください。", h:"ないようをかくにんしてください。", v:"Vui lòng xác nhận nội dung."},
+  {k:"間違いがないか確認しました。", h:"まちがいがないかかくにんしました。", v:"Tôi đã xác nhận không có sai sót."},
+  {k:"こちらに日付を書いてください。", h:"こちらにひづけをかいてください。", v:"Hãy viết ngày tháng vào đây."},
+  {k:"申請番号を控えてください。", h:"しんせいばんごうをひかえてください。", v:"Hãy ghi lại số đơn."},
+  {k:"発行まで1週間かかります。", h:"はっこうまで1しゅうかんかかります。", v:"Mất 1 tuần để cấp."},
+  {k:"簡易書留で郵送します。", h:"かんいかきとめでゆうそうします。", v:"Tôi sẽ gửi qua bưu điện bằng thư bảo đảm đơn giản."},
+  {k:"送料は自己負担です。", h:"そうりょうはじこふたんです。", v:"Phí vận chuyển tự trả."},
+  {k:"住民登録をしたいです。", h:"じゅうみんとうろくをしたいです。", v:"Tôi muốn đăng ký cư trú."},
+  {k:"在留カードを見せてください。", h:"ざいりゅうかーどをみせてください。", v:"Vui lòng cho xem thẻ cư trú."},
+  {k:"転入届を出します。", h:"てんにゅうとどけをだします。", v:"Tôi nộp giấy báo chuyển đến."},
+  {k:"転出届は済ませましたか？", h:"てんしゅつとどけはすませましたか？", v:"Bạn đã làm giấy báo chuyển đi chưa?"},
+  {k:"新しい住所はここです。", h:"あたらしいじゅうしょはここです。", v:"Địa chỉ mới của tôi là đây."},
+  {k:"世帯主は誰ですか？", h:"せたいぬしはだれですか？", v:"Chủ hộ là ai?"},
+  {k:"私が世帯主です。", h:"わたしがせたいぬしです。", v:"Tôi là chủ hộ."},
+  {k:"印鑑は必要ですか？", h:"いんかんはひつようですか？", v:"Có cần con dấu không?"},
+  {k:"サインでも構いません。", h:"さいんでもかまいません。", v:"Ký tên cũng được."},
+  {k:"健康保険に加入します。", h:"けんこうほけんにかにゅうします。", v:"Tôi đăng ký tham gia bảo hiểm y tế."},
+  {k:"年金の手続きをしたいです。", h:"ねんきんのてつづきをしたいです。", v:"Tôi muốn làm thủ tục hưu trí."},
+  {k:"マイナンバーカードを作りたいです。", h:"まいなんばーかーどをつくりたいです。", v:"Tôi muốn làm thẻ My Number."},
+  {k:"写真は必要ですか？", h:"しゃしんはひつようですか？", v:"Có cần ảnh không?"},
+  {k:"パスポートをコピーします。", h:"ぱすぽーとをこぴーします。", v:"Tôi sẽ sao chụp hộ chiếu."},
+  {k:"こちらに記入してください。", h:"こちらにきにゅうしてください。", v:"Vui lòng điền vào chỗ này."},
+  {k:"住所はカタカナで書いてください。", h:"じゅうしょはかたかなでかいてください。", v:"Vui lòng viết địa chỉ bằng katakana."},
+  {k:"国籍はどちらですか？", h:"こくせきはどちらですか？", v:"Quốc tịch của bạn là gì?"},
+  {k:"ベトナムです。", h:"べとなむです。", v:"Việt Nam."},
+  {k:"在留資格は何ですか？", h:"ざいりゅうしかくはなんですか？", v:"Tư cách lưu trú của bạn là gì?"},
+  {k:"技術・人文知識・国際業務です。", h:"ぎじゅつ・じんぶんちしき・こくさいぎょうむです。", v:"Kỹ thuật - Tri thức nhân văn - Nghiệp vụ quốc tế."},
+  {k:"在留期限を確認します。", h:"ざいりゅうきげんをかくにんします。", v:"Tôi xác nhận thời hạn lưu trú."},
+  {k:"更新の申請に来ました。", h:"こうしんのしんせいにきました。", v:"Tôi đến để xin gia hạn."},
+  {k:"パスポートを拝見します。", h:"ぱすぽーとをはいけんします。", v:"Tôi xem hộ chiếu."},
+  {k:"申請書に記入しました。", h:"しんせいしょにきにゅうしました。", v:"Tôi đã điền vào đơn."},
+  {k:"身分証明書はありますか？", h:"みぶんしょうめいしょはありますか？", v:"Bạn có giấy tờ tùy thân không?"},
+  {k:"運転免許証でいいですか？", h:"うんてんめんきょしょうでいいですか？", v:"Bằng lái xe được không?"},
+  {k:"はい、結構です。", h:"はい、けっこうです。", v:"Vâng, được."},
+  {k:"住民票を発行してください。", h:"じゅうみんひょうをはっこうしてください。", v:"Vui lòng cấp giấy chứng nhận cư trú."},
+  {k:"印鑑登録をしたいです。", h:"いんかんとうろくをしたいです。", v:"Tôi muốn đăng ký con dấu."},
+  {k:"登録済みの印鑑を持っていますか？", h:"とうろくずみのいんかんをもっていますか？", v:"Bạn có con dấu đã đăng ký không?"},
+  {k:"婚姻届を出したいです。", h:"こんいんとどけをだしたいです。", v:"Tôi muốn nộp giấy đăng ký kết hôn."},
+  {k:"離婚届を出します。", h:"りこんとどけをだします。", v:"Tôi nộp giấy báo ly hôn."},
+  {k:"出生届を出しました。", h:"しゅっせいとどけをだしました。", v:"Tôi đã nộp giấy khai sinh."},
+  {k:"死亡届を出しに来ました。", h:"しぼうとどけをだしにきました。", v:"Tôi đến để nộp giấy báo tử."},
+  {k:"戸籍謄本が必要です。", h:"こせきとうほんがひつようです。", v:"Tôi cần bản sao hộ tịch."},
+  {k:"税務署はどこですか？", h:"ぜいむしょはどこですか？", v:"Cơ quan thuế ở đâu?"},
+  {k:"確定申告をしたいです。", h:"かくていしんこくをしたいです。", v:"Tôi muốn khai thuế thu nhập."},
+  {k:"源泉徴収票を添付します。", h:"げんせんちょうしゅうひょうをてんぷします。", v:"Tôi đính kèm giấy chứng nhận khấu trừ thuế."},
+  {k:"還付金はいつ振り込まれますか？", h:"かんぷきんはいつふりこまれますか？", v:"Tiền hoàn thuế sẽ được chuyển khi nào?"},
+  {k:"納税証明書をください。", h:"のうぜいしょうめいしょをください。", v:"Cho tôi xin giấy chứng nhận nộp thuế."},
+  {k:"国民健康保険の脱退手続きです。", h:"こくみんけんこうほけんのだったいてつづきです。", v:"Thủ tục thoát bảo hiểm y tế quốc dân."},
+  {k:"年金手帳をなくしました。", h:"ねんきんてちょうをなくしました。", v:"Tôi bị mất sổ hưu trí."},
+  {k:"再発行できますか？", h:"さいはっこうできますか？", v:"Có thể cấp lại không?"},
+  {k:"手数料はいくらですか？", h:"てすうりょうはいくらですか？", v:"Lệ phí là bao nhiêu?"},
+  {k:"収入印紙を貼ってください。", h:"しゅうにゅういんしをはってください。", v:"Vui lòng dán tem thu nhập."},
+  {k:"書留で送ります。", h:"かきとめでおくります。", v:"Tôi sẽ gửi bằng thư bảo đảm."},
+  {k:"申請書に不備があります。", h:"しんせいしょにふびがあります。", v:"Đơn đăng ký có thiếu sót."},
+  {k:"ここを訂正してください。", h:"ここをていせいしてください。", v:"Hãy sửa chỗ này."},
+  {k:"再来週に結果が出ます。", h:"さらいしゅうにけっかがでます。", v:"Kết quả sẽ có vào tuần sau nữa."},
+  {k:"電話で連絡します。", h:"でんわでれんらくします。", v:"Tôi sẽ liên lạc qua điện thoại."},
+  {k:"住所変更の届出です。", h:"じゅうしょへんこうのとどけでです。", v:"Tôi đến báo thay đổi địa chỉ."},
+  {k:"在留カードの再交付申請です。", h:"ざいりゅうかーどのさいこうふしんせいです。", v:"Tôi xin cấp lại thẻ cư trú."},
+  {k:"パスポートの更新はここですか？", h:"ぱすぽーとのこうしんはここですか？", v:"Gia hạn hộ chiếu ở đây phải không?"},
+  {k:"写真のサイズは何センチですか？", h:"しゃしんのさいずはなんせんちですか？", v:"Kích thước ảnh là bao nhiêu cm?"},
+  {k:"予約が必要ですか？", h:"よやくがひつようですか？", v:"Có cần đặt hẹn không?"},
+  {k:"予約なしでも大丈夫です。", h:"よやくなしでもだいじょうぶです。", v:"Không đặt hẹn cũng được."},
+  {k:"番号札を取ってお待ちください。", h:"ばんごうふだをとっておまちください。", v:"Hãy lấy thẻ số và chờ."},
+  {k:"窓口は3番です。", h:"まどぐちは3ばんです。", v:"Quầy số 3."},
+  {k:"外国人登録をしたいです。", h:"がいこくじんとうろくをしたいです。", v:"Tôi muốn đăng ký người nước ngoài."},
+  {k:"就労資格証明書が必要です。", h:"しゅうろうしかくしょうめいしょがひつようです。", v:"Cần giấy chứng nhận tư cách làm việc."},
+  {k:"資格外活動許可を申請します。", h:"しかくがいかつどうきょかをしんせいします。", v:"Tôi xin phép hoạt động ngoài tư cách."},
+  {k:"週28時間以内なら働けます。", h:"しゅう28じかんいないならはたらけます。", v:"Có thể làm việc dưới 28 giờ/tuần."},
+  {k:"留学から就労へ変更します。", h:"りゅうがくからしゅうろうへへんこうします。", v:"Tôi chuyển từ du học sang làm việc."},
+  {k:"在留特別許可を希望します。", h:"ざいりゅうとくべつきょかをきぼうします。", v:"Tôi xin phép cư trú đặc biệt."},
+  {k:"申請は本人でなければなりませんか？", h:"しんせいはほんにんでなければなりませんか？", v:"Có bắt buộc phải tự mình đến nộp không?"},
+  {k:"代理人でも大丈夫です。", h:"だいりにんでもだいじょうぶです。", v:"Người đại diện cũng được."},
+  {k:"委任状が必要です。", h:"いにんじょうがひつようです。", v:"Cần giấy ủy quyền."},
+  {k:"パスポートのコピーを取ります。", h:"ぱすぽーとのこぴーをとります。", v:"Tôi sẽ sao chụp hộ chiếu."},
+  {k:"この書類は自署してください。", h:"このしょるいはじしょしてください。", v:"Hãy tự tay ký vào văn bản này."},
+  {k:"記入例を見せてください。", h:"きにゅうれいをみせてください。", v:"Cho tôi xem mẫu điền."},
+  {k:"こちらが記入例です。", h:"こちらがきにゅうれいです。", v:"Đây là mẫu điền."},
+  {k:"漢字で書けますか？", h:"かんじでかけますか？", v:"Bạn có thể viết bằng chữ Hán không?"},
+  {k:"ひらがなで書きます。", h:"ひらがなでかきます。", v:"Tôi viết bằng hiragana."},
+  {k:"婚姻要件具備証明書が必要です。", h:"こんいんようけんぐびしょうめいしょがひつようです。", v:"Cần giấy chứng nhận đủ điều kiện kết hôn."},
+  {k:"本国で発行してもらってください。", h:"ほんごくではっこうしてもらってください。", v:"Hãy xin cấp ở nước bạn."},
+  {k:"翻訳を付けてください。", h:"ほんやくをつけてください。", v:"Hãy đính kèm bản dịch."},
+  {k:"日本語の翻訳が必要です。", h:"にほんごのほんやくがひつようです。", v:"Cần bản dịch tiếng Nhật."},
+  {k:"翻訳者の名前を書いてください。", h:"ほんやくしゃのなまえをかいてください。", v:"Hãy viết tên người dịch."},
+  {k:"在学証明書を提出します。", h:"ざいがくしょうめいしょをていしゅつします。", v:"Tôi nộp giấy chứng nhận đang đi học."},
+  {k:"成績証明書も必要ですか？", h:"せいせきしょうめいしょもひつようですか？", v:"Có cần bảng điểm không?"},
+  {k:"卒業証明書をください。", h:"そつぎょうしょうめいしょをください。", v:"Cho tôi xin giấy chứng nhận tốt nghiệp."},
+  {k:"申請料は現金のみです。", h:"しんせいりょうはげんきんのみです。", v:"Phí nộp đơn chỉ nhận tiền mặt."},
+  {k:"クレジットカードは使えません。", h:"くれじっとかーどはつかえません。", v:"Không dùng được thẻ tín dụng."},
+  {k:"お釣りのないようにお願いします。", h:"おつりのないようにおねがいします。", v:"Vui lòng chuẩn bị tiền lẻ."},
+  {k:"受付票をお渡しします。", h:"うけつけひょうをおわたしします。", v:"Tôi đưa phiếu tiếp nhận."},
+  {k:"この番号に電話してください。", h:"このばんごうにでんわしてください。", v:"Hãy gọi điện đến số này."},
+  {k:"平日の9時から5時までです。", h:"へいじつの9じから5じまでです。", v:"Từ 9h đến 17h các ngày trong tuần."},
+  {k:"土日祝日は休みです。", h:"どにちしゅくじつはやすみです。", v:"Thứ 7, Chủ nhật và ngày lễ nghỉ."},
+  {k:"次の書類を持ってきてください。", h:"つぎのしょるいをもってきてください。", v:"Hãy mang theo các giấy tờ sau."},
+  {k:"在留カードとパスポートです。", h:"ざいりゅうかーどとぱすぽーとです。", v:"Thẻ cư trú và hộ chiếu."},
+  {k:"写真は3ヶ月以内に撮ったものですか？", h:"しゃしんは3かげついないにとったものですか？", v:"Ảnh chụp trong vòng 3 tháng không?"},
+  {k:"はい、先月撮りました。", h:"はい、せんげつとりました。", v:"Vâng, tôi chụp tháng trước."},
+  {k:"申請書はダウンロードできます。", h:"しんせいしょはだうんろーどできます。", v:"Bạn có thể tải đơn từ mạng."},
+  {k:"ホームページを見てください。", h:"ほーむぺーじをみてください。", v:"Hãy xem trang web."},
+  {k:"パスワードを設定してください。", h:"ぱすわーどをせっていしてください。", v:"Vui lòng đặt mật khẩu."},
+  {k:"マイナンバーカードの暗証番号を入力してください。", h:"まいなんばーかーどのあんしょうばんごうをにゅうりょくしてください。", v:"Nhập mã số PIN của thẻ My Number."},
+  {k:"指紋を登録します。", h:"しもんをとうろくします。", v:"Tôi sẽ đăng ký vân tay."},
+  {k:"右の人差し指を置いてください。", h:"みぎのひとさしゆびをおいてください。", v:"Hãy đặt ngón trỏ phải lên."},
+  {k:"写真を撮ります。目を開けてください。", h:"しゃしんをとります。めをあけてください。", v:"Chụp ảnh nhé. Hãy mở mắt ra."},
+  {k:"受取は本人限りです。", h:"うけとりはほんにんかぎりです。", v:"Chỉ người đó mới được nhận."},
+  {k:"代理の者が受け取れますか？", h:"だいりのものがうけとれますか？", v:"Người đại diện có nhận được không?"},
+  {k:"委任状があれば可能です。", h:"いにんじょうがあればかのうです。", v:"Nếu có giấy ủy quyền thì được."},
+  {k:"内容を確認してください。", h:"ないようをかくにんしてください。", v:"Vui lòng xác nhận nội dung."},
+  {k:"間違いがないか確認しました。", h:"まちがいがないかかくにんしました。", v:"Tôi đã xác nhận không có sai sót."},
+  {k:"こちらに日付を書いてください。", h:"こちらにひづけをかいてください。", v:"Hãy viết ngày tháng vào đây."},
+  {k:"申請番号を控えてください。", h:"しんせいばんごうをひかえてください。", v:"Hãy ghi lại số đơn."},
+  {k:"発行まで1週間かかります。", h:"はっこうまで1しゅうかんかかります。", v:"Mất 1 tuần để cấp."},
+  {k:"簡易書留で郵送します。", h:"かんいかきとめでゆうそうします。", v:"Tôi sẽ gửi qua bưu điện bằng thư bảo đảm đơn giản."},
+  {k:"送料は自己負担です。", h:"そうりょうはじこふたんです。", v:"Phí vận chuyển tự trả."},
+  {k:"パスポートの残存有効期間を確認します。", h:"ぱすぽーとのざんぞんゆうこうきかんをかくにんします。", v:"Tôi xác nhận thời hạn hiệu lực còn lại của hộ chiếu."},
+  {k:"6ヶ月以上必要です。", h:"6かげついじょうひつようです。", v:"Cần còn hơn 6 tháng."},
+  {k:"戸籍全部事項証明書をください。", h:"こせきぜんぶじこうしょうめいしょをください。", v:"Cho tôi xin giấy chứng nhận các mục hộ tịch toàn phần."},
+  {k:"外国人登録証明書の住所変更です。", h:"がいこくじんとうろくしょうめいしょのじゅうしょへんこうです。", v:"Thay đổi địa chỉ trên giấy chứng nhận đăng ký người nước ngoài."},
+  {k:"留学のビザから就労ビザへ変更したいです。", h:"りゅうがくのびざからしゅうろうびざへへんこうしたいです。", v:"Tôi muốn đổi từ visa du học sang visa lao động."},
+  {k:"家族滞在ビザの申請です。", h:"かぞくたいざいびざのしんせいです。", v:"Tôi xin visa lưu trú cho gia đình."},
+  {k:"在留資格認定証明書を申請します。", h:"ざいりゅうしかくにんていしょうめいしょをしんせいします。", v:"Tôi xin cấp giấy chứng nhận tư cách lưu trú."},
+  {k:"許可が下りるまでどのくらいですか？", h:"きょかがおりるまでどのくらいですか？", v:"Mất bao lâu để có kết quả?"},
+  {k:"2週間から1ヶ月程度です。", h:"2しゅうかんから1かげつていどです。", v:"Khoảng 2 tuần đến 1 tháng."},
+  {k:"不許可の場合、再申請できますか？", h:"ふきょかのばあい、さいしんせいできますか？", v:"Trường hợp không được cấp, tôi có thể nộp lại không?"},
+  {k:"はい、再度申請可能です。", h:"はい、さいどしんせいかのうです。", v:"Vâng, có thể nộp lại."},
+  {k:"在留カードの有効期限はいつまでですか？", h:"ざいりゅうかーどのゆうこうきげんはいつまでですか？", v:"Thẻ cư trú có hiệu lực đến khi nào?"},
+  {k:"2025年7月8日までです。", h:"2025ねん7がつ8にちまでです。", v:"Đến ngày 8 tháng 7 năm 2025."},
+  {k:"更新手続きは何ヶ月前からできますか？", h:"こうしんてつづきはなんかげつまえからできますか？", v:"Có thể làm thủ tục gia hạn trước mấy tháng?"},
+  {k:"3ヶ月前から可能です。", h:"3かげつまえからかのうです。", v:"Có thể làm từ 3 tháng trước."},
+  {k:"パスポートと一緒に在留カードも失くしました。", h:"ぱすぽーとといっしょにざいりゅうかーどもなくしました。", v:"Tôi bị mất hộ chiếu và thẻ cư trú cùng lúc."},
+  {k:"まずは警察に届けてください。", h:"まずはけいさつにとどけてください。", v:"Trước tiên hãy báo với cảnh sát."},
+  {k:"遺失届の受理番号を教えてください。", h:"いしつとどけのじゅりばんごうをおしえてください。", v:"Cho tôi biết số tiếp nhận giấy báo mất."},
+  {k:"紛失届を出しました。", h:"ふんしつとどけをだしました。", v:"Tôi đã nộp giấy báo mất."},
+  {k:"在留カードの再発行には写真が必要です。", h:"ざいりゅうかーどのさいはっこうにはしゃしんがひつようです。", v:"Cần ảnh để cấp lại thẻ cư trú."},
+  {k:"申請書に押印してください。", h:"しんせいしょにおういんしてください。", v:"Hãy đóng dấu (ký) vào đơn."},
+  {k:"代理人の身分証明書も必要です。", h:"だいりにんのみぶんしょうめいしょもひつようです。", v:"Cũng cần giấy tờ tùy thân của người đại diện."},
+  {k:"収入印紙は4000円分です。", h:"しゅうにゅういんしは4000えんぶんです。", v:"Tem thu nhập trị giá 4000 yên."},
+  {k:"コンビニで買えますか？", h:"こんびにでかけますか？", v:"Có thể mua ở cửa hàng tiện lợi không?"},
+  {k:"郵便局でも購入できます。", h:"ゆうびんきょくでもこうにゅうできます。", v:"Có thể mua ở bưu điện."},
+  {k:"申請書の書き方がわかりません。", h:"しんせいしょのかきかたがわかりません。", v:"Tôi không biết cách điền đơn."},
+  {k:"記入例を見本にしてください。", h:"きにゅうれいをみほんにしてください。", v:"Hãy lấy mẫu điền làm ví dụ."},
+  {k:"職員に聞いてください。", h:"しょくいんにきいてください。", v:"Hãy hỏi nhân viên."},
+  {k:"次の書類が不足しています。", h:"つぎのしょるいがふそくしています。", v:"Thiếu các giấy tờ sau."},
+  {k:"追加で持ってきてください。", h:"ついかでもってきてください。", v:"Hãy mang bổ sung."},
+  {k:"この書類はコピーでもいいですか？", h:"このしょるいはこぴーでもいいですか？", v:"Giấy tờ này có thể nộp bản sao không?"},
+  {k:"原本を確認しますのでコピーを添付してください。", h:"げんぽんをかくにんしますのでこぴーをてんぷしてください。", v:"Tôi sẽ kiểm tra bản chính, hãy đính kèm bản sao."},
+  {k:"翻訳は自分でやってもいいですか？", h:"ほんやくはじぶんでやってもいいですか？", v:"Tôi có thể tự dịch không?"},
+  {k:"資格のある翻訳者に依頼してください。", h:"しかくのあるほんやくしゃにいらいしてください。", v:"Hãy nhờ người phiên dịch có chứng chỉ."},
+  {k:"健康診断書が必要です。", h:"けんこうしんだんしょがひつようです。", v:"Cần giấy khám sức khỏe."},
+  {k:"指定の病院で受けてください。", h:"していのびょういんでうけてください。", v:"Hãy khám ở bệnh viện chỉ định."},
+  {k:"写真は白黒でもいいですか？", h:"しゃしんはしろくろでもいいですか？", v:"Ảnh trắng đen có được không?"},
+  {k:"カラーでお願いします。", h:"からーでおねがいします。", v:"Vui lòng ảnh màu."},
+  {k:"背景は白です。", h:"はいけいはしろです。", v:"Nền trắng."},
+  {k:"サイズは4cm×3cmです。", h:"さいずは4cm×3cmです。", v:"Kích thước 4cm x 3cm."},
+  {k:"眼鏡ははずしてください。", h:"めがねははずしてください。", v:"Hãy bỏ kính ra."},
+  {k:"前髪は顔にかからないように。", h:"まえがみはかおにかからないように。", v:"Tóc mái không được che mặt."},
+  {k:"口は閉じてください。", h:"くちはとじてください。", v:"Hãy ngậm miệng lại."},
+  {k:"証明写真機で撮りました。", h:"しょうめいしゃしんきでとりました。", v:"Tôi chụp ở máy ảnh tự động."},
+  {k:"受付時間は午前9時から午後4時までです。", h:"うけつけじかんはごぜん9じからごご4じまでです。", v:"Giờ tiếp nhận từ 9h sáng đến 4h chiều."},
+  {k:"昼休みは12時から1時までです。", h:"ひるやすみは12じから1じまでです。", v:"Nghỉ trưa từ 12h đến 1h."},
+  {k:"土曜日はやっていますか？", h:"どようびはやっていますか？", v:"Thứ 7 có làm việc không?"},
+  {k:"第2・第4土曜日は開いています。", h:"だい2・だい4どようびはひらいています。", v:"Thứ 7 tuần thứ 2 và thứ 4 thì mở cửa."},
+  {k:"日曜日は休みです。", h:"にちようびはやすみです。", v:"Chủ nhật nghỉ."},
+  {k:"祝日も休みです。", h:"しゅくじつもやすみです。", v:"Ngày lễ cũng nghỉ."},
+  {k:"年末年始は休みです。", h:"ねんまつねんしはやすみです。", v:"Nghỉ Tết Dương lịch."},
+  {k:"この書類は有効期限がありますか？", h:"このしょるいはゆうこうきげんがありますか？", v:"Giấy tờ này có thời hạn không?"},
+  {k:"3ヶ月以内のものに限ります。", h:"3かげついないのものにかぎります。", v:"Chỉ chấp nhận trong vòng 3 tháng."},
+  {k:"古いので無効です。", h:"ふるいのでむこうです。", v:"Cũ quá, không có hiệu lực."},
+  {k:"新しいものを取り直してください。", h:"あたらしいものをとりなおしてください。", v:"Hãy lấy lại cái mới."},
+  {k:"手数料を支払いました。", h:"てすうりょうをしはらいました。", v:"Tôi đã trả lệ phí."},
+  {k:"領収書をお渡しします。", h:"りょうしゅうしょをおわたしします。", v:"Tôi đưa hóa đơn."},
+  {k:"大切に保管してください。", h:"たいせつにほかんしてください。", v:"Hãy giữ cẩn thận."},
+  {k:"番号札をなくさないでください。", h:"ばんごうふだをなくさないでください。", v:"Đừng làm mất thẻ số."},
+  {k:"順番が来たらお呼びします。", h:"じゅんばんがきたらおよびします。", v:"Khi đến lượt, tôi sẽ gọi."},
+  {k:"しばらくお待ちください。", h:"しばらくおまちください。", v:"Xin chờ một chút."},
+  {k:"お待たせしました。", h:"おまたせしました。", v:"Xin lỗi đã để bạn chờ."},
+  {k:"こちらが新しい在留カードです。", h:"こちらがあたらしいざいりゅうかーどです。", v:"Đây là thẻ cư trú mới."},
+  {k:"古いカードは返却します。", h:"ふるいかーどはへんきゃくします。", v:"Tôi trả lại thẻ cũ."},
+  {k:"内容に間違いがないか確認してください。", h:"ないようにまちがいがないかかくにんしてください。", v:"Hãy xác nhận nội dung không có sai sót."},
+  {k:"氏名の綴りは合っていますか？", h:"しめいのつづりはあっていますか？", v:"Tên đánh vần đúng chứ?"},
+  {k:"はい、合っています。", h:"はい、あっています。", v:"Vâng, đúng rồi."},
+  {k:"生年月日を教えてください。", h:"せいねんがっぴをおしえてください。", v:"Cho tôi biết ngày sinh."},
+  {k:"1990年4月1日です。", h:"1990ねん4がつ1にちです。", v:"Ngày 1 tháng 4 năm 1990."},
+  {k:"性別は？", h:"せいべつは？", v:"Giới tính?"},
+  {k:"男性です。", h:"だんせいです。", v:"Nam."},
+  {k:"女性です。", h:"じょせいです。", v:"Nữ."},
+  {k:"電話番号も教えてください。", h:"でんわばんごうもおしえてください。", v:"Cho tôi biết cả số điện thoại."},
+  {k:"携帯電話の番号でいいですか？", h:"けいたいでんわのばんごうでいいですか？", v:"Số điện thoại di động được không?"},
+  {k:"結構です。", h:"けっこうです。", v:"Được ạ."},
+  {k:"メールアドレスはありますか？", h:"めーるあどれすはありますか？", v:"Bạn có địa chỉ email không?"},
+  {k:"あります。", h:"あります。", v:"Có."},
+  {k:"念のため教えてください。", h:"ねんのためおしえてください。", v:"Hãy cho tôi biết để phòng khi cần."},
+  {k:"通知はメールでもいいですか？", h:"つうちはめーるでもいいですか？", v:"Thông báo qua email có được không?"},
+  {k:"はい、お願いします。", h:"はい、おねがいします。", v:"Vâng, làm ơn."},
+  {k:"この書類はA4で印刷してください。", h:"このしょるいはA4でいんさつしてください。", v:"Hãy in giấy tờ này khổ A4."},
+  {k:"両面印刷でもいいですか？", h:"りょうめんいんさつでもいいですか？", v:"In hai mặt có được không?"},
+  {k:"片面でお願いします。", h:"かためんでおねがいします。", v:"Vui lòng in một mặt."},
+  {k:"ホッチキスでとめてください。", h:"ほっちきすでとめてください。", v:"Hãy ghim lại bằng dập ghim."},
+  {k:"左上をとめてください。", h:"ひだりうえをとめてください。", v:"Ghim góc trên bên trái."},
+  {k:"クリップは使わないでください。", h:"くりっぷはつかわないでください。", v:"Đừng dùng kẹp giấy."},
+  {k:"クリアファイルに入れて提出してください。", h:"くりあふぁいるにいれていていしゅつしてください。", v:"Hãy bỏ vào túi nhựa trong suốt và nộp."},
+  {k:"ファイルの色は指定がありますか？", h:"ふぁいるのいろはしていがありますか？", v:"Có quy định màu túi không?"},
+  {k:"透明であれば何色でも結構です。", h:"とうめいであればなにいろでもけっこうです。", v:"Miễn là trong suốt, màu nào cũng được."},
+  {k:"窓口に出す前に番号札を取ってください。", h:"まどぐちにだすまえにばんごうふだをとってください。", v:"Trước khi nộp tại quầy, hãy lấy thẻ số."},
+  {k:"順番が来るまで座ってお待ちください。", h:"じゅんばんがくるまですわっておまちください。", v:"Hãy ngồi chờ đến lượt."},
+  {k:"番号が表示されたらお越しください。", h:"ばんごうがひょうじされたらおこしください。", v:"Khi số hiện lên màn hình, hãy đến quầy."},
+  {k:"呼び出し音が鳴ったらお越しください。", h:"よびだしおとがなったらおこしください。", v:"Khi có tiếng chuông gọi, hãy đến."},
+  {k:"この書類に記入漏れがあります。", h:"このしょるいにきにゅうもれがあります。", v:"Có chỗ thiếu thông tin trong đơn này."},
+  {k:"空欄を埋めてください。", h:"くうらんをうめてください。", v:"Hãy điền vào chỗ trống."},
+  {k:"ここにチェックを入れてください。", h:"ここにちぇっくをいれてください。", v:"Hãy đánh dấu vào đây."},
+  {k:"該当するものに◯をつけてください。", h:"がいとうするものにまるをつけてください。", v:"Hãy khoanh tròn vào mục phù hợp."},
+  {k:"訂正する場合は二重線を引いてください。", h:"ていせいするばあいはにじゅうせんをひいてください。", v:"Trường hợp sửa, hãy gạch đúp."},
+  {k:"修正液は使わないでください。", h:"しゅうせいえきはつかわないでください。", v:"Không dùng văn phòng phẩm sửa lỗi."},
+  {k:"印鑑を押す場所はここです。", h:"いんかんをおすばしょはここです。", v:"Chỗ đóng dấu là đây."},
+  {k:"氏名の横に押してください。", h:"しめいのよこにおしてください。", v:"Hãy đóng dấu bên cạnh tên."},
+  {k:"訂正印も押してください。", h:"ていせいいんもおしてください。", v:"Hãy đóng dấu sửa lỗi."},
+  {k:"この書類はコピーして返却します。", h:"このしょるいはこぴーしてへんきゃくします。", v:"Tôi sẽ sao chụp và trả lại giấy tờ này."},
+  {k:"原本はお返しします。", h:"げんぽんはおかえしします。", v:"Tôi sẽ trả lại bản chính."},
+  {k:"コピーが不鮮明です。", h:"こぴーがふせんめいです。", v:"Bản sao bị mờ."},
+  {k:"もう一度取り直してください。", h:"もういちどとりなおしてください。", v:"Hãy sao chụp lại."},
+  {k:"こちらでコピーできますか？", h:"こちらでこぴーできますか？", v:"Có thể sao chụp ở đây không?"},
+  {k:"10円コピーがあります。", h:"10えんこぴーがあります。", v:"Có máy copy 10 yên."},
+  {k:"おつりが出ますか？", h:"おつりがでますか？", v:"Có thối tiền không?"},
+  {k:"両替機はあちらです。", h:"りょうがえきはあちらです。", v:"Máy đổi tiền ở đằng kia."},
+  {k:"この用紙は無料ですか？", h:"このようしはむりょうですか？", v:"Mẫu đơn này có miễn phí không?"},
+  {k:"はい、無料です。", h:"はい、むりょうです。", v:"Vâng, miễn phí."},
+  {k:"1枚ずつお取りください。", h:"1まいずつおとりください。", v:"Vui lòng lấy mỗi loại một tờ."},
+  {k:"多目的トイレはありますか？", h:"たもくてきといれはありますか？", v:"Có nhà vệ sinh đa năng không?"},
+  {k:"1階の奥にあります。", h:"1かいのおくにあります。", v:"Ở cuối tầng 1."},
+  {k:"エレベーターはこちらです。", h:"えれべーたーはこちらです。", v:"Thang máy ở đây."},
+  {k:"ベビーカーでも入れますか？", h:"べびーかーでもはいれますか？", v:"Có thể mang xe đẩy em bé vào không?"},
+  {k:"はい、大丈夫です。", h:"はい、だいじょうぶです。", v:"Vâng, được."},
+  {k:"お子様連れの方はこちらへどうぞ。", h:"おこさまづれのほうはこちらへどうぞ。", v:"Quý khách có con nhỏ mời đi lối này."},
+  {k:"優先窓口があります。", h:"ゆうせんまどぐちがあります。", v:"Có quầy ưu tiên."},
+  {k:"高齢の方もどうぞ。", h:"こうれいのほうもどうぞ。", v:"Người cao tuổi cũng xin mời."},
+  {k:"筆談なら可能です。", h:"ひつだんならかのうです。", v:"Có thể trao đổi bằng giấy bút."},
+  {k:"手話通訳を依頼できますか？", h:"しゅわつうやくをいらいできますか？", v:"Có thể yêu cầu thông dịch viên ngôn ngữ ký hiệu không?"},
+  {k:"事前にご連絡ください。", h:"じぜんにごれんらくください。", v:"Vui lòng liên hệ trước."},
+  {k:"英語での対応は可能ですか？", h:"えいごでのたいおうはかのうですか？", v:"Có thể hỗ trợ bằng tiếng Anh không?"},
+  {k:"簡単な英語なら話せます。", h:"かんたんなえいごならはなせます。", v:"Tôi có thể nói tiếng Anh đơn giản."},
+  {k:"ベトナム語の通訳を呼びます。", h:"べとなむごのつうやくをよびます。", v:"Tôi sẽ gọi thông dịch viên tiếng Việt."},
+  {k:"少々お待ちください。", h:"しょうしょうおまちください。", v:"Xin chờ một lát."},
+  {k:"本日の受付は終了しました。", h:"ほんじつのうけつけはしゅうりょうしました。", v:"Hôm nay đã hết giờ tiếp nhận."},
+  {k:"明日またお越しください。", h:"あしたまたおこしください。", v:"Mời ngày mai quay lại."},
+  {k:"受付時間は9時からです。", h:"うけつけじかんは9じからです。", v:"Giờ tiếp nhận bắt đầu từ 9h."},
+  {k:"朝一番が空いています。", h:"あさいちばんがあいています。", v:"Sáng sớm còn chỗ trống."},
+  {k:"予約制ですか？", h:"よやくせいですか？", v:"Có hệ thống đặt hẹn không?"},
+  {k:"予約なしでも受け付けます。", h:"よやくなしでもうけつけます。", v:"Không đặt hẹn cũng tiếp nhận."},
+  {k:"予約の方が優先されます。", h:"よやくのほうがゆうせんされます。", v:"Người đặt hẹn được ưu tiên."},
+  {k:"オンラインで予約できます。", h:"おんらいんでよやくできます。", v:"Có thể đặt hẹn trực tuyến."},
+  {k:"予約番号を控えてきてください。", h:"よやくばんごうをひかえてきてください。", v:"Hãy ghi lại số đặt hẹn."},
+  {k:"キャンセルは前日までにお願いします。", h:"きゃんせるはぜんじつまでにおねがいします。", v:"Hủy hẹn vui lòng báo trước một ngày."},
+  {k:"無断キャンセルはご遠慮ください。", h:"むだんきゃんせるはごえんりょください。", v:"Xin đừng hủy hẹn mà không báo."},
+  {k:"遅刻すると順番が後になります。", h:"ちこくするとじゅんばんがあとになります。", v:"Đến muộn sẽ phải xếp hàng lại."},
+  {k:"時間に余裕を持ってお越しください。", h:"じかんによゆうをもっておこしください。", v:"Hãy đến sớm hơn giờ hẹn."},
+  {k:"駐車場はありますか？", h:"ちゅうしゃじょうはありますか？", v:"Có bãi đỗ xe không?"},
+  {k:"隣に市営駐車場があります。", h:"となりにしえいちゅうしゃじょうがあります。", v:"Có bãi đỗ xe công cộng bên cạnh."},
+  {k:"有料ですか？", h:"ゆうりょうですか？", v:"Có phí không?"},
+  {k:"最初の30分は無料です。", h:"さいしょの30ぷんはむりょうです。", v:"30 phút đầu miễn phí."},
+  {k:"自転車は無料で停められます。", h:"じてんしゃはむりょうでとめられます。", v:"Xe đạp thì đỗ miễn phí."},
+  {k:"バイクはここに停めてください。", h:"ばいくはここにとめてください。", v:"Xe máy hãy đỗ ở đây."},
+  {k:"障害者用駐車場もあります。", h:"しょうがいしゃようちゅうしゃじょうもあります。", v:"Có cả chỗ đỗ xe cho người khuyết tật."},
+  {k:"証明書交付申請書をください。", h:"しょうめいしょこうふしんせいしょをください。", v:"Cho tôi xin mẫu đơn xin cấp giấy chứng nhận."},
+  {k:"印鑑登録証明書をください。", h:"いんかんとうろくしょうめいしょをください。", v:"Cho tôi xin giấy chứng nhận đăng ký con dấu."},
+  {k:"所得証明書を発行してください。", h:"しょとくしょうめいしょをはっこうしてください。", v:"Vui lòng cấp giấy chứng nhận thu nhập."},
+  {k:"課税証明書も一緒に。", h:"かぜいしょうめいしょもいっしょに。", v:"Cả giấy chứng nhận thuế nữa."},
+  {k:"非課税証明書が必要です。", h:"ひかぜいしょうめいしょがひつようです。", v:"Cần giấy chứng nhận không thuộc diện chịu thuế."},
+  {k:"納税証明書は何通必要ですか？", h:"のうぜいしょうめいしょはなんつうひつようですか？", v:"Cần mấy bản giấy chứng nhận nộp thuế?"},
+  {k:"2通お願いします。", h:"2つうおねがいします。", v:"Làm ơn 2 bản."},
+  {k:"発行手数料は1通300円です。", h:"はっこうてすうりょうは1つう300えんです。", v:"Phí cấp 1 bản là 300 yên."},
+  {k:"即日発行できますか？", h:"そくじつはっこうできますか？", v:"Có thể cấp ngay trong ngày không?"},
+  {k:"はい、その場でお渡しします。", h:"はい、そのばでおわたしします。", v:"Vâng, chúng tôi trao ngay tại đây."},
+  {k:"郵送での請求も可能です。", h:"ゆうそうでのせいきゅうものうです。", v:"Có thể yêu cầu qua bưu điện."},
+  {k:"返信用封筒を同封してください。", h:"へんしんようふうとうをどうふうしてください。", v:"Hãy gửi kèm phong bì hồi âm."},
+  {k:"切手を貼ってください。", h:"きってをはってください。", v:"Hãy dán tem."},
+  {k:"書留にすると安全です。", h:"かきとめにするとあんぜんです。", v:"Nếu gửi bảo đảm thì an toàn."},
+  {k:"追跡番号をお伝えします。", h:"ついせきばんごうをおつたえします。", v:"Tôi sẽ thông báo mã theo dõi."},
+  {k:"到着まで1週間ほど見てください。", h:"とうちゃくまで1しゅうかんほどみてください。", v:"Hãy đợi khoảng 1 tuần để nhận được."},
+  {k:"住民異動届の用紙をもらえますか？", h:"じゅうみんいどうとどけのようしをもらえますか？", v:"Tôi có thể lấy mẫu đơn báo thay đổi cư trú không?"},
+  {k:"引っ越ししたので転入届を出したいです。", h:"ひっこししたのでてんにゅうとどけをだしたいです。", v:"Tôi mới chuyển nhà nên muốn nộp giấy báo chuyển đến."},
+  {k:"前に住んでいた市はどこですか？", h:"まえにすんでいたしはどこですか？", v:"Thành phố trước đây bạn sống ở đâu?"},
+  {k:"大阪市です。", h:"おおさかしです。", v:"Thành phố Osaka."},
+  {k:"転出証明書を持っていますか？", h:"てんしゅつしょうめいしょをもっていますか？", v:"Bạn có giấy chứng nhận chuyển đi không?"},
+  {k:"はい、持っています。", h:"はい、もっています。", v:"Vâng, tôi có."},
+  {k:"こちらに提出してください。", h:"こちらにていしゅつしてください。", v:"Hãy nộp ở đây."},
+  {k:"世帯全員の在留カードをお願いします。", h:"せたいぜんいんのざいりゅうかーどをおねがいします。", v:"Vui lòng đưa thẻ cư trú của cả hộ."},
+  {k:"子供の在留カードもあります。", h:"こどものざいりゅうかーどもあります。", v:"Có cả thẻ cư trú của con tôi."},
+  {k:"家族全員分の住民票をください。", h:"かぞくぜんいんぶんのじゅうみんひょうをください。", v:"Cho tôi xin giấy chứng nhận cư trú của cả nhà."},
+  {k:"個人別に分けてください。", h:"こじんべつにわけてください。", v:"Hãy chia riêng từng người."},
+  {k:"続柄も記載してください。", h:"つづきがらもきさいしてください。", v:"Hãy ghi rõ mối quan hệ gia đình."},
+  {k:"本籍地はどこですか？", h:"ほんせきちはどこですか？", v:"Nguyên quán ở đâu?"},
+  {k:"ベトナム、ハノイ市です。", h:"べとなむ、はのいしです。", v:"Hà Nội, Việt Nam."},
+  {k:"日本の本籍地はありません。", h:"にほんのほんせきちはありません。", v:"Tôi không có hộ khẩu tại Nhật."},
+  {k:"外国人向けの住民票には本籍は記載されません。", h:"がいこくじんむけのじゅうみんひょうにはほんせきはきさいされません。", v:"Giấy chứng nhận cư trú dành cho người nước ngoài không ghi nguyên quán."},
+  {k:"マイナンバーカードの住所変更もしたいです。", h:"まいなんばーかーどのじゅうしょへんこうもしたいです。", v:"Tôi cũng muốn thay đổi địa chỉ trên thẻ My Number."},
+  {k:"カードを拝見します。", h:"かーどをはいけんします。", v:"Cho tôi xem thẻ."},
+  {k:"新しい住所を裏面に印字します。", h:"あたらしいじゅうしょをりめんにいんじします。", v:"Tôi sẽ in địa chỉ mới lên mặt sau."},
+  {k:"変更後のお渡しは後日になります。", h:"へんこうごのおわたしはごじつになります。", v:"Sau khi thay đổi, sẽ giao thẻ vào ngày khác."},
+  {k:"お預かりして2週間後にお越しください。", h:"おあずかりして2しゅうかんごにおこしください。", v:"Chúng tôi giữ lại, 2 tuần sau quay lại nhé."},
+  {k:"通知カードでも手続きできますか？", h:"つうちかーどでもてつづきできますか？", v:"Có thể làm thủ tục bằng thẻ thông báo không?"},
+  {k:"通知カードは廃止されました。", h:"つうちかーどははいしされました。", v:"Thẻ thông báo đã bị bãi bỏ."},
+  {k:"マイナンバーが分かる書類はありますか？", h:"まいなんばーがわかるしょるいはありますか？", v:"Bạn có giấy tờ cho biết số My Number không?"},
+  {k:"マイナンバー記載の住民票を持っています。", h:"まいなんばーきさいのじゅうみんひょうをもっています。", v:"Tôi có giấy chứng nhận cư trú ghi My Number."},
+  {k:"それで大丈夫です。", h:"それでだいじょうぶです。", v:"Cái đó được."},
+  {k:"健康保険証も住所変更が必要です。", h:"けんこうほけんしょうもじゅうしょへんこうがひつようです。", v:"Cũng cần thay đổi địa chỉ trên thẻ bảo hiểm y tế."},
+  {k:"別の窓口でお願いします。", h:"べつのまどぐちでおねがいします。", v:"Vui lòng làm ở quầy khác."},
+  {k:"年金手帳もお持ちですか？", h:"ねんきんてちょうもおもちですか？", v:"Bạn có mang theo sổ hưu trí không?"},
+  {k:"いいえ、忘れました。", h:"いいえ、わすれました。", v:"Không, tôi quên mất."},
+  {k:"次回お持ちください。", h:"じかいおもちください。", v:"Lần sau hãy mang theo."},
+  {k:"日本を出国するときの手続きを教えてください。", h:"にほんをしゅっこくするときのてつづきをおしえてください。", v:"Cho tôi biết thủ tục khi xuất cảnh khỏi Nhật Bản."},
+  {k:"再入国許可が必要な場合があります。", h:"さいにゅうこくきょかがひつようなばあいがあります。", v:"Có trường hợp cần giấy phép tái nhập cảnh."},
+  {k:"みなし再入国許可で大丈夫です。", h:"みなしさいにゅうこくきょかでだいじょうぶです。", v:"Có thể dùng chế độ 'coi như đã được phép tái nhập cảnh'."},
+  {k:"出国時に在留カードを提示してください。", h:"しゅっこくじにざいりゅうかーどをていじしてください。", v:"Khi xuất cảnh hãy trình thẻ cư trú."},
+  {k:"再入国は1年以内にお願いします。", h:"さいにゅうこくは1ねんいないにおねがいします。", v:"Vui lòng tái nhập cảnh trong vòng 1 năm."},
+  {k:"長期出国するときは事前に手続きを。", h:"ちょうきしゅっこくするときはじぜんにてつづきを。", v:"Khi xuất cảnh dài hạn hãy làm thủ tục trước."},
+  {k:"税金の納付は済んでいますか？", h:"ぜいきんののうふはすんでいますか？", v:"Đã nộp thuế chưa?"},
+  {k:"はい、すべて納めています。", h:"はい、すべておさめています。", v:"Vâng, tôi đã nộp hết."},
+  {k:"未納があると在留更新に影響します。", h:"みのうがあるとざいりゅうこうしんにえいきょうします。", v:"Nếu còn nợ thuế sẽ ảnh hưởng đến gia hạn cư trú."},
+  {k:"督促状が来た場合は早めに支払ってください。", h:"とくそくじょうがきたばあいははやめにしはらってください。", v:"Nếu có giấy nhắc nợ, hãy thanh toán sớm."},
+  {k:"納付書を発行します。", h:"のうふしょをはっこうします。", v:"Tôi sẽ cấp giấy nộp tiền."},
+  {k:"コンビニで支払えますか？", h:"こんびにではらえますか？", v:"Có thể trả ở cửa hàng tiện lợi không?"},
+  {k:"はい、払えます。", h:"はい、はらえます。", v:"Vâng, được."},
+  {k:"領収書は大切に保管してください。", h:"りょうしゅうしょはたいせつにほかんしてください。", v:"Hãy giữ hóa đơn cẩn thận."},
+  {k:"還付金の振込先口座を教えてください。", h:"かんぷきんのふりこみさきこうざをおしえてください。", v:"Cho tôi biết tài khoản nhận tiền hoàn thuế."},
+  {k:"通帳を持っていますか？", h:"つうちょうをもっていますか？", v:"Bạn có sổ ngân hàng không?"},
+  {k:"はい、持っています。", h:"はい、もっています。", v:"Vâng, có."},
+  {k:"口座番号を確認します。", h:"こうざばんごうをかくにんします。", v:"Tôi xác nhận số tài khoản."},
+  {k:"この用紙に記入してください。", h:"このようしにきにゅうしてください。", v:"Hãy điền vào tờ giấy này."},
+  {k:"届出印を押してください。", h:"とどけでいんをおしてください。", v:"Hãy đóng dấu đã đăng ký."},
+  {k:"印鑑がない場合はサインでも結構です。", h:"いんかんがないばあいはさいんでもけっこうです。", v:"Trường hợp không có con dấu, ký tên cũng được."},
+  {k:"書類に不備がなければ1週間で振り込まれます。", h:"しょるいにふびがなければ1しゅうかんでふりこまれます。", v:"Nếu giấy tờ không thiếu sót, tiền sẽ được chuyển trong 1 tuần."},
+  {k:"還付金は現金でもらえますか？", h:"かんぷきんはげんきんでもらえますか？", v:"Có thể nhận tiền hoàn thuế bằng tiền mặt không?"},
+  {k:"窓口での支払いはできません。", h:"まどぐちでのしはらいはできません。", v:"Không thể nhận tại quầy."},
+  {k:"銀行振込のみです。", h:"ぎんこうふりこみのみです。", v:"Chỉ chuyển khoản ngân hàng."},
+  {k:"私の口座に振り込んでください。", h:"わたしのこうざにふりこんでください。", v:"Hãy chuyển vào tài khoản của tôi."},
+  {k:"今日の手続きは以上です。", h:"きょうのてつづきはいじょうです。", v:"Thủ tục hôm nay đến đây là xong."},
+  {k:"お疲れさまでした。", h:"おつかれさまでした。", v:"Cảm ơn, bạn đã vất vả."},
+  {k:"お気をつけてお帰りください。", h:"おきをつけておかえりください。", v:"Hãy về cẩn thận."},
+  {k:"ありがとうございました。", h:"ありがとうございました。", v:"Xin cảm ơn."},
+
+
+   
+
+
+
+
+
+
+        ];
+
+        // ==================== BIẾN TOÀN CỤC ====================
+        const synth = window.speechSynthesis;
+        let voices = [];
+        let activeTab = 0;
+
+        // ==================== GIỌNG NÓI ====================
+        function populateVoices() {
+            voices = synth.getVoices();
+            const voiceJpSelect = document.getElementById('voiceJp');
+            const voiceViSelect = document.getElementById('voiceVi');
+            
+            const jpVoices = voices.filter(v => v.lang.includes('ja'));
+            voiceJpSelect.innerHTML = jpVoices.map(v => 
+                `<option value="${v.name}" ${v.name.includes('Kyoko') ? 'selected' : ''}>${v.name} (${v.lang})</option>`
+            ).join('');
+            if (jpVoices.length > 0 && !jpVoices.some(v => v.name.includes('Kyoko'))) {
+                voiceJpSelect.selectedIndex = 0;
+            }
+
+            const viVoices = voices.filter(v => v.lang.includes('vi'));
+            voiceViSelect.innerHTML = viVoices.map(v => 
+                `<option value="${v.name}">${v.name} (${v.lang})</option>`
+            ).join('');
+            if (viVoices.length > 0) voiceViSelect.selectedIndex = 0;
+        }
+
+        if (speechSynthesis.onvoiceschanged !== undefined) {
+            speechSynthesis.onvoiceschanged = populateVoices;
+        }
+
+        function getVoiceByName(name) {
+            return voices.find(v => v.name === name) || null;
+        }
+
+        // ==================== TẠO THẺ ====================
+        function createCard(d) {
+            const card = document.createElement('div');
+            card.className = 'vocab-card';
+            card.innerHTML = `<div class="kanji">${d.k}</div><div class="hira">${d.h}</div><div class="viet">${d.v}</div>`;
+            
+            card.onclick = function() {
+                try { synth.cancel(); } catch (e) {}
+
+                const mode = document.getElementById('mode').value;
+                const speed = parseFloat(document.getElementById('rate').value);
+
+                const jpVoiceName = document.getElementById('voiceJp').value;
+                let jpVoice = getVoiceByName(jpVoiceName);
+                if (!jpVoice) jpVoice = voices.find(v => v.lang.includes('ja'));
+
+                if (jpVoice) {
+                    const uJp = new SpeechSynthesisUtterance(d.h);
+                    uJp.voice = jpVoice;
+                    uJp.rate = speed;
+                    try { synth.speak(uJp); } catch (e) {}
+                }
+
+                if (mode === 'jv') {
+                    const viVoiceName = document.getElementById('voiceVi').value;
+                    let viVoice = getVoiceByName(viVoiceName);
+                    if (!viVoice) viVoice = voices.find(v => v.lang.includes('vi'));
+                    if (viVoice) {
+                        const uVi = new SpeechSynthesisUtterance(d.v);
+                        uVi.voice = viVoice;
+                        uVi.rate = speed;
+                        try { synth.speak(uVi); } catch (e) {}
+                    }
+                }
+            };
+            return card;
+        }
+
+        // ==================== XÂY DỰNG TAB ====================
+        function buildTabs() {
+            const tabH = document.getElementById('tabH');
+            const tabC = document.getElementById('tabC');
+            tabH.innerHTML = '';
+            tabC.innerHTML = '';
+
+            for (let t = 0; t < 10; t++) {
+                const btn = document.createElement('button');
+                btn.className = `tab-btn ${t === activeTab ? 'active' : ''}`;
+                btn.innerText = `Tab ${t+1}`;
+                btn.setAttribute('data-tab', t);
+                btn.onclick = function() {
+                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    activeTab = t;
+                    
+                    const searchInput = document.getElementById('searchInput');
+                    if (searchInput.value.trim() === '') {
+                        document.querySelectorAll('.grid-container').forEach(g => g.classList.remove('active'));
+                        document.getElementById(`t-${t}`).classList.add('active');
+                        document.getElementById('search-results').classList.remove('active');
+                    } else {
+                        performSearch(searchInput.value);
+                    }
+                };
+                tabH.appendChild(btn);
+
+                const grid = document.createElement('div');
+                grid.className = `grid-container ${t === activeTab ? 'active' : ''}`;
+                grid.id = `t-${t}`;
+                
+                data.slice(t*50, (t+1)*50).forEach(d => {
+                    grid.appendChild(createCard(d));
+                });
+                tabC.appendChild(grid);
+            }
+        }
+
+        // ==================== TÌM KIẾM ====================
+        function performSearch(term) {
+            term = term.trim().toLowerCase();
+            const resultsContainer = document.getElementById('search-results');
+            
+            if (term === '') {
+                resultsContainer.classList.remove('active');
+                resultsContainer.innerHTML = '';
+                document.querySelectorAll('.grid-container').forEach(g => g.classList.remove('active'));
+                document.getElementById(`t-${activeTab}`).classList.add('active');
+                return;
+            }
+
+            const matchedData = data.filter(d => 
+                d.k.toLowerCase().includes(term) ||
+                d.h.toLowerCase().includes(term) ||
+                d.v.toLowerCase().includes(term)
+            );
+
+            resultsContainer.innerHTML = '';
+            matchedData.forEach(d => {
+                resultsContainer.appendChild(createCard(d));
+            });
+
+            document.querySelectorAll('.grid-container').forEach(g => g.classList.remove('active'));
+            resultsContainer.classList.add('active');
+        }
+
+        function searchHandler(e) {
+            performSearch(e.target.value);
+        }
+
+        // ==================== KHỞI TẠO ====================
+        function init() {
+            populateVoices();
+            buildTabs();
+
+            const searchInput = document.getElementById('searchInput');
+            searchInput.removeEventListener('input', searchHandler);
+            searchInput.addEventListener('input', searchHandler);
+
+            document.getElementById('chkHira').dispatchEvent(new Event('change'));
+            document.getElementById('chkViet').dispatchEvent(new Event('change'));
+        }
+
+        window.toggleMenu = function() {
+            document.getElementById('side-menu').classList.toggle('active');
+        };
+
+        document.getElementById('chkHira').onchange = e => {
+            document.querySelectorAll('.hira').forEach(el => el.classList.toggle('hidden', !e.target.checked));
+        };
+        document.getElementById('chkViet').onchange = e => {
+            document.querySelectorAll('.viet').forEach(el => el.classList.toggle('hidden', !e.target.checked));
+        };
+        document.getElementById('bgCol').oninput = e => {
+            document.documentElement.style.setProperty('--bg', e.target.value);
+        };
+        document.getElementById('txCol').oninput = e => {
+            document.documentElement.style.setProperty('--text', e.target.value);
+        };
+
+        window.onload = function() {
+            init();
+            if (synth.onvoiceschanged) synth.onvoiceschanged = populateVoices;
+        };
+    })();
+</script>
+</body>
+</html>

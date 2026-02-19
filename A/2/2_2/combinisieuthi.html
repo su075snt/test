@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KAIWA TRUONG　HOC</title>
+    <style>
+        :root { --bg: #434343; --text: #0b5394; --card: #ffffff; --accent: #0984e3; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); color: var(--text); margin: 0; transition: 0.3s; }
+        #side-menu { position: fixed; right: -300px; top: 0; width: 260px; height: 100%; background: #fff; box-shadow: -2px 0 10px rgba(0,0,0,0.1); z-index: 1000; padding: 20px; transition: 0.3s; overflow-y: auto; color: #333; }
+        #side-menu.active { right: 0; }
+        .menu-btn { position: fixed; top: 15px; right: 15px; z-index: 1001; padding: 10px 15px; background: var(--accent); color: white; border: none; border-radius: 5px; cursor: pointer; }
+        .tabs { display: flex; flex-wrap: wrap; gap: 5px; padding: 60px 10px 10px; justify-content: center; }
+        .tab-btn { padding: 8px 12px; border: none; background: #dfe6e9; cursor: pointer; border-radius: 4px; font-size: 13px; }
+        .tab-btn.active { background: var(--accent); color: white; }
+        .grid-container { display: none; grid-template-columns: repeat(5, 1fr); gap: 10px; padding: 15px; max-width: 1200px; margin: 0 auto; }
+        .grid-container.active { display: grid; }
+        .vocab-card { background: var(--card); padding: 15px 5px; border-radius: 8px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); cursor: pointer; border: 1px solid #eee; min-height: 120px; display: flex; flex-direction: column; justify-content: center; }
+        .kanji { font-size: 1.2em; font-weight: bold; margin-bottom: 5px; color: #2d3436; }
+        .hira { color: #636e72; font-size: 0.9em; margin-bottom: 5px; }
+        .viet { color: #d63031; font-size: 0.85em; font-weight: 500; }
+        .hidden { display: none !important; }
+        @media (max-width: 800px) { .grid-container { grid-template-columns: repeat(2, 1fr); } }
+    </style>
+</head>
+<body>
+
+<button class="menu-btn" onclick="toggleMenu()">⚙ Cài đặt</button>
+
+<div id="side-menu">
+    <h3>Cấu hình</h3>
+    <label>Màu nền: <input type="color" id="bgCol" value="#434343"></label><br><br>
+    <label>Màu chữ: <input type="color" id="txCol" value="#0b5394"></label><hr>
+    <label><input type="checkbox" id="chkHira" checked> Hiện Hiragana</label><br>
+    <label><input type="checkbox" id="chkViet" checked> Hiện Tiếng Việt</label><hr>
+    <label>Giọng mặc định: <select id="vSel" style="width:100%"></select></label><p style="font-size: 11px; color: gray;">* Hệ thống sẽ tự ưu tiên giọng đúng ngôn ngữ khi đọc Nhật-Việt.</p>
+    <label>Tốc độ: <input type="range" id="rate" min="0.5" max="1.5" step="0.1" value="1"></label><br><br>
+    <label>Chế độ đọc: 
+        <select id="mode" style="width:100%">
+            <option value="jp">Chỉ tiếng Nhật</option>
+            <option value="jv" selected>Nhật - Việt (Chuẩn)</option>
+        </select>
+    </label><br><br>
+    <button onclick="toggleMenu()" style="width:100%; padding: 10px; background: #eee; border: none; border-radius: 4px; cursor: pointer;">Đóng</button>
+</div>
+
+<div class="tabs" id="tabH"></div>
+<div id="tabC"></div>
+
+<script>
+    const data = [
+	  {k:"いらっしゃいませ", h:"いらっしゃいませ", v:"Xin chào quý khách"},
+  {k:"袋はご利用ですか", h:"ふくろはごりようですか", v:"Anh chị có dùng túi không?"},
+  {k:"袋をお願いします", h:"ふくろをおねがいします", v:"Vâng, cho tôi xin túi"},
+  {k:"袋はいりません", h:"ふくろは.いりません", v:"Không, tôi không cần"},
+  {k:"袋は有料ですがよろしいですか", h:"ふくろはゆうりょうですがよろしいですか", v:"Túi có tính phí, anh chị đồng ý chứ?"},
+  {k:"はい、大丈夫です", h:"はい、だいじょうぶです", v:"Vâng, không sao ạ"},
+  {k:"マイバッグを持っています", h:"まいばっぐをもっています", v:"Tôi có mang túi riêng rồi"},
+  {k:"ポイントカードはお持ちですか", h:"ぽいんとかーどはおもちですか", v:"Anh chị có thẻ tích điểm không?"},
+  {k:"持っていません", h:"もっていません", v:"Tôi không có"},
+  {k:"持っています", h:"もっています", v:"Tôi có ạ"},
+  {k:"お弁当温めますか", h:"おべんとうあたためますか", v:"Có hâm nóng cơm hộp không?"},
+  {k:"はい、お願いします", h:"はい、おねがいします", v:"Vâng, làm ơn hâm nóng giúp"},
+  {k:"そのままでいいです", h:"そのままでいいです", v:"KH: Cứ để thế là được rồi"},
+  {k:"お箸はお付けしますか", h:"おはしはおつけしますか", v:"Anh chị có lấy đũa không?"},
+  {k:"はい、一膳ください", h:"はい、いちぜんください", v:"Vâng, cho tôi một đôi"},
+  {k:"ストロー使いますか", h:"すとろーつかいますか", v:"Anh chị có dùng ống hút không?"},
+  {k:"スプーンを付けてください", h:"すぷーんをつけてください", v:"Cho tôi xin cái thìa"},
+  {k:"フォークをお願いします", h:"ふぉーくをおねがいします", v:"Cho tôi xin cái dĩa"},
+  {k:"お手拭きはいりますか", h:"おてふきは.いりますか", v:"Anh chị có lấy khăn ướt không?"},
+  {k:"シールでよろしいですか", h:"しーるでよろしいですか", v:"Tôi dán tem lên hàng nhé?"},
+  {k:"お支払いはどうされますか", h:"おしはらいはどうされますか", v:"Anh chị thanh toán bằng gì?"},
+  {k:"現金で払います", h:"げんきんではらいます", v:"Tôi trả bằng tiền mặt"},
+  {k:"カードでお願いします", h:"かーどでおねがいします", v:"Cho tôi trả bằng thẻ"},
+  {k:"QR決済でお願いします", h:"QRけっさいでおねがいします", v:"Cho tôi trả bằng mã QR"},
+  {k:"画面のボタンを押してください", h:"がめんのぼたんをおしてください", v:"Vui lòng nhấn nút trên màn hình"},
+  {k:"こちらにタッチしてください", h:"こちらにたっちしてください", v:"Vui lòng chạm thẻ hoặc điện thoại vào đây"},
+  {k:"暗証番号を入力してください", h:"あんしょうばんごうをにゅうりょくしてください", v:"Vui lòng nhập mã pin"},
+  {k:"サインをお願いします", h:"さいんをおねがいします", v:"Vui lòng ký tên"},
+  {k:"レシートはご利用ですか", h:"れしーとはごりようですか", v:"Anh chị có lấy hóa đơn không?"},
+  {k:"レシートはいりません", h:"れしーとは.いりません", v:"Tôi không lấy hóa đơn"},
+  {k:"領収書をください", h:"りょうしゅうしょをください", v:"Cho tôi xin hóa đơn quyết toán"},
+  {k:"千円お預かりします", h:"せんえんおあずかりします", v:"Tôi nhận của anh chị một nghìn yên"},
+  {k:"ちょうどいただきます", h:"ちょうどいただきます", v:"Tôi đã nhận đủ số tiền"},
+  {k:"五百円のお返しです", h:"ごひゃくえんのおかえしです", v:"Gửi lại anh chị năm trăm yên tiền thừa"},
+  {k:"お釣りを確認してください", h:"おつりをかくにんしてください", v:"Vui lòng kiểm tra lại tiền thừa"},
+  {k:"年齢確認にご協力ください", h:"ねんれいかくにんにごきょうりょくください", v:"Vui lòng xác nhận độ tuổi"},
+  {k:"身分証を見せてください", h:"みぶんしょうをみせてください", v:"Cho tôi xem giấy tờ tùy thân"},
+  {k:"はい、これです", h:"はい、これです", v:"Vâng, đây ạ"},
+  {k:"タバコの何番ですか", h:"たばこのなんばんですか", v:"Thuốc lá số mấy ạ?"},
+  {k:"五番を一つください", h:"ごばんをひとつください", v:"Cho tôi một bao số năm"},
+  {k:"公共料金の支払いです", h:"こうきょうりょうきんのしはらいです", v:"Tôi muốn nộp tiền điện nước"},
+  {k:"こちらの用紙でいいですか", h:"こちらのようしでいいですか", v:"Tờ phiếu này đúng không ạ?"},
+  {k:"宅急便をお願いします", h:"たっきゅうびんをおねがいします", v:"Cho tôi gửi chuyển phát nhanh"},
+  {k:"切手はありますか", h:"きってはありますか", v:"Ở đây có bán tem không?"},
+  {k:"ハガキをください", h:"はがきをください", v:"Cho tôi mua bưu thiếp"},
+  {k:"コピー機はどこですか", h:"こぴーきはどこですか", v:"Máy photo ở đâu ạ?"},
+  {k:"ATMはどこにありますか", h:"ATMはどこにありますか", v:"Máy ATM nằm ở đâu thế?"},
+  {k:"トイレを貸してください", h:"といれをかしてください", v:"Cho tôi mượn nhà vệ sinh"},
+  {k:"ゴミ箱はどこですか", h:"ごみばこはどこですか", v:"Thùng rác ở đâu ạ?"},
+  {k:"傘はありますか", h:"かさはありますか", v:"Có bán ô không ạ?"},
+  {k:"クーポン使えますか", h:"くーぽんつかえますか", v:"Phiếu giảm giá này dùng được không?"},
+  {k:"期限が切れています", h:"きげんがきれています", v:"Đã quá hạn sử dụng rồi"},
+  {k:"在庫はありますか", h:"ざいこはありますか", v:"Trong kho còn hàng không?"},
+  {k:"売り切れです", h:"うりきれです", v:"Đã bán hết rồi ạ"},
+  {k:"取寄せはできますか", h:"とりよせはできますか", v:"Có thể đặt hàng về không?"},
+  {k:"いつ届きますか", h:"いつとどきますか", v:"Khi nào hàng về ạ?"},
+  {k:"卵はどこにありますか", h:"たまごはどこにありますか", v:"Trứng để ở chỗ nào vậy?"},
+  {k:"パン売り場はどこですか", h:"ぱんうりばはどこですか", v:"Quầy bánh mì ở đâu ạ?"},
+  {k:"お酒はあちらです", h:"おさけはあちらです", v:"Rượu ở phía đằng kia ạ"},
+  {k:"野菜が新鮮ですね", h:"やさいがしんせんですね", v:"Rau tươi quá nhỉ"},
+  {k:"これはいくらですか", h:"これはいくらですか", v:"Cái này giá bao nhiêu?"},
+  {k:"税込み価格ですか", h:"ぜいこみかかくですか", v:"Giá này đã bao gồm thuế chưa?"},
+  {k:"半額シール貼ってください", h:"はんがくしーるはってください", v:"Dán tem giảm nửa giá giúp tôi"},
+  {k:"値引きされていますか", h:"ねびきされていますか", v:"Cái này có đang giảm giá không?"},
+  {k:"返品したいのですが", h:"へんぴんしたいのですが", v:"Tôi muốn trả lại hàng"},
+  {k:"レシートはありますか", h:"れしーとはありますか", v:"Anh chị có hóa đơn không?"},
+  {k:"不良品でした", h:"ふりょうひんでした", v:"Hàng này bị lỗi rồi"},
+  {k:"交換できますか", h:"こうかんできますか", v:"Có thể đổi cái khác không?"},
+  {k:"サイズを間違えました", h:"さいずをまちがえました", v:"Tôi lấy nhầm kích cỡ"},
+  {k:"試着してもいいですか", h:"しちゃくしてもいいですか", v:"Tôi mặc thử được không?"},
+  {k:"試着室はあちらです", h:"しちゃくしつはあちらです", v:"Phòng thử đồ ở đằng kia"},
+  {k:"別の色はありますか", h:"べつのいろはありますか", v:"Có màu khác không ạ?"},
+  {k:"大きいサイズをください", h:"おおきいさいずをください", v:"Cho tôi size lớn hơn"},
+  {k:"プレゼント用です", h:"ぷれぜんとようです", v:"Tôi mua làm quà tặng"},
+  {k:"ラッピングをお願いします", h:"らっぴんぐをおねがいします", v:"Làm ơn gói quà giúp tôi"},
+  {k:"値札を取ってください", h:"ねふだをとってください", v:"Vui lòng gỡ nhãn giá"},
+  {k:"小銭が足りません", h:"こぜにがたりません", v:"Tôi không đủ tiền lẻ"},
+  {k:"万札でいいですか", h:"まんさつでいいですか", v:"Trả tờ một vạn được không?"},
+  {k:"お釣りが違います", h:"おつりがちがいます", v:"Tiền thừa bị nhầm rồi"},
+  {k:"十円足りませんよ", h:"じゅうえんたりませんよ", v:"Thiếu mười yên rồi này"},
+  {k:"多すぎますよ", h:"おおすぎますよ", v:"Thừa nhiều quá này"},
+  {k:"並んでお待ちください", h:"ならんでおまちください", v:"Vui lòng xếp hàng chờ"},
+  {k:"割り込まないでください", h:"わりこまないでください", v:"Đừng chen hàng ạ"},
+  {k:"次の方どうぞ", h:"つぎのかたどうぞ", v:"Mời người tiếp theo"},
+  {k:"お待たせしました", h:"おまたせしました", v:"Xin lỗi đã để anh chị đợi lâu"},
+  {k:"保冷剤を入れますか", h:"ほれいざいをいれますか", v:"Có cho túi đá giữ lạnh không?"},
+  {k:"氷をください", h:"こおりをください", v:"Cho tôi xin ít đá"},
+  {k:"ドライアイスをください", h:"どらいあいすをください", v:"Cho tôi ít đá khói"},
+  {k:"この肉は国産ですか", h:"このにくはこくさんですか", v:"Thịt này là hàng nội địa phải không?"},
+  {k:"賞味期限はいつですか", h:"しょうみきげんはいつですか", v:"Hạn sử dụng là khi nào?"},
+  {k:"明日までです", h:"あしたまでです", v:"Đến ngày mai là hết ạ"},
+  {k:"箱で買えますか", h:"はこでかえますか", v:"Có thể mua theo thùng không?"},
+  {k:"重いので手伝ってください", h:"おもいのでてつだってください", v:"Nặng quá giúp tôi với"},
+  {k:"配送をお願いしたいです", h:"はいそうをおねがいしたいです", v:"Tôi muốn gửi hàng về nhà"},
+  {k:"送料はいくらですか", h:"そうりょうはいくらですか", v:"Phí vận chuyển là bao nhiêu?"},
+  {k:"明日届きますか", h:"あしたとどきますか", v:"Ngày mai có tới nơi không?"},
+  {k:"時間指定できますか", h:"じかんしていできますか", v:"Có thể chọn giờ giao không?"},
+  {k:"カートを使ってもいいですか", h:"かーとをつかってもいいですか", v:"Tôi dùng xe đẩy nhé?"},
+  {k:"カゴを返します", h:"かごをかえします", v:"Tôi trả lại giỏ hàng"},
+  {k:"ありがとうございました", h:"ありがとうございました", v:"Xin cảm ơn quý khách"},
+  {k:"またお越しください", h:"またおこしください", v:"Hẹn gặp lại quý khách"},
+  {k:"一括でよろしいですか", h:"いっかつでよろしいですか", v:"Anh chị trả một lần luôn đúng không?"},
+  {k:"暗証番号を忘れました", h:"あんしょうばんごうをわすれました", v:"Tôi quên mã pin mất rồi"},
+  {k:"別のカードを使います", h:"べつのかーどをつかいます", v:"Tôi sẽ dùng thẻ khác"},
+  {k:"エラーが出ました", h:"えらーがでました", v:"Có lỗi xảy ra rồi"},
+  {k:"もう一度試してください", h:"もういちどためしてください", v:"Vui lòng thử lại lần nữa"},
+  {k:"ポイントで払います", h:"ぽいんとではらいます", v:"Tôi trả bằng điểm tích lũy"},
+  {k:"足りない分は現金で", h:"たりないぶんげんきんで", v:"Phần thiếu tôi trả bằng tiền mặt"},
+  {k:"端数を切ってください", h:"はすうをきってください", v:"Làm tròn số lẻ giúp tôi"},
+  {k:"新発売の商品です", h:"しんはつばいのしょうひんです", v:"Đây là sản phẩm mới ra mắt"},
+  {k:"おすすめは何ですか", h:"おすすめはなんですか", v:"Có món gì gợi ý không?"},
+  {k:"これがお得ですよ", h:"これがおとくですよ", v:"Cái này đang có giá hời này"},
+  {k:"二個で割引になります", h:"にこでわりびきになります", v:"Mua hai cái sẽ được giảm giá"},
+  {k:"セットで買います", h:"せっとでかいます", v:"Tôi mua theo bộ"},
+  {k:"別々に包んでください", h:"べつべつにつつんでください", v:"Hãy bọc riêng từng cái ra"},
+  {k:"一緒でいいです", h:"いっしょでいいです", v:"Để chung cũng được"},
+  {k:"冷たいものと分けますか", h:"つめたいものとわけますか", v:"Có tách riêng đồ lạnh ra không?"},
+  {k:"分けてください", h:"わけてください", v:"Hãy tách riêng giúp tôi"},
+  {k:"車まで運びますよ", h:"くるままではこびますよ", v:"Tôi sẽ bê ra tận xe cho"},
+  {k:"大丈夫です、自分でやります", h:"だいじょうぶですじぶんでやります", v:"Không sao, tôi tự làm được"},
+  {k:"レジをもう一つ開けます", h:"れじをもうひとつあけます", v:"Tôi sẽ mở thêm một quầy nữa"},
+  {k:"こちらへどうぞ", h:"こちらへどうぞ", v:"Mời anh chị qua bên này"},
+  {k:"千円札を切らしています", h:"せんえんさつをきらしています", v:"Tôi đang hết tờ một nghìn yên"},
+  {k:"五千円札はありますか", h:"ごせんえんさつはありますか", v:"Anh chị có tờ năm nghìn yên không?"},
+  {k:"また来ますね", h:"またきますね", v:"Tôi sẽ quay lại sau nhé"},
+	];
+    while(data.length < 250) {
+        let i = data.length + 1;
+        data.push({k: `項目 ${i}`, h: `こうもく ${i}`, v: `Mục số ${i} liên quan công việc`});
+    }
+
+    const synth = window.speechSynthesis;
+    let voices = [];
+
+    function loadVoices() {
+        voices = synth.getVoices();
+        const vSel = document.getElementById('vSel');
+        // Lọc giọng Nhật (ja) và Việt (vi)
+        const filtered = voices.filter(v => v.lang.includes('ja') || v.lang.includes('vi'));
+        
+        vSel.innerHTML = filtered.map(v => {
+            const langName = v.lang.includes('ja') ? 'Nhật' : 'Việt';
+            return `<option value="${v.name}">${v.name} (${langName})</option>`;
+        }).join('');
+
+        // Mặc định chọn giọng Nhật đầu tiên tìm thấy
+        const defaultJp = filtered.find(v => v.lang.includes('ja'));
+        if(defaultJp) vSel.value = defaultJp.name;
+    }
+
+    if (speechSynthesis.onvoiceschanged !== undefined) {
+        speechSynthesis.onvoiceschanged = loadVoices;
+    }
+
+    function init() {
+    loadVoices();
+    const tabH = document.getElementById('tabH');
+    const tabC = document.getElementById('tabC');
+
+    for (let i = 0; i < 5; i++) {
+        const btn = document.createElement('button');
+        btn.className = `tab-btn ${i===0?'active':''}`;
+        btn.innerText = `Tab ${i+1}`;
+        btn.onclick = () => {
+            document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+            document.querySelectorAll('.grid-container').forEach(g=>g.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(`t-${i}`).classList.add('active');
+        };
+        tabH.appendChild(btn);
+
+        const grid = document.createElement('div');
+        grid.className = `grid-container ${i===0?'active':''}`;
+        grid.id = `t-${i}`;
+        
+        data.slice(i*25, (i+1)*25).forEach(d => {
+            const card = document.createElement('div');
+            card.className = 'vocab-card';
+            card.innerHTML = `<div class="kanji">${d.k}</div><div class="hira">${d.h}</div><div class="viet">${d.v}</div>`;
+            
+           card.onclick = () => {
+    synth.cancel();
+    const mode = document.getElementById('mode').value;
+    const speed = document.getElementById('rate').value;
+    
+    const currentVoices = window.speechSynthesis.getVoices();
+    
+    const voiceJp = currentVoices.find(v => v.name.includes('Kyoko')) || 
+                    currentVoices.find(v => v.lang.includes('ja-JP')) ||
+                    currentVoices.find(v => v.lang.includes('ja'));
+
+    const voiceVi = currentVoices.find(v => v.lang.includes('vi-VN')) || 
+                    currentVoices.find(v => v.lang.includes('vi'));
+
+    // THAY ĐỔI TẠI ĐÂY: Sử dụng d.h (Hiragana) thay vì d.k (Kanji)
+    const uJp = new SpeechSynthesisUtterance(d.h); 
+    
+    if (voiceJp) uJp.voice = voiceJp;
+    uJp.rate = speed;
+    synth.speak(uJp);
+
+    if (mode === 'jv' && voiceVi) {
+        const uVi = new SpeechSynthesisUtterance(d.v);
+        uVi.voice = voiceVi;
+        uVi.rate = speed;
+        synth.speak(uVi);
+    }
+};
+            grid.appendChild(card);
+        });
+        tabC.appendChild(grid);
+    }
+}
+
+    function toggleMenu() { document.getElementById('side-menu').classList.toggle('active'); }
+
+    document.getElementById('chkHira').onchange = e => document.querySelectorAll('.hira').forEach(el => el.classList.toggle('hidden', !e.target.checked));
+    document.getElementById('chkViet').onchange = e => document.querySelectorAll('.viet').forEach(el => el.classList.toggle('hidden', !e.target.checked));
+    document.getElementById('bgCol').oninput = e => document.documentElement.style.setProperty('--bg', e.target.value);
+    document.getElementById('txCol').oninput = e => document.documentElement.style.setProperty('--text', e.target.value);
+
+    window.onload = init;
+</script>
+</body>
+</html>
