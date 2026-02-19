@@ -118,10 +118,17 @@
             {c:"リャ",e:"🦖",w:"リャク"},{c:"リュ",e:"🐉",w:"リュウ"},{c:"リョ",e:"🍵",w:"リョクチャ"},
             {c:"ギャ",e:"🖼️",w:"ギャラリー"},{c:"ギュ",e:"🥩",w:"ギュウニク"},{c:"ギョ",e:"🐟",w:"ギョカイ"},
             {c:"ジャ",e:"🥔",w:"ジャガイモ"},{c:"ジュ",e:"🥤",w:"ジュース"},{c:"ジョ",e:"👸",w:"ジョオウ"},
-            {c:"ビャ",e:"white",w:"ビャッコ"},{c:"ビュ",e:"view",w:"ビュー"},{c:"ビョ",e:"🏥",w:"ビョウイン"},
-            {c:"ピャ",e:"happy",w:"ハッピャク"},{c:"ピュ",e:"pure",w:"ピュア"},{c:"ピョ",e:"🐰",w:"ピョンピョン"}
+            {c:"ビャ",e:"",w:"ビャッコ"},{c:"ビュ",e:"",w:"ビュー"},{c:"ビョ",e:"🏥",w:"ビョウイン"},
+            {c:"ピャ",e:"",w:"ハッピャク"},{c:"ピュ",e:"",w:"ピュア"},{c:"ピョ",e:"🐰",w:"ピョンピョン"}
         ]
     };
+	const encouragements = [
+    "ざんねん！あとで また やろう",
+    "おしい！つぎは がんばろう",
+    "どんまい！もういちど トライだ",
+    "だいじょうぶ！つぎは できるよ",
+    "おっと！もう一回 れんしゅうだね"
+];
 
     const praises = ["すごい！", "てんさいだね！", "やったー！", "ばっちり！", "おみごと！"];
     let queue = [];
@@ -180,26 +187,33 @@
     }
 
     function check(selected, btn) {
-        if(isProcessing) return;
-        isProcessing = true;
+    if(isProcessing) return;
+    isProcessing = true;
 
-        if(selected.c === currentQ.c) {
-            btn.classList.add('correct');
-            queue.shift(); 
-            const p = praises[Math.floor(Math.random() * praises.length)];
-            document.getElementById('message').innerText = p;
-            speak(p);
-            setTimeout(nextQuestion, 1500);
-        } else {
-            btn.classList.add('wrong');
-            document.getElementById('message').innerText = "ざんねん！あとで また やろう";
-            speak("ざんねん");
-            const failed = queue.shift();
-            queue.push(failed);
-            setTimeout(nextQuestion, 1500);
-        }
+    if(selected.c === currentQ.c) {
+        btn.classList.add('correct');
+        queue.shift(); 
+        const p = praises[Math.floor(Math.random() * praises.length)];
+        document.getElementById('message').innerText = p;
+        speak(p);
+        setTimeout(nextQuestion, 1500);
+    } else {
+        btn.classList.add('wrong');
+        
+        // 2. Lấy ngẫu nhiên 1 trong 5 câu khuyến khích
+        const e = encouragements[Math.floor(Math.random() * encouragements.length)];
+        
+        // 3. Hiển thị và đọc câu ngẫu nhiên đó
+        document.getElementById('message').innerText = e;
+        speak(e); // Đọc nội dung thông báo thay vì chỉ đọc "ざんねん"
+        
+        // Đưa câu sai xuống cuối hàng đợi
+        const failed = queue.shift();
+        queue.push(failed);
+        
+        setTimeout(nextQuestion, 1500);
     }
-
+}
     function showResult() {
         document.getElementById('result-screen').style.display = 'flex';
         speak("おめでとう！カタカナマスターです");

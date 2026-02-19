@@ -55,10 +55,14 @@
 <script>
     // Danh sách 104 chữ Hiragana
     const fullAlphabet = [
-        'あ','い','う','え','お','か','き','く','け','こ','さ','し','す','せ','そ','た','ち','つ','て','と','な','に','ぬ','ね','の','は','ひ','ふ','へ','ほ','ま','み','む','め','も','や','ゆ','よ','ら','り','る','れ','ろ','わ','を','ん',
+        'あ','い','う','え','お','か','き','く','け','こ','さ','し','す','せ','そ','た','ち','つ','て','と','な','に','ぬ','ね','の','は','ひ','ふ','へ','ほ','ま','み','む','め','も','や','ゆ','よ','ら','り','る','レ','ろ','わ','を','ん',
         'が','ぎ','ぐ','げ','ご','ざ','じ','ず','ぜ','ぞ','だ','ぢ','づ','で','ど','ば','び','ぶ','べ','ぼ','ぱ','ぴ','ぷ','ぺ','ぽ',
         'きゃ','きゅ','きょ','しゃ','しゅ','しょ','ちゃ','ちゅ','ちょ','にゃ','にゅ','にょ','ひゃ','ひゅ','ひょ','みゃ','みゅ','みょ','りゃ','りゅ','りょ','ぎゃ','ぎゅ','ぎょ','じゃ','じゅ','じょ','びゃ','びゅ','びょ','ぴゃ','ぴゅ','ぴょ'
     ];
+
+    // Thêm danh sách câu nói
+    const praises = ["すごい！", "せいかい！", "やったね！", "そのちょうし！", "てんさい！"];
+    const encouragements = ["ざんねん！", "あとですこし！", "おしい！", "つぎはがんばろう", "もういっかい！"];
 
     let playPool = [];
     let currentTarget = "";
@@ -79,10 +83,8 @@
         isProcessing = false;
         document.getElementById('remainCount').innerText = playPool.length;
         
-        // Chọn ngẫu nhiên từ kho còn lại
         currentTarget = playPool[Math.floor(Math.random() * playPool.length)];
         
-        // Tạo 4 lựa chọn (1 đúng + 3 sai từ bảng gốc)
         let choices = [currentTarget];
         while (choices.length < 4) {
             let randomChar = fullAlphabet[Math.floor(Math.random() * fullAlphabet.length)];
@@ -100,7 +102,7 @@
             optionsDiv.appendChild(btn);
         });
         
-        setTimeout(speakChar, 400);
+        setTimeout(() => speak(currentTarget), 400);
     }
 
     function checkAnswer(selected) {
@@ -111,30 +113,41 @@
         feedback.style.display = 'block';
 
         if (selected === currentTarget) {
+            // Khi ĐÚNG
             feedback.innerHTML = '<span class="correct-mark">○</span>';
             playPool = playPool.filter(c => c !== currentTarget);
+            
+            // Đọc câu khen ngẫu nhiên
+            const p = praises[Math.floor(Math.random() * praises.length)];
+            speak(p);
             
             setTimeout(() => {
                 feedback.style.display = 'none';
                 nextQuestion();
-            }, 800);
+            }, 1200);
         } else {
+            // Khi SAI
             feedback.innerHTML = '<span class="wrong-mark">×</span>';
+            
+            // Đọc câu động viên ngẫu nhiên
+            const e = encouragements[Math.floor(Math.random() * encouragements.length)];
+            speak(e);
             
             setTimeout(() => {
                 feedback.style.display = 'none';
                 isProcessing = false;
-                speakChar(); 
-            }, 800);
+                speak(currentTarget); // Đọc lại chữ cái cần tìm
+            }, 1200);
         }
     }
 
-    function speakChar() {
+    // Hàm đọc chung
+    function speak(text) {
         const synth = window.speechSynthesis;
         synth.cancel();
-        const utter = new SpeechSynthesisUtterance(currentTarget);
+        const utter = new SpeechSynthesisUtterance(text);
         utter.lang = 'ja-JP';
-        utter.rate = 0.7; // Tốc độ vừa phải cho bé
+        utter.rate = 0.8; 
         synth.speak(utter);
     }
 

@@ -118,10 +118,17 @@
             {c:"りゃ",e:"🦖",w:"りゃく"},{c:"りゅ",e:"🐉",w:"りゅう"},{c:"りょ",e:"🍵",w:"りょくちゃ"},
             {c:"ぎゃ",e:"🖼️",w:"ぎゃらりー"},{c:"ぎゅ",e:"🥩",w:"ぎゅうにく"},{c:"ぎょ",e:"🐟",w:"ぎょかい"},
             {c:"じゃ",e:"🥔",w:"じゃがいも"},{c:"じゅ",e:"🥤",w:"じゅーす"},{c:"じょ",e:"👸",w:"じょおう"},
-            {c:"びゃ",e:"white",w:"びゃっこ"},{c:"びゅ",e:"view",w:"びゅー"},{c:"びょ",e:"🏥",w:"びょういん"},
-            {c:"ぴゃ",e:"happy",w:"はっぴゃく"},{c:"ぴゅ",e:"pure",w:"ぴゅあ"},{c:"ぴょ",e:"🐰",w:"ぴょんぴょん"}
+            {c:"びゃ",e:"💯",w:"びゃっこ"},{c:"びゅ",e:"",w:"びゅー"},{c:"びょ",e:"🏥",w:"びょういん"},
+            {c:"ぴゃ",e:"八〇〇",w:"はっぴゃく"},{c:"ぴゅ",e:"",w:"ぴゅあ"},{c:"ぴょ",e:"🐰",w:"ぴょんぴょん"}
         ]
     };
+	const encouragements = [
+    "ざんねん！あとで また やろう",
+    "おしい！つぎは がんばろう",
+    "どんまい！もういちど トライだ",
+    "だいじょうぶ！つぎは できるよ",
+    "おっと！もう一回 れんしゅうだね"
+];
 
     const praises = ["すごい！", "てんさいだね！", "やったー！", "ばっちり！", "おみごと！"];
     let queue = [];
@@ -180,30 +187,34 @@
 
         setTimeout(playCurrent, 500);
     }
+function check(selected, btn) {
+    if(isProcessing) return;
+    isProcessing = true;
 
-    function check(selected, btn) {
-        if(isProcessing) return;
-        isProcessing = true;
-
-        if(selected.c === currentQ.c) {
-            btn.classList.add('correct');
-            queue.shift(); 
-            const p = praises[Math.floor(Math.random() * praises.length)];
-            document.getElementById('message').innerText = p;
-            speak(p);
-            setTimeout(nextQuestion, 1500);
-        } else {
-            btn.classList.add('wrong');
-            document.getElementById('message').innerText = "ざんねん！あとで また やろう";
-            speak("ざんねん");
-            
-            // Đưa câu sai xuống cuối hàng đợi
-            const failed = queue.shift();
-            queue.push(failed);
-            
-            setTimeout(nextQuestion, 1500);
-        }
+    if(selected.c === currentQ.c) {
+        btn.classList.add('correct');
+        queue.shift(); 
+        const p = praises[Math.floor(Math.random() * praises.length)];
+        document.getElementById('message').innerText = p;
+        speak(p);
+        setTimeout(nextQuestion, 1500);
+    } else {
+        btn.classList.add('wrong');
+        
+        // 2. Lấy ngẫu nhiên 1 trong 5 câu khuyến khích
+        const e = encouragements[Math.floor(Math.random() * encouragements.length)];
+        
+        // 3. Hiển thị và đọc câu ngẫu nhiên đó
+        document.getElementById('message').innerText = e;
+        speak(e); // Đọc nội dung thông báo thay vì chỉ đọc "ざんねん"
+        
+        // Đưa câu sai xuống cuối hàng đợi
+        const failed = queue.shift();
+        queue.push(failed);
+        
+        setTimeout(nextQuestion, 1500);
     }
+}
 
     function showResult() {
         document.getElementById('result-screen').style.display = 'flex';

@@ -47,7 +47,6 @@
     
     <div id="options" class="options"></div>
 </div>
-
 <script>
     const fullAlphabet = [
         'ア','イ','ウ','エ','オ','カ','キ','ク','ケ','コ','サ','シ','ス','セ','ソ','タ','チ','ツ','テ','ト','ナ','ニ','ヌ','ネ','ノ','ハ','ひ','フ','へ','ホ','マ','ミ','ム','メ','モ','ヤ','ユ','ヨ','ラ','リ','ル','レ','ロ','ワ','ヲ','ン',
@@ -55,9 +54,13 @@
         'キャ','キュ','キョ','シャ','シュ','ショ','チャ','チュ','チョ','ニャ','ニュ','ニョ','ヒャ','ヒュ','ヒョ','ミゃ','ミュ','ミョ','リャ','リュ','リョ','ギャ','ギュ','ギョ','ジャ','ジュ','ジョ','ビャ','ビュ','ビョ','ピャ','ピュ','ピョ'
     ];
 
+    // --- DANH SÁCH CÂU NÓI ---
+    const praises = ["すごい！", "せいかい！", "やったね！", "そのちょうし！", "てんさい！"];
+    const encouragements = ["ざんねん！", "あとですこし！", "おしい！", "つぎはがんばろう", "もういっかい！"];
+
     let playPool = [];
     let currentTarget = "";
-    let isProcessing = false; // Ngăn bé bấm liên tục khi đang hiện hiệu ứng
+    let isProcessing = false;
 
     function resetGame() {
         playPool = [...fullAlphabet];
@@ -92,7 +95,7 @@
             optionsDiv.appendChild(btn);
         });
         
-        setTimeout(speakChar, 400);
+        setTimeout(() => speak(currentTarget), 400);
     }
 
     function checkAnswer(selected) {
@@ -103,32 +106,41 @@
         feedback.style.display = 'block';
 
         if (selected === currentTarget) {
-            // Đúng: Hiện vòng tròn đỏ (Maru)
+            // ĐÚNG
             feedback.innerHTML = '<span class="correct-mark">○</span>';
             playPool = playPool.filter(c => c !== currentTarget);
+            
+            // Chọn câu khen ngẫu nhiên và đọc
+            const p = praises[Math.floor(Math.random() * praises.length)];
+            speak(p);
             
             setTimeout(() => {
                 feedback.style.display = 'none';
                 nextQuestion();
-            }, 800);
+            }, 1200); // Tăng thời gian chờ một chút để nghe hết câu
         } else {
-            // Sai: Hiện dấu X xanh (Batsu)
+            // SAI
             feedback.innerHTML = '<span class="wrong-mark">×</span>';
+            
+            // Chọn câu động viên ngẫu nhiên và đọc
+            const e = encouragements[Math.floor(Math.random() * encouragements.length)];
+            speak(e);
             
             setTimeout(() => {
                 feedback.style.display = 'none';
                 isProcessing = false;
-                speakChar(); // Đọc lại để bé nhớ
-            }, 800);
+                speak(currentTarget); // Đọc lại chữ cái cần tìm để bé ghi nhớ
+            }, 1200);
         }
     }
 
-    function speakChar() {
+    // Hàm đọc chung cho cả chữ cái và câu thông báo
+    function speak(text) {
         const synth = window.speechSynthesis;
         synth.cancel();
-        const utter = new SpeechSynthesisUtterance(currentTarget);
+        const utter = new SpeechSynthesisUtterance(text);
         utter.lang = 'ja-JP';
-        utter.rate = 0.7; 
+        utter.rate = 0.8; 
         synth.speak(utter);
     }
 
