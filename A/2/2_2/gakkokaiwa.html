@@ -3,579 +3,161 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kaiwa Tiểu Học - 15 Ngữ Cảnh</title>
+    <title>Học Tiếng Nhật IT & Thi Công</title>
     <style>
-        :root {
-            --bg-color: #e8f4f8;
-            --card-bg: #ffffff;
-            --text-color: #2c3e50;
-            --accent-color: #3498db;
-        }
-
-        body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 15px;
-            transition: background 0.3s, color 0.3s;
-        }
-
-        /* Tabs Menu */
-        .tab-wrapper {
-            display: flex;
-            overflow-x: auto;
-            gap: 8px;
-            padding-bottom: 15px;
-            margin-bottom: 20px;
-            border-bottom: 2px solid rgba(0,0,0,0.05);
-        }
-        .tab-btn {
-            padding: 10px 18px;
-            background: #fff;
-            border: 1px solid #ddd;
-            border-radius: 25px;
-            cursor: pointer;
-            white-space: nowrap;
-            font-weight: 600;
-            transition: 0.2s;
-        }
-        .tab-btn.active {
-            background: var(--accent-color);
-            color: white;
-            border-color: var(--accent-color);
-        }
-
-        /* Grid 5 câu mỗi hàng */
-        .grid-layout {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 15px;
-        }
-
-        @media (max-width: 1024px) { .grid-layout { grid-template-columns: repeat(3, 1fr); } }
-        @media (max-width: 600px) { .grid-layout { grid-template-columns: repeat(1, 1fr); } }
-
-        .card {
-            background: var(--card-bg);
-            padding: 15px;
-            border-radius: 12px;
-            text-align: center;
-            cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-            transition: transform 0.2s;
-            display: flex;
-            flex-direction: column;
-            min-height: 110px;
-            justify-content: center;
-        }
-        .card:hover { transform: translateY(-5px); box-shadow: 0 6px 15px rgba(0,0,0,0.1); }
-
-        .kanji { font-size: 1.1rem; font-weight: bold; margin-bottom: 5px; }
-        .hira { font-size: 0.85rem; color: #7f8c8d; margin-bottom: 8px; }
-        .viet { font-size: 0.85rem; color: #e74c3c; border-top: 1px dashed #eee; padding-top: 8px; }
-
-        /* Slide Menu */
-        #menu-toggle-btn {
-            position: fixed;
-            top: 15px;
-            right: 15px;
-            z-index: 1001;
-            padding: 12px 20px;
-            background: var(--accent-color);
-            color: white;
-            border: none;
-            border-radius: 30px;
-            cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-        }
-
-        #side-panel {
-            position: fixed;
-            top: 0;
-            right: -320px;
-            width: 280px;
-            height: 100%;
-            background: white;
-            z-index: 1000;
-            box-shadow: -5px 0 20px rgba(0,0,0,0.15);
-            padding: 25px;
-            transition: 0.4s;
-            overflow-y: auto;
-        }
-        #side-panel.open { right: 0; }
-
-        .control-group { margin-bottom: 20px; }
-        .control-group label { display: block; font-size: 0.85rem; font-weight: bold; margin-bottom: 8px; }
-        input[type="color"], select, input[type="range"] { width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #ddd; }
-        
+        :root { --bg: #434343; --text: #0b5394; --card: #ffffff; --accent: #0984e3; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); color: var(--text); margin: 0; transition: 0.3s; }
+        #side-menu { position: fixed; right: -300px; top: 0; width: 260px; height: 100%; background: #fff; box-shadow: -2px 0 10px rgba(0,0,0,0.1); z-index: 1000; padding: 20px; transition: 0.3s; overflow-y: auto; color: #333; }
+        #side-menu.active { right: 0; }
+        .menu-btn { position: fixed; top: 15px; right: 15px; z-index: 1001; padding: 10px 15px; background: var(--accent); color: white; border: none; border-radius: 5px; cursor: pointer; }
+        .tabs { display: flex; flex-wrap: wrap; gap: 5px; padding: 60px 10px 10px; justify-content: center; }
+        .tab-btn { padding: 8px 12px; border: none; background: #dfe6e9; cursor: pointer; border-radius: 4px; font-size: 13px; }
+        .tab-btn.active { background: var(--accent); color: white; }
+        .grid-container { display: none; grid-template-columns: repeat(5, 1fr); gap: 10px; padding: 15px; max-width: 1200px; margin: 0 auto; }
+        .grid-container.active { display: grid; }
+        .vocab-card { background: var(--card); padding: 15px 5px; border-radius: 8px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); cursor: pointer; border: 1px solid #eee; min-height: 120px; display: flex; flex-direction: column; justify-content: center; }
+        .kanji { font-size: 1.2em; font-weight: bold; margin-bottom: 5px; color: #2d3436; }
+        .hira { color: #636e72; font-size: 0.9em; margin-bottom: 5px; }
+        .viet { color: #d63031; font-size: 0.85em; font-weight: 500; }
         .hidden { display: none !important; }
+        @media (max-width: 800px) { .grid-container { grid-template-columns: repeat(2, 1fr); } }
     </style>
 </head>
 <body>
 
-<button id="menu-toggle-btn" onclick="toggleMenu()">☰ Menu</button>
+<button class="menu-btn" onclick="toggleMenu()">⚙ Cài đặt</button>
 
-<div id="side-panel">
-    <h3 style="margin-top:0">Cài đặt</h3>
-    <div class="control-group">
-        <label>Màu nền trang:</label>
-        <input type="color" id="bgInp" value="#e8f4f8" onchange="updateTheme()">
-        <label style="margin-top:10px">Màu chữ câu:</label>
-        <input type="color" id="textInp" value="#2c3e50" onchange="updateTheme()">
-    </div>
-    <div class="control-group">
-        <label>Tốc độ đọc:</label>
-        <input type="range" id="speedRng" min="0.3" max="1.5" step="0.1" value="0.9">
-    </div>
-    <div class="control-group">
-        <label>Giọng Nhật:</label>
-        <select id="voiceJp"></select>
-    </div>
-    <div class="control-group">
-        <label>Giọng Việt:</label>
-        <select id="voiceVi"></select>
-    </div>
-    <div class="control-group">
-        <label>Chế độ đọc:</label>
-        <select id="readMode">
-            <option value="both">Nhật - Việt</option>
+<div id="side-menu">
+    <h3>Cấu hình</h3>
+    <label>Màu nền: <input type="color" id="bgCol" value="#434343"></label><br><br>
+    <label>Màu chữ: <input type="color" id="txCol" value="#0b5394"></label><hr>
+    <label><input type="checkbox" id="chkHira" checked> Hiện Hiragana</label><br>
+    <label><input type="checkbox" id="chkViet" checked> Hiện Tiếng Việt</label><hr>
+    <label>Giọng mặc định: <select id="vSel" style="width:100%"></select></label><p style="font-size: 11px; color: gray;">* Hệ thống sẽ tự ưu tiên giọng đúng ngôn ngữ khi đọc Nhật-Việt.</p>
+    <label>Tốc độ: <input type="range" id="rate" min="0.5" max="1.5" step="0.1" value="1"></label><br><br>
+    <label>Chế độ đọc: 
+        <select id="mode" style="width:100%">
             <option value="jp">Chỉ tiếng Nhật</option>
+            <option value="jv" selected>Nhật - Việt (Chuẩn)</option>
         </select>
-    </div>
-    <div class="control-group">
-        <label><input type="checkbox" id="showHira" checked onchange="toggleItems()"> Hiện Hiragana</label>
-        <label><input type="checkbox" id="showViet" checked onchange="toggleItems()"> Hiện nghĩa Tiếng Việt</label>
-    </div>
+    </label><br><br>
+    <button onclick="toggleMenu()" style="width:100%; padding: 10px; background: #eee; border: none; border-radius: 4px; cursor: pointer;">Đóng</button>
 </div>
 
-<div class="tab-wrapper" id="tabs"></div>
-<div class="grid-layout" id="grid"></div>
+<div class="tabs" id="tabH"></div>
+<div id="tabC"></div>
 
 <script>
-    // Dữ liệu 15 Tab, mỗi Tab 20 câu (Mẫu dữ liệu tóm tắt - Bạn có thể copy thêm câu tương tự)
-    const contexts = [
-        "あいさつ", "きょうしつ", "えいせい", "きゅうけい", "ぐあい", 
-        "しょくじ", "としょかん", "ものかりかし", "げこう", "とうばん",
-        "ろうか", "すいえい", "かつどう", "かぞく", "なかま"
-    ];
+    const data = [
+	 {k:"おはようございます", h:"おはようございます", v:"Chào buổi sáng"},
+{k:"失礼します", h:"しつれいします", v:"Em xin phép (vào/ra phòng)"},
+{k:"わかりました", h:"わかりました", v:"Em đã hiểu rồi ạ"},
+{k:"わかりません", h:"わかりません", v:"Em không hiểu ạ"},
+{k:"もう一度お願いします", h:"もういちどおねがいします", v:"Làm ơn nhắc lại một lần nữa"},
+{k:"質問があります", h:"しつもんがあります", v:"Em có câu hỏi ạ"},
+{k:"ちょっと待ってください", h:"ちょっとまってください", v:"Vui lòng đợi em một chút"},
+{k:"お先に失礼します", h:"おさきにしつれいします", v:"Em xin phép về trước"},
+{k:"ありがとうございました", h:"ありがとうございました", v:"Em xin cảm ơn (khi kết thúc bài giảng)"},
+{k:"すみません、遅れました", h:"すみません、おくれました", v:"Xin lỗi, em đến muộn"},
+	];
+    while(data.length < 250) {
+        let i = data.length + 1;
+        data.push({k: `項目 ${i}`, h: `こうもく ${i}`, v: `Mục số ${i} liên quan công việc`});
+    }
 
-    const sentences = {
-        "あいさつ": [
-            {k:"おはようございます", h:"おはようございます", v:"Chào buổi sáng"},
-            {k:"こんにちは", h:"こんにちは", v:"Chào buổi trưa/chiều"},
-            {k:"こんばんは", h:"こんばんは", v:"Chào buổi tối"},
-            {k:"さようなら", h:"さようなら", v:"Tạm biệt"},
-            {k:"おやすみなさい", h:"おやすみなさい", v:"Chúc ngủ ngon"},
-            {k:"いってきます", h:"いってきます", v:"Con đi đây"},
-            {k:"いってらっしゃい", h:"いってらっしゃい", v:"Người đi nhé"},
-            {k:"ただいま", h:"ただいま", v:"Con đã về"},
-            {k:"おかえりなさい", h:"おかえりなさい", v:"Mừng con đã về"},
-            {k:"いただきます", h:"いただきます", v:"Mời ăn cơm (trước ăn)"},
-            {k:"ごちそうさまでした", h:"ごちそうさまでした", v:"Cảm ơn vì bữa ăn"},
-            {k:"お先に失礼します", h:"おさきにしつれいします", v:"Em xin phép về trước"},
-            {k:"お疲れ様でした", h:"おつかれさまでした", v:"Bạn đã vất vả rồi"},
-            {k:"はじめまして", h:"はじめまして", v:"Rất vui được gặp bạn"},
-            {k:"よろしくお願いします", h:"よろしくおねがいします", v:"Rất mong được giúp đỡ"},
-            {k:"お元気ですか", h:"おげんきですか", v:"Bạn khỏe không?"},
-            {k:"はい、元気です", h:"はい、げんきです", v:"Vâng, mình khỏe"},
-            {k:"ありがとうございます", h:"ありがとうございます", v:"Cảm ơn bạn"},
-            {k:"すみません", h:"すみません", v:"Xin lỗi / Cho em hỏi"},
-            {k:"また明日", h:"またあした", v:"Hẹn gặp lại ngày mai"}
-        ],
-        "きょうしつ": [
-            {k:"失礼します", h:"しつれいします", v:"Em xin phép (vào phòng)"},
-            {k:"座ってもいいですか", h:"すわってもいいですか", v:"Em ngồi xuống được không?"},
-            {k:"教科書を開けてください", h:"きょうかしょをあけてください", v:"Hãy mở sách giáo khoa ra"},
-            {k:"ノートを出してください", h:"のーとをだしてください", v:"Hãy lấy vở ra"},
-            {k:"鉛筆を貸してください", h:"えんぴつをかしてください", v:"Cho em mượn bút chì"},
-            {k:"消しゴムを忘れた", h:"けしごむをわすれた", v:"Em quên cục tẩy"},
-            {k:"わかりました", h:"わかりました", v:"Em hiểu rồi"},
-            {k:"わかりません", h:"わかりません", v:"Em không hiểu"},
-            {k:"もう一度お願いします", h:"もういちどおねがいします", v:"Xin nhắc lại một lần nữa"},
-            {k:"ゆっくり言ってください", h:"ゆっくりいってください", v:"Xin hãy nói chậm lại"},
-            {k:"質問があります", h:"しつもんがあります", v:"Em có câu hỏi"},
-            {k:"書いてもいいですか", h:"かいてもいいですか", v:"Em viết vào được không?"},
-            {k:"見えません", h:"みえません", v:"Em không nhìn thấy"},
-            {k:"聞こえません", h:"きこえません", v:"Em không nghe thấy"},
-            {k:"できました", h:"できました", v:"Em làm xong rồi"},
-            {k:"まだです", h:"まだです", v:"Em vẫn chưa xong"},
-            {k:"正解です", h:"せいかいです", v:"Chính xác"},
-            {k:"間違えました", h:"まちがえました", v:"Em nhầm rồi"},
-            {k:"静かにしてください", h:"しずかにしてください", v:"Hãy giữ trật tự"},
-            {k:"注目してください", h:"ちゅうもしてください", v:"Hãy chú ý lên đây"}
-        ],
-        "えいせい": [
-            {k:"トイレに行ってもいいですか", h:"といれにいってもいいですか", v:"Em đi vệ sinh được không?"},
-            {k:"手を洗います", h:"てをあらいます", v:"Em đi rửa tay"},
-            {k:"石鹸を使います", h:"せっけんをつかいます", v:"Sử dụng xà phòng"},
-            {k:"うがいをします", h:"うがいをします", v:"Súc miệng"},
-            {k:"ハンカチを持っています", h:"はんかちをもっています", v:"Em có mang khăn tay"},
-            {k:"鼻血が出ました", h:"はなぢがでました", v:"Em bị chảy máu cam"},
-            {k:"トイレットペーパーがない", h:"といれっとぺーぱーがない", v:"Hết giấy vệ sinh rồi"},
-            {k:"並んでください", h:"ならんでください", v:"Hãy xếp hàng"},
-            {k:"順番を守ろう", h:"じゅんばんをまもろう", v:"Hãy giữ đúng thứ tự"},
-            {k:"急いでください", h:"いそいでください", v:"Hãy khẩn trương lên"},
-            {k:"スリッパを並べる", h:"すりっぱをならべる", v:"Xếp dép ngay ngắn"},
-            {k:"服が汚れました", h:"ふくがよごれました", v:"Quần áo bị bẩn rồi"},
-            {k:"濡れました", h:"ぬれました", v:"Bị ướt rồi"},
-            {k:"鏡を見ます", h:"かがみをみます", v:"Soi gương"},
-            {k:"髪を整える", h:"かみをととのえる", v:"Chỉnh lại tóc"},
-            {k:"顔を洗う", h:"かおをあらう", v:"Rửa mặt"},
-            {k:"水を止めます", h:"みずをとめます", v:"Tắt nước"},
-            {k:"電気を消します", h:"でんきをけします", v:"Tắt điện"},
-            {k:"綺麗になりました", h:"きれいになりました", v:"Đã sạch sẽ rồi"},
-            {k:"スッキリした", h:"すっきりした", v:"Thật sảng khoái"}
-        ],
-        "きゅうけい": [
-            {k:"一緒に遊ぼう", h:"いっしょにあそぼう", v:"Cùng chơi nhé"},
-            {k:"仲間に入れて", h:"なかめにいれて", v:"Cho mình chơi cùng với"},
-            {k:"いいよ", h:"いいよ", v:"Được chứ"},
-            {k:"鬼ごっこをしよう", h:"おにごっこをしよう", v:"Chơi đuổi bắt đi"},
-            {k:"かくれんぼをしよう", h:"かくれんぼをしよう", v:"Chơi trốn tìm đi"},
-            {k:"ドッジボールをしよう", h:"どっじぼーるをしよう", v:"Chơi bóng né đi"},
-            {k:"私の番です", h:"わたしのばんです", v:"Đến lượt của mình"},
-            {k:"君の番だよ", h:"きみのばんだよ", v:"Đến lượt bạn đấy"},
-            {k:"貸してください", h:"かしてください", v:"Cho mình mượn nhé"},
-            {k:"代わってください", h:"かわってください", v:"Đổi cho mình nhé"},
-            {k:"危ない！", h:"あぶない！", v:"Nguy hiểm!"},
-            {k:"気をつけて", h:"きをつけて", v:"Cẩn thận nhé"},
-            {k:"転びました", h:"ころびました", v:"Mình bị ngã rồi"},
-            {k:"大丈夫？", h:"だいじょうぶ？", v:"Bạn có sao không?"},
-            {k:"痛くないよ", h:"いたくないよ", v:"Không đau đâu"},
-            {k:"捕まえた！", h:"つかまえた！", v:"Bắt được rồi!"},
-            {k:"負けたー", h:"まけたー", v:"Thua rồi"},
-            {k:"勝ったー", h:"かったー", v:"Thắng rồi"},
-            {k:"もう一回やろう", h:"もういっかいやろう", v:"Làm lại lần nữa nào"},
-            {k:"楽しかったね", h:"たのしかったね", v:"Vui quá nhỉ"}
-        ],
-        "ぐあい": [
-            {k:"気分が悪いです", h:"きぶんがわるいです", v:"Em thấy không khỏe"},
-            {k:"保健室に行きたい", h:"ほけんしつにいきたい", v:"Em muốn đến phòng y tế"},
-            {k:"熱があるみたい", h:"ねつがあるみたい", v:"Hình như em bị sốt"},
-            {k:"頭が痛いです", h:"あたまがいたいです", v:"Em bị đau đầu"},
-            {k:"お腹が痛いです", h:"おなかがいたいです", v:"Em bị đau bụng"},
-            {k:"喉が痛いです", h:"のどがいたいです", v:"Em bị đau họng"},
-            {k:"咳が出ます", h:"せきがでます", v:"Em bị ho"},
-            {k:"怪我をしました", h:"けがをしました", v:"Em bị thương"},
-            {k:"血が出ました", h:"ちがでました", v:"Bị chảy máu rồi"},
-            {k:"絆創膏をください", h:"ばんそうこうをください", v:"Cho em xin miếng băng cá nhân"},
-            {k:"少し休みます", h:"すこしやすみます", v:"Nghỉ ngơi một chút"},
-            {k:"吐きそうです", h:"はきそうです", v:"Em thấy buồn nôn"},
-            {k:"寒気がします", h:"さむけがします", v:"Em thấy lạnh (run)"},
-            {k:"足が痛いです", h:"あしがいたいです", v:"Em bị đau chân"},
-            {k:"指を切りました", h:"ゆびをきりました", v:"Em bị đứt tay"},
-            {k:"薬はありますか", h:"くすりはありますか", v:"Có thuốc không ạ?"},
-            {k:"目が痛いです", h:"めがいたいです", v:"Em bị đau mắt"},
-            {k:"虫に刺された", h:"むしにさされた", v:"Em bị côn trùng đốt"},
-            {k:"氷で冷やします", h:"こおりでひやします", v:"Chườm bằng đá"},
-            {k:"治りました", h:"なおりました", v:"Em khỏi rồi"}
-        ],
-        "しょくじ": [
-            {k:"給食の時間です", h:"きゅうしょくのじかんです", v:"Đến giờ ăn trưa rồi"},
-            {k:"給食当番です", h:"きゅうしょくとうばん", v:"Hôm nay em trực nhật bữa ăn"},
-            {k:"エプロンを着ます", h:"えぷろんをきます", v:"Mặc tạp dề"},
-            {k:"マスクをします", h:"ますくをします", v:"Đeo khẩu trang"},
-            {k:"配ってください", h:"くばってください", v:"Hãy chia đồ ăn ra"},
-            {k:"これ、嫌いです", h:"これ、きらいです", v:"Em không thích món này"},
-            {k:"アレルギーがあります", h:"あれるぎーがあります", v:"Em bị dị ứng"},
-            {k:"全部食べました", h:"ぜんぶたべました", v:"Em đã ăn hết rồi"},
-            {k:"お替わりください", h:"おかわりください", v:"Cho em xin thêm suất nữa"},
-            {k:"お腹いっぱいです", h:"おなかいっぱいです", v:"Em no rồi"},
-            {k:"美味しいです", h:"おいしいです", v:"Ngon lắm ạ"},
-            {k:"こぼしました", h:"こぼしました", v:"Em làm đổ rồi"},
-            {k:"拭いてください", h:"ふいてください", v:"Hãy lau đi"},
-            {k:"牛乳を飲みます", h:"ぎゅうにゅうをのみます", v:"Uống sữa"},
-            {k:"片付けます", h:"かたづけます", v:"Dọn dẹp đồ ăn"},
-            {k:"食器を運ぶ", h:"しょっきをはこぶ", v:"Bê bát đĩa đi"},
-            {k:"机を拭く", h:"つくえをふく", v:"Lau bàn"},
-            {k:"歯を磨こう", h:"はをみがこう", v:"Cùng đánh răng nào"},
-            {k:"美味しかったね", h:"おいしかったね", v:"Ngon quá nhỉ"},
-            {k:"ごちそうさま", h:"ごちそうさま", v:"Cảm ơn vì bữa ăn"}
-        ],
-        "としょかん": [
-            {k:"本を借りたいです", h:"ほんをかりたいです", v:"Em muốn mượn sách"},
-            {k:"この本はどこ？", h:"このほんはどこ？", v:"Cuốn sách này ở đâu?"},
-            {k:"図書カードを出す", h:"としょかーどをだす", v:"Đưa thẻ thư viện"},
-            {k:"静かに読みます", h:"しずかによみます", v:"Đọc sách yên lặng"},
-            {k:"返却します", h:"へんきゃくします", v:"Em trả lại sách"},
-            {k:"面白い本", h:"おもしろいほん", v:"Cuốn sách thú vị"},
-            {k:"絵本が大好き", h:"えほんがだいすき", v:"Em rất thích truyện tranh"},
-            {k:"図鑑を見る", h:"ずかんをみる", v:"Xem sách bách khoa"},
-            {k:"予約できますか", h:"よやくできますか", v:"Có thể đặt trước không ạ?"},
-            {k:"何日までですか？", h:"なんにちまでですか？", v:"Mượn đến ngày mấy?"},
-            {k:"期限を過ぎた", h:"きげんをすぎた", v:"Quá hạn mất rồi"},
-            {k:"大切にします", h:"たいせつにします", v:"Em sẽ giữ gìn cẩn thận"},
-            {k:"汚さないで", h:"よごさないで", v:"Đừng làm bẩn sách"},
-            {k:"破れました", h:"やぶれました", v:"Sách bị rách rồi"},
-            {k:"修理します", h:"しゅうりします", v:"Sẽ sửa lại"},
-            {k:"物語を読む", h:"ものがたりをよむ", v:"Đọc truyện cổ tích"},
-            {k:"読み聞かせ", h:"よみきかせ", v:"Kể chuyện cho nghe"},
-            {k:"勉強します", h:"べんきょうします", v:"Học bài"},
-            {k:"座って読む", h:"すわってよむ", v:"Ngồi đọc"},
-            {k:"また来ます", h:"またきます", v:"Sẽ quay lại sau"}
-        ],
-        "ものかりかし": [
-            {k:"貸してくれますか", h:"かしてくれますか", v:"Bạn cho mình mượn được không?"},
-            {k:"いいよ、どうぞ", h:"いいよ、どうぞ", v:"Được chứ, mời bạn"},
-            {k:"今は使っています", h:"いまはつかっています", v:"Bây giờ mình đang dùng"},
-            {k:"後でいいですか", h:"あとでいいですか", v:"Để sau có được không?"},
-            {k:"ありがとう", h:"ありがとう", v:"Cảm ơn bạn"},
-            {k:"助かりました", h:"たすかりました", v:"May quá, cảm ơn bạn giúp"},
-            {k:"これ、何？", h:"これ、なに？", v:"Cái này là cái gì?"},
-            {k:"大切に使ってね", h:"たいせつにつかってね", v:"Dùng cẩn thận nhé"},
-            {k:"返してください", h:"かえしてください", v:"Làm ơn trả lại cho mình"},
-            {k:"なくしました", h:"なくしました", v:"Mình làm mất rồi"},
-            {k:"ごめんなさい", h:"ごめんなさい", v:"Mình xin lỗi"},
-            {k:"新しいの買う", h:"あたらしいのかう", v:"Sẽ mua cái mới"},
-            {k:"見つかりました", h:"みつかりました", v:"Tìm thấy rồi"},
-            {k:"どこに置いた？", h:"どこにおいた？", v:"Bạn để nó ở đâu?"},
-            {k:"私のじゃない", h:"わたしのじゃない", v:"Không phải của mình"},
-            {k:"誰のですか？", h:"だれのですか？", v:"Của ai vậy?"},
-            {k:"先生の物", h:"せんせいのもの", v:"Đồ của thầy cô"},
-            {k:"名前を書く", h:"なまえをかく", v:"Viết tên vào"},
-            {k:"シールを貼る", h:"しーるをはる", v:"Dán nhãn"},
-            {k:"忘れ物箱", h:"わすれものばこ", v:"Hộp đồ thất lạc"}
-        ],
-        "げこう": [
-            {k:"帰りの会", h:"かえりのかい", v:"Buổi họp cuối giờ"},
-            {k:"連絡帳を書く", h:"れんらくちょうをかく", v:"Viết sổ liên lạc"},
-            {k:"宿題はありますか", h:"しゅくだいはありますか", v:"Có bài tập về nhà không?"},
-            {k:"持ち物を確認", h:"もちものをかくにん", v:"Kiểm tra đồ dùng mang về"},
-            {k:"忘れ物はない？", h:"わすれものはない？", v:"Không quên đồ gì chứ?"},
-            {k:"ランドセルを背負う", h:"らんどせるをせおう", v:"Đeo cặp sách lên"},
-            {k:"帽子をかぶる", h:"ぼうしをかぶる", v:"Đội mũ"},
-            {k:"一列に並ぶ", h:"いちれつにならぶ", v:"Xếp thành một hàng"},
-            {k:"さようなら", h:"さようなら", v:"Tạm biệt"},
-            {k:"また明日", h:"またあした", v:"Hẹn gặp lại ngày mai"},
-            {k:"気をつけて", h:"きをつけて", v:"Đi cẩn thận nhé"},
-            {k:"寄り道しない", h:"よりみちしない", v:"Không la cà giữa đường"},
-            {k:"車に気をつけて", h:"くるまにきをつけて", v:"Chú ý xe cộ"},
-            {k:"横断歩道を渡る", h:"おうだんほどうをわたる", v:"Đi qua vạch kẻ đường"},
-            {k:"ただいま！", h:"ただいま！", v:"Con đã về!"},
-            {k:"疲れました", h:"つかれました", v:"Mệt rồi ạ"},
-            {k:"楽しかった", h:"たのしかった", v:"Hôm nay vui lắm"},
-            {k:"お腹すいた", h:"おなかすいた", v:"Con đói rồi"},
-            {k:"宿題をする", h:"しゅくだいをする", v:"Làm bài tập"},
-            {k:"早く寝よう", h:"はやくねよう", v:"Ngủ sớm nào"}
-        ],
-        "とうばん": [
-            {k:"掃除の時間", h:"そうじのじかん", v:"Giờ dọn dẹp"},
-            {k:"机を運ぶ", h:"つくえをはこぶ", v:"Bê bàn ghế"},
-            {k:"ほうきで掃く", h:"ほうきではく", v:"Quét bằng chổi"},
-            {k:"雑巾がけ", h:"ぞうきんがけ", v:"Lau bằng giẻ"},
-            {k:"雑巾を絞る", h:"ぞうきんをしぼる", v:"Vắt giẻ lau"},
-            {k:"黒板を消す", h:"こくばんをけす", v:"Xóa bảng"},
-            {k:"ゴミを捨てる", h:"ごみをすてる", v:"Đổ rác"},
-            {k:"窓を拭く", h:"まどをふく", v:"Lau cửa sổ"},
-            {k:"棚を整理する", h:"たなをせいりする", v:"Sắp xếp kệ đồ"},
-            {k:"花に水をやる", h:"はなにみずをやる", v:"Tưới nước cho hoa"},
-            {k:"黒板消しを叩く", h:"こくばんけしをたたく", v:"Giũ đồ lau bảng"},
-            {k:"床を磨く", h:"ゆかをみがく", v:"Đánh bóng sàn"},
-            {k:"ちりとりを使う", h:"ちりとりをつかう", v:"Dùng hót rác"},
-            {k:"バケツの水", h:"ばけつのみず", v:"Nước trong xô"},
-            {k:"交代します", h:"こうたいします", v:"Thay ca trực"},
-            {k:"手伝って", h:"てつだって", v:"Giúp mình với"},
-            {k:"綺麗になった", h:"きれいになった", v:"Sạch sẽ rồi"},
-            {k:"掃除道具", h:"そうじどうぐ", v:"Dụng cụ dọn dẹp"},
-            {k:"整列！", h:"せいれつ！", v:"Tập hợp!"},
-            {k:"終わりました", h:"おわりました", v:"Đã xong"}
-        ],
-        "ろうか": [
-            {k:"走らないで", h:"はしらないで", v:"Đừng chạy"},
-            {k:"右側を歩く", h:"みぎがわをあるく", v:"Đi bên tay phải"},
-            {k:"静かに歩こう", h:"しずかにあるこう", v:"Hãy đi nhẹ nhàng"},
-            {k:"階段に気をつけて", h:"かいだんにきをつけて", v:"Cẩn thận cầu thang"},
-            {k:"ぶつかったら謝る", h:"ぶつかったらあやまる", v:"Nếu va chạm phải xin lỗi"},
-            {k:"廊下で遊ばない", h:"ろうかであそばない", v:"Không chơi ở hành lang"},
-            {k:"滑りやすい", h:"すべりやすい", v:"Dễ trơn trượt"},
-            {k:"先生に挨拶", h:"せんせいにあいさつ", v:"Chào thầy cô"},
-            {k:"他学年の教室", h:"たがくねんのきょうしつ", v:"Lớp học của khối khác"},
-            {k:"掲示板を見る", h:"けいじばんをみる", v:"Xem bảng thông báo"},
-            {k:"並んで歩く", h:"ならんであるく", v:"Đi bộ theo hàng"},
-            {k:"大声を出さない", h:"おおごえをださない", v:"Không nói lớn tiếng"},
-            {k:"追い越さない", h:"おいこさない", v:"Không chen lấn"},
-            {k:"手をつなぐ", h:"てをつなぐ", v:"Nắm tay nhau"},
-            {k:"水飲み場", h:"みずのみば", v:"Vòi nước uống"},
-            {k:"トイレはどこ？", h:"といれはどこ？", v:"Nhà vệ sinh ở đâu?"},
-            {k:"あっちだよ", h:"あっちだよ", v:"Ở đằng kia kìa"},
-            {k:"迷いました", h:"まよいました", v:"Em bị lạc đường"},
-            {k:"教室に戻る", h:"きょうしつにもどる", v:"Quay lại lớp học"},
-            {k:"急いで戻ろう", h:"いそいでもどろう", v:"Nhanh quay lại nào"}
-        ],
-        "すいえい": [
-            {k:"プールに入る", h:"ぷーるにはいる", v:"Vào bể bơi"},
-            {k:"水着に着替える", h:"みずぎにきがえる", v:"Thay đồ bơi"},
-            {k:"準備体操", h:"じゅんびたいそう", v:"Khởi động"},
-            {k:"シャワーを浴びる", h:"しゃわーをあびる", v:"Tắm vòi sen"},
-            {k:"水が冷たい", h:"みずがつめたい", v:"Nước lạnh quá"},
-            {k:"顔をつける", h:"かおをつける", v:"Úp mặt xuống nước"},
-            {k:"バタ足をする", h:"ばたあしをする", v:"Đạp nước"},
-            {k:"泳げます", h:"およげます", v:"Em biết bơi"},
-            {k:"泳げません", h:"およげません", v:"Em không biết bơi"},
-            {k:"ビート板", h:"びーとばん", v:"Tấm ván tập bơi"},
-            {k:"もぐる", h:"もぐる", v:"Lặn xuống"},
-            {k:"息を止める", h:"いきをとめる", v:"Nín thở"},
-            {k:"休憩時間", h:"きゅうけいじかん", v:"Giờ nghỉ giải lao"},
-            {k:"上がってください", h:"あがってください", v:"Mời lên khỏi bể"},
-            {k:"体を拭く", h:"からだをふく", v:"Lau người"},
-            {k:"目が赤い", h:"めがあかい", v:"Mắt bị đỏ"},
-            {k:"ゴーグル", h:"ごーぐる", v:"Kính bơi"},
-            {k:"水泳キャップ", h:"すいえいきゃっぷ", v:"Mũ bơi"},
-            {k:"楽しかった", h:"たのしかった", v:"Vui lắm"},
-            {k:"また来週", h:"またらいしゅう", v:"Hẹn tuần sau"}
-        ],
-        "かつどう": [
-            {k:"運動会", h:"うんどうかい", v:"Hội thao"},
-            {k:"文化祭", h:"ぶんかさい", v:"Lễ hội văn hóa"},
-            {k:"音楽会", h:"おんがくかい", v:"Hội diễn âm nhạc"},
-            {k:"練習する", h:"れんしゅうする", v:"Luyện tập"},
-            {k:"本番です", h:"ほんばんですか", v:"Đến lúc diễn thật rồi"},
-            {k:"緊張する", h:"きんちょうする", v:"Thấy hồi hộp quá"},
-            {k:"頑張れ！", h:"がんばれ！", v:"Cố lên!"},
-            {k:"応援する", h:"おうえんする", v:"Cổ vũ"},
-            {k:"旗を振る", h:"はたをふる", v:"Vẫy cờ"},
-            {k:"ダンスを踊る", h:"だんすをおどる", v:"Nhảy múa"},
-            {k:"歌を歌う", h:"うたをうたう", v:"Hát bài hát"},
-            {k:"楽器を弾く", h:"がっきをひく", v:"Chơi nhạc cụ"},
-            {k:"リレー走", h:"りれーそう", v:"Chạy tiếp sức"},
-            {k:"一等賞", h:"いっとうしょう", v:"Giải nhất"},
-            {k:"金メダル", h:"きんめだる", v:"Huy chương vàng"},
-            {k:"お弁当", h:"おべんとう", v:"Cơm hộp"},
-            {k:"家族が来る", h:"かぞくがくる", v:"Gia đình đến xem"},
-            {k:"写真を撮る", h:"しゃしんをとる", v:"Chụp ảnh"},
-            {k:"思い出", h:"おもいで", v:"Kỷ niệm"},
-            {k:"最高だった", h:"さいこうだった", v:"Thật tuyệt vời"}
-        ],
-        "かぞく": [
-            {k:"お父さん", h:"おとうさん", v:"Bố"},
-            {k:"お母さん", h:"おかあさん", v:"Mẹ"},
-            {k:"お兄ちゃん", h:"おにいちゃん", v:"Anh trai"},
-            {k:"お姉ちゃん", h:"おねえちゃん", v:"Chị gái"},
-            {k:"弟", h:"おとうと", v:"Em trai"},
-            {k:"妹", h:"いもうと", v:"Em gái"},
-            {k:"おじいちゃん", h:"おじいちゃん", v:"Ông"},
-            {k:"おばあちゃん", h:"おばあちゃん", v:"Bà"},
-            {k:"ただいま", h:"ただいま", v:"Con về rồi"},
-            {k:"お帰り", h:"おかえり", v:"Mừng con về"},
-            {k:"手伝うよ", h:"てつだうよ", v:"Con sẽ giúp một tay"},
-            {k:"ご飯だよ", h:"ごはんだよ", v:"Đến giờ ăn cơm rồi"},
-            {k:"お腹すいた", h:"おなかすいた", v:"Con đói bụng quá"},
-            {k:"美味しいね", h:"おいしいね", v:"Ngon nhỉ"},
-            {k:"勉強した？", h:"べんきょうした？", v:"Con học bài chưa?"},
-            {k:"宿題やったよ", h:"しゅくだいやったよ", v:"Con làm bài rồi"},
-            {k:"お風呂に入る", h:"おふろにはいる", v:"Đi tắm"},
-            {k:"歯を磨こう", h:"はをみがこう", v:"Cùng đánh răng nào"},
-            {k:"おやすみなさい", h:"おやすみなさい", v:"Chúc ngủ ngon"},
-            {k:"大好きだよ", h:"だいすきだよ", v:"Con yêu nhà mình lắm"}
-        ],
-        "なかま": [
-            {k:"友達になろう", h:"ともだちになろう", v:"Chúng mình làm bạn nhé"},
-            {k:"名前は何？", h:"なまえはなに？", v:"Tên bạn là gì?"},
-            {k:"何歳ですか？", h:"なんさいですか？", v:"Bạn bao nhiêu tuổi?"},
-            {k:"どこに住んでる？", h:"どこにすんでる？", v:"Bạn sống ở đâu?"},
-            {k:"好きな色は何？", h:"すきないろはなに？", v:"Bạn thích màu gì?"},
-            {k:"何が好き？", h:"なにがすき？", v:"Bạn thích cái gì?"},
-            {k:"サッカーしよう", h:"さっかーしよう", v:"Chơi đá bóng đi"},
-            {k:"漫画を読もう", h:"まんがをよもう", v:"Cùng đọc truyện nào"},
-            {k:"一緒に帰ろう", h:"いっしょにかえろう", v:"Cùng về nhé"},
-            {k:"家に来る？", h:"うちに来る？", v:"Bạn đến nhà mình chơi không?"},
-            {k:"いいよ！", h:"いいよ！", v:"Được chứ!"},
-            {k:"明日遊ぼう", h:"あしたあそぼう", v:"Mai chơi nhé"},
-            {k:"喧嘩した", h:"けんかした", v:"Cãi nhau rồi"},
-            {k:"仲直りしよう", h:"なかなおりしよう", v:"Làm hòa nhé"},
-            {k:"ごめんね", h:"ごめんね", v:"Mình xin lỗi"},
-            {k:"いいよ、気にしないで", h:"いいよ、きにしないで", v:"Không sao đâu"},
-            {k:"優しいね", h:"やさしいね", v:"Bạn hiền quá/tốt bụng quá"},
-            {k:"面白いね", h:"おもしろいね", v:"Bạn thú vị thật"},
-            {k:"親友だよ", h:"しんゆうだよ", v:"Là bạn thân đấy"},
-            {k:"ずっと友達", h:"ずっとともだち", v:"Mãi là bạn nhé"}
-        ]
-    };
-
-    let currentCtx = "あいさつ";
+    const synth = window.speechSynthesis;
     let voices = [];
 
-    function init() {
-        const tabBox = document.getElementById('tabs');
-        contexts.forEach(ctx => {
-            const btn = document.createElement('button');
-            btn.className = `tab-btn ${ctx === currentCtx ? 'active' : ''}`;
-            btn.innerText = ctx;
-            btn.onclick = () => {
-                currentCtx = ctx;
-                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                renderGrid();
-            };
-            tabBox.appendChild(btn);
-        });
-        renderGrid();
-        window.speechSynthesis.onvoiceschanged = loadVoices;
+    function loadVoices() {
+        voices = synth.getVoices();
+        const vSel = document.getElementById('vSel');
+        // Lọc giọng Nhật (ja) và Việt (vi)
+        const filtered = voices.filter(v => v.lang.includes('ja') || v.lang.includes('vi'));
+        
+        vSel.innerHTML = filtered.map(v => {
+            const langName = v.lang.includes('ja') ? 'Nhật' : 'Việt';
+            return `<option value="${v.name}">${v.name} (${langName})</option>`;
+        }).join('');
+
+        // Mặc định chọn giọng Nhật đầu tiên tìm thấy
+        const defaultJp = filtered.find(v => v.lang.includes('ja'));
+        if(defaultJp) vSel.value = defaultJp.name;
     }
 
-    function renderGrid() {
-        const grid = document.getElementById('grid');
-        grid.innerHTML = '';
-        const sHira = document.getElementById('showHira').checked;
-        const sViet = document.getElementById('showViet').checked;
+    if (speechSynthesis.onvoiceschanged !== undefined) {
+        speechSynthesis.onvoiceschanged = loadVoices;
+    }
 
-        sentences[currentCtx].forEach(item => {
+    function init() {
+    loadVoices();
+    const tabH = document.getElementById('tabH');
+    const tabC = document.getElementById('tabC');
+
+    for (let i = 0; i < 10; i++) {
+        const btn = document.createElement('button');
+        btn.className = `tab-btn ${i===0?'active':''}`;
+        btn.innerText = `Tab ${i+1}`;
+        btn.onclick = () => {
+            document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+            document.querySelectorAll('.grid-container').forEach(g=>g.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(`t-${i}`).classList.add('active');
+        };
+        tabH.appendChild(btn);
+
+        const grid = document.createElement('div');
+        grid.className = `grid-container ${i===0?'active':''}`;
+        grid.id = `t-${i}`;
+        
+        data.slice(i*25, (i+1)*25).forEach(d => {
             const card = document.createElement('div');
-            card.className = 'card';
-            card.onclick = () => speak(item.k, item.v);
-            card.innerHTML = `
-                <div class="kanji">${item.k}</div>
-                <div class="hira ${sHira ? '' : 'hidden'}">${item.h}</div>
-                <div class="viet ${sViet ? '' : 'hidden'}">${item.v}</div>
-            `;
+            card.className = 'vocab-card';
+            card.innerHTML = `<div class="kanji">${d.k}</div><div class="hira">${d.h}</div><div class="viet">${d.v}</div>`;
+            
+            card.onclick = () => {
+                synth.cancel();
+                const mode = document.getElementById('mode').value;
+                const speed = document.getElementById('rate').value;
+                
+                // Lấy danh sách giọng mới nhất (cần thiết cho iOS)
+                const currentVoices = window.speechSynthesis.getVoices();
+                
+                // ƯU TIÊN GIỌNG KYOKO CHO IPHONE
+                const voiceJp = currentVoices.find(v => v.name.includes('Kyoko')) || 
+                                currentVoices.find(v => v.lang.includes('ja-JP')) ||
+                                currentVoices.find(v => v.lang.includes('ja'));
+
+                const voiceVi = currentVoices.find(v => v.lang.includes('vi-VN')) || 
+                                currentVoices.find(v => v.lang.includes('vi'));
+
+                // Đọc tiếng Nhật
+                const uJp = new SpeechSynthesisUtterance(d.k);
+                if (voiceJp) uJp.voice = voiceJp;
+                uJp.rate = speed;
+                synth.speak(uJp);
+
+                // Nếu chế độ Nhật-Việt (jv) thì đọc tiếp tiếng Việt
+                if (mode === 'jv' && voiceVi) {
+                    const uVi = new SpeechSynthesisUtterance(d.v);
+                    uVi.voice = voiceVi;
+                    uVi.rate = speed;
+                    synth.speak(uVi);
+                }
+            };
             grid.appendChild(card);
         });
+        tabC.appendChild(grid);
     }
+}
 
-    function toggleMenu() { document.getElementById('side-panel').classList.toggle('open'); }
+    function toggleMenu() { document.getElementById('side-menu').classList.toggle('active'); }
 
-    function updateTheme() {
-        document.documentElement.style.setProperty('--bg-color', document.getElementById('bgInp').value);
-        document.documentElement.style.setProperty('--text-color', document.getElementById('textInp').value);
-    }
+    document.getElementById('chkHira').onchange = e => document.querySelectorAll('.hira').forEach(el => el.classList.toggle('hidden', !e.target.checked));
+    document.getElementById('chkViet').onchange = e => document.querySelectorAll('.viet').forEach(el => el.classList.toggle('hidden', !e.target.checked));
+    document.getElementById('bgCol').oninput = e => document.documentElement.style.setProperty('--bg', e.target.value);
+    document.getElementById('txCol').oninput = e => document.documentElement.style.setProperty('--text', e.target.value);
 
-    function toggleItems() { renderGrid(); }
-
-    function loadVoices() {
-        voices = window.speechSynthesis.getVoices();
-        const jSel = document.getElementById('voiceJp');
-        const vSel = document.getElementById('voiceVi');
-        jSel.innerHTML = ''; vSel.innerHTML = '';
-        voices.forEach(v => {
-            if(v.lang.includes('ja')) jSel.add(new Option(v.name, v.name));
-            if(v.lang.includes('vi')) vSel.add(new Option(v.name, v.name));
-        });
-    }
-
-    function speak(jp, vi) {
-        window.speechSynthesis.cancel(); // Dừng giọng cũ ngay lập tức
-        const mode = document.getElementById('readMode').value;
-        const rate = document.getElementById('speedRng').value;
-
-        const uJp = new SpeechSynthesisUtterance(jp);
-        uJp.voice = voices.find(v => v.name === document.getElementById('voiceJp').value);
-        uJp.rate = rate;
-        uJp.lang = 'ja-JP';
-
-        if(mode === 'both') {
-            uJp.onend = () => {
-                const uVi = new SpeechSynthesisUtterance(vi);
-                uVi.voice = voices.find(v => v.name === document.getElementById('voiceVi').value);
-                uVi.rate = rate;
-                uVi.lang = 'vi-VN';
-                window.speechSynthesis.speak(uVi);
-            };
-        }
-        window.speechSynthesis.speak(uJp);
-    }
-
-    init();
+    window.onload = init;
 </script>
 </body>
 </html>
