@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Học Tiếng Nhật IT & Thi Công</title>
+    <title>TỪ VỤNG BỆNH VIỆN KHÁM BỆNH</title>
     <style>
         :root { --bg: #292929; --text: #0b5394; --card: #ffffff; --accent: #0984e3; }
         body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); color: var(--text); margin: 0; transition: 0.3s; }
@@ -17,8 +17,8 @@
         .grid-container.active { display: grid; }
         .vocab-card { background: var(--card); padding: 15px 5px; border-radius: 8px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); cursor: pointer; border: 1px solid #eee; min-height: 120px; display: flex; flex-direction: column; justify-content: center; }
         .kanji { font-size: 1.2em; font-weight: bold; margin-bottom: 5px; }
-        .hiragana { color: #636e72; font-size: 0.9em; margin-bottom: 5px; }
-        .vietnamese { color: #d63031; font-size: 0.85em; font-weight: 500; }
+        .hira { color: #636e72; font-size: 0.9em; margin-bottom: 5px; }
+        .viet { color: #d63031; font-size: 0.85em; font-weight: 500; }
         .hidden { display: none !important; }
         @media (max-width: 800px) { .grid-container { grid-template-columns: repeat(2, 1fr); } }
     </style>
@@ -45,7 +45,7 @@
 <script>
     // DỮ LIỆU 250 CÂU GIAO TIẾP & TỪ VỰNG (Gộp từ các phần trước)
     const data = [
-       {k:"病院", h:"びょういん", v:"Bệnh viện"},
+	   {k:"病院", h:"びょういん", v:"Bệnh viện"},
     {k:"受付", h:"うけつけ", v:"Quầy tiếp tân"},
     {k:"内科", h:"ないか", v:"Khoa nội"},
     {k:"外科", h:"げか", v:"Khoa ngoại"},
@@ -295,7 +295,7 @@
     {k:"医療費控除", h:"いりょうひこうじょ", v:"Khấu trừ chi phí y tế (thuế)"},
     {k:"高額療養費制度", h:"こうがくりょうようひせいど", v:"Chế độ hỗ trợ phí chữa trị cao"},
     {k:"入院手続き", h:"にゅういんてつづき", v:"Thủ tục nhập viện"},
-	
+     
     ];
 
     // Tự động điền cho đủ 250 câu để test giao diện (Bạn có thể thay thế bằng list 250 câu cụ thể)
@@ -358,8 +358,8 @@
                 const voiceVi = currentVoices.find(v => v.lang.includes('vi-VN')) || 
                                 currentVoices.find(v => v.lang.includes('vi'));
 
-                // Đọc tiếng Nhật
-                const uJp = new SpeechSynthesisUtterance(d.k);
+                // Đọc tiếng Nhật (hiragana thay vì kanji)
+                const uJp = new SpeechSynthesisUtterance(d.h);  // << SỬA: d.h thay vì d.k
                 if (voiceJp) uJp.voice = voiceJp;
                 uJp.rate = speed;
                 synth.speak(uJp);
