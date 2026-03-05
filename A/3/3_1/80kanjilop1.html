@@ -3,7 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>1000 Kanji - Chuẩn 5 Từ Gợi Ý</title>
+	 <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>80漢字</title>
     <style>
         :root { --bg: #f8f9fa; --txt: #2d3436; --accent: #0984e3; --card: #ffffff; }
         body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); color: var(--txt); margin: 0; padding: 10px; }
@@ -11,6 +15,11 @@
         /* Thanh tìm kiếm */
         .search-wrapper {
             max-width: 1400px; margin: 0 auto 15px auto;
+        }
+		   .btn-toggle {
+            top: 15px;
+            right: 15px;
+            top: calc(15px + env(safe-area-inset-top));
         }
         #searchInput {
             width: 100%; padding: 12px 15px; font-size: 1.1rem;
@@ -283,6 +292,15 @@
             }
         });
     }
+	function speakVietnamese(text) {
+    const uVi = new SpeechSynthesisUtterance(text);
+    uVi.rate = document.getElementById('rate').value;
+    const viVoice = voices.find(v => v.name === document.getElementById('vVi').value);
+    if (viVoice) uVi.voice = viVoice;
+    speechSynthesis.cancel();
+    speechSynthesis.speak(uVi);
+}
+
 
     function loadVoices() {
         voices = synth.getVoices();

@@ -1,27 +1,155 @@
-一
-九 七 十 人 二 入 八 力
-下 口 三 山 子 女 小 上 夕 千 川 大 土
-円 王 火 月 犬 五 手 水 中 天 日 木 文 六
-玉 左 四 出 正 生 石 田 白 本 目 右 立
-休 気 糸 字 耳 先 早 竹 虫 年 百 名
-花 貝 見 車 赤 足 村 男 町
-雨 学 空 金 青 林
-音 草
-校
-森
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>1000 Kanji - Chuẩn 5 Từ Gợi Ý</title>
+    <style>
+        :root { --bg: #f8f9fa; --txt: #2d3436; --accent: #0984e3; --card: #ffffff; }
+        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); color: var(--txt); margin: 0; padding: 10px; }
 
------------------------------------------------------------------
+        /* Thanh tìm kiếm */
+        .search-wrapper {
+            max-width: 1400px; margin: 0 auto 15px auto;
+        }
+        #searchInput {
+            width: 100%; padding: 12px 15px; font-size: 1.1rem;
+            border: 1px solid #dfe6e9; border-radius: 30px;
+            background: white; outline: none;
+            box-sizing: border-box;
+        }
+        #searchInput:focus { border-color: var(--accent); }
 
-   const kanjiData = [
-       {k: "一", on: "イチ", kun: "ひとつ", v: "một", vocab: [["一つ", "ひとつ", "một cái"], ["一人", "ひとり", "một người"], ["一日", "ついたち", "ngày mùng 1"], ["一番", "いちばん", "số một"], ["一月", "いちがつ", "tháng 1"]]},
-{k: "九", on: "キュウ・ク", kun: "ここのつ", v: "chín", vocab: [["九つ", "ここのつ", "chín cái"], ["九人", "きゅうにん", "chín người"], ["九日", "ここのか", "ngày mùng 9"], ["九月", "くがつ", "tháng 9"], ["九歳", "きゅうさい", "9 tuổi"]]},
+        /* Lưới ngoài 20x50 */
+        .grid-container { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(45px, 1fr)); 
+            gap: 5px; max-width: 1400px; margin: 0 auto;
+        }
+        @media (min-width: 1200px) { .grid-container { grid-template-columns: repeat(20, 1fr); } }
 
-        // Thêm dữ liệu của bạn vào đây...
-    ];
+        .kanji-box { 
+            background: var(--card); border: 1px solid #dfe6e9; aspect-ratio: 1/1;
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+            font-size: 3.0rem; position: relative; border-radius: 5px;
+        }
+        .stt { position: absolute; top: 1px; left: 2px; font-size: 0.55rem; color: #b2bec3; }
 
----------------------
+        /* Tab chi tiết */
+        #overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg); display: none; z-index: 2000;
+            flex-direction: column; align-items: center; overflow-y: auto; padding: 20px 0;
+        }
+        .content { background: white; padding: 20px; border-radius: 20px; width: 92%; max-width: 600px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+        .big-kanji { font-size: 7rem; margin: 10px 0; cursor: pointer; color: var(--txt); }
 
-{k: "一", on: "イチ", kun: "ひとつ", v: "một", vocab: [["一つ", "ひとつ", "một cái"], ["一人", "ひとり", "một người"], ["一日", "ついたち", "ngày mùng 1"], ["一番", "いちばん", "số một"], ["一月", "いちがつ", "tháng 1"]]},
+        /* Hiển thị ON / KUN thành hai dòng, căn trái */
+        .reading-row {
+            margin: 10px 0;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+            font-weight: normal;
+            color: #636e72;
+            line-height: 1.6;
+            text-align: left;
+        }
+
+        /* Danh sách 5 từ gợi ý */
+        .vocab-row { 
+            display: grid; grid-template-columns: 1fr 1fr 1.5fr; 
+            padding: 12px; margin-bottom: 8px; background: #f1f2f6; 
+            border-radius: 10px; cursor: pointer; text-align: left;
+            border-left: 5px solid var(--accent);
+        }
+        .v-kanji { font-weight: bold; }
+        .v-hira { color: #636e72; font-size: 0.95rem; }
+        .v-mean { color: var(--accent); font-size: 0.95rem; }
+
+        /* Nút điều hướng */
+       .nav-buttons {
+				display: flex;
+				justify-content: space-between;
+				margin-top: 15px;   /* giảm khoảng cách phía trên */
+				gap: 8px;            /* giảm khoảng cách giữa 2 nút */
+			}
+			.nav-btn {
+				flex: 1;
+				padding: 8px 0;      /* giảm padding từ 12px xuống 8px */
+				background: var(--accent);
+				color: white;
+				border: none;
+				border-radius: 30px;
+				font-size: 0.95rem;  /* giảm cỡ chữ */
+				cursor: pointer;
+			}
+			.nav-btn:disabled {
+				background: #b2bec3;
+				cursor: not-allowed;
+			}
+
+        /* Slide Menu */
+        #menu { position: fixed; top: 0; right: -300px; width: 260px; height: 100%; background: #fff; padding: 20px; box-shadow: -5px 0 15px rgba(0,0,0,0.1); transition: 0.3s; z-index: 2001; }
+        #menu.open { right: 0; }
+        .btn-toggle { position: fixed; top: 15px; right: 15px; z-index: 2002; width: 45px; height: 45px; background: var(--accent); color: white; border: none; border-radius: 50%; cursor: pointer; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+<button class="btn-toggle" onclick="document.getElementById('menu').classList.toggle('open')">☰</button>
+
+<div id="menu">
+    <h3>Cài đặt</h3>
+    <label>Màu chữ: <input type="color" id="cTxt" value="#2d3436"></label><br><br>
+    <label>Màu nền: <input type="color" id="cBg" value="#f8f9fa"></label><br><br>
+    <label>Tốc độ: <input type="range" id="rate" min="0.5" max="1.2" step="0.1" value="0.8"></label><hr>
+    <label>Giọng Nhật: <select id="vJa" style="width:100%"></select></label><br><br>
+    <label>Giọng Việt: <select id="vVi" style="width:100%"></select></label><hr>
+    <label><input type="checkbox" id="showV" checked> Hiện từ vựng</label><br><br>
+    <label>Chế độ: 
+        <select id="mode">
+            <option value="ja">JP</option>
+            <option value="javi" selected>JP - VN</option>
+        </select>
+    </label>
+</div>
+
+<!-- Thanh tìm kiếm -->
+<div class="search-wrapper">
+    <input type="search" id="searchInput" placeholder="🔍 Tìm kanji, âm đọc, nghĩa... (vd: một, ひとつ, 一, 1)" enterkeyhint="search">
+</div>
+
+<div class="grid-container" id="grid"></div>
+
+<div id="overlay">
+    <button onclick="closeOverlay()" style="margin-bottom:15px; padding:10px 30px; border-radius:20px; border:none; background:#dfe6e9;">Đóng</button>
+    <div class="content">
+        <h1 class="big-kanji" id="mainK" onclick="speakKunOnly()"></h1>
+        <p style="color:#b2bec3; font-size:0.8rem;"></p>
+        
+        <!-- ON và KUN hai dòng căn trái -->
+        <div class="reading-row">
+            <div id="onDisplay">ON: </div>
+            <div id="kunDisplay">KUN: </div>
+        </div>
+
+        <div id="vocabSection">
+            <div id="listV"></div>
+        </div>
+
+        <!-- Nút điều hướng -->
+        <div class="nav-buttons">
+            <button class="nav-btn" id="prevBtn" onclick="navigateKanji(-1)">◀ 前</button>
+            <button class="nav-btn" id="nextBtn" onclick="navigateKanji(1)">次 ▶</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Dữ liệu mẫu (bạn có thể thay thế bằng dữ liệu của mình)
+    const kanjiData = [
+	{k: "一", on: "イチ", kun: "ひとつ", v: "một", vocab: [["一つ", "ひとつ", "một cái"], ["一人", "ひとり", "một người"], ["一日", "ついたち", "ngày mùng 1"], ["一番", "いちばん", "số một"], ["一月", "いちがつ", "tháng 1"]]},
 {k: "九", on: "キュウ・ク", kun: "ここのつ", v: "chín", vocab: [["九つ", "ここのつ", "chín cái"], ["九人", "きゅうにん", "chín người"], ["九日", "ここのか", "ngày mùng 9"], ["九月", "くがつ", "tháng 9"], ["九歳", "きゅうさい", "9 tuổi"]]},
 {k: "七", on: "シチ", kun: "ななつ", v: "bảy", vocab: [["七つ", "ななつ", "bảy cái"], ["七人", "しちにん", "bảy người"], ["七日", "なのか", "ngày mùng 7"], ["七月", "しちがつ", "tháng 7"], ["七歳", "しちさい", "7 tuổi"]]},
 {k: "十", on: "ジュウ", kun: "とお", v: "mười", vocab: [["十", "とお", "mười"], ["十人", "じゅうにん", "mười người"], ["十日", "とおか", "ngày mùng 10"], ["十月", "じゅうがつ", "tháng 10"], ["十歳", "じゅうさい", "10 tuổi"]]},
@@ -101,3 +229,178 @@
 {k: "草", on: "ソウ", kun: "くさ", v: "cỏ", vocab: [["草", "くさ", "cỏ"], ["草花", "くさばな", "cỏ hoa"], ["草原", "そうげん", "thảo nguyên"], ["草食", "そうしょく", "ăn cỏ"], ["雑草", "ざっそう", "cỏ dại"]]},
 {k: "校", on: "コウ", kun: "", v: "trường", vocab: [["学校", "がっこう", "trường học"], ["高校", "こうこう", "trung học phổ thông"], ["校長", "こうちょう", "hiệu trưởng"], ["校舎", "こうしゃ", "tòa nhà trường"], ["校庭", "こうてい", "sân trường"]]},
 {k: "森", on: "シン", kun: "もり", v: "rừng rậm", vocab: [["森", "もり", "rừng rậm"], ["森林", "しんりん", "rừng"], ["森羅万象", "しんらばんしょう", "vạn vật"], ["森永", "もりなが", "Morinaga (tên công ty)"], ["森鴎外", "もりおうがい", "Mori Ogai (nhà văn)"]]}
+       
+        // Thêm dữ liệu của bạn vào đây...
+    ];
+
+    const synth = window.speechSynthesis;
+    let voices = [];
+    let currentItem = null;
+    let currentIndex = 0;          // chỉ số hiện tại trong kanjiData
+    let allBoxes = [];
+    let searchTexts = [];
+
+    function init() {
+        const g = document.getElementById('grid');
+        // Tạo 160 ô (hoặc theo số lượng dữ liệu bạn có)
+        for(let i=1; i<=80; i++) {
+            const d = kanjiData[i-1] || {k: "字", on: "", kun: "", v: "", vocab: []};
+            const box = document.createElement('div');
+            box.className = 'kanji-box';
+            box.innerHTML = `<span class="stt">${i}</span>${d.k}`;
+            box.dataset.kanji = d.k;
+            box.dataset.index = i-1; // lưu chỉ số để dùng sau
+            box.onclick = () => openDetail(d, i-1);
+            g.appendChild(box);
+            allBoxes.push(box);
+
+            // Tạo chuỗi tìm kiếm
+            let search = `${i} ${d.k} ${d.on} ${d.kun} ${d.v}`.toLowerCase();
+            d.vocab.forEach(v => {
+                search += ` ${v[0]} ${v[1]} ${v[2]}`.toLowerCase();
+            });
+            searchTexts.push(search);
+        }
+        loadVoices();
+
+        // Lọc theo thanh tìm kiếm
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const term = e.target.value.trim().toLowerCase();
+            filterGrid(term);
+        });
+    }
+
+    function filterGrid(term) {
+        if (!term) {
+            allBoxes.forEach(box => box.style.display = 'flex');
+            return;
+        }
+        allBoxes.forEach((box, index) => {
+            if (searchTexts[index].includes(term)) {
+                box.style.display = 'flex';
+            } else {
+                box.style.display = 'none';
+            }
+        });
+    }
+
+    function loadVoices() {
+        voices = synth.getVoices();
+        const jaSelect = document.getElementById('vJa');
+        const viSelect = document.getElementById('vVi');
+        jaSelect.innerHTML = '';
+        viSelect.innerHTML = '';
+
+        let firstJaVoice = null;
+        let firstViVoice = null;
+
+        voices.forEach(v => {
+            const opt = new Option(v.name, v.name);
+            if (v.lang.includes('ja')) {
+                jaSelect.add(opt);
+                if (!firstJaVoice) firstJaVoice = v;
+                if (v.name.includes('Kyoko')) jaSelect.value = v.name;
+            }
+            if (v.lang.includes('vi')) {
+                viSelect.add(opt.cloneNode(true));
+                if (!firstViVoice) firstViVoice = v;
+            }
+        });
+
+        if (!jaSelect.value && firstJaVoice) jaSelect.value = firstJaVoice.name;
+        if (firstViVoice) viSelect.value = firstViVoice.name;
+    }
+
+    // Chỉ đọc tiếng Nhật
+    function speakJapanese(text) {
+        synth.cancel();
+        const rate = document.getElementById('rate').value;
+        const uJa = new SpeechSynthesisUtterance(text);
+        uJa.rate = rate;
+        uJa.voice = voices.find(v => v.name === document.getElementById('vJa').value);
+        synth.speak(uJa);
+    }
+
+    // Đọc theo chế độ (JP hoặc JP-VN)
+    function speakDual(jaText, viText) {
+        synth.cancel(); 
+        const mode = document.getElementById('mode').value;
+        const rate = document.getElementById('rate').value;
+
+        const uJa = new SpeechSynthesisUtterance(jaText);
+        uJa.rate = rate;
+        uJa.voice = voices.find(v => v.name === document.getElementById('vJa').value);
+        
+        uJa.onend = () => {
+            if (mode === 'javi' && viText) {
+                const uVi = new SpeechSynthesisUtterance(viText);
+                uVi.rate = rate;
+                uVi.voice = voices.find(v => v.name === document.getElementById('vVi').value);
+                synth.speak(uVi);
+            }
+        };
+        synth.speak(uJa);
+    }
+
+    // Khi nhấn vào chữ Hán lớn: chỉ đọc âm Kun (tiếng Nhật)
+   //function speakKunOnly() {
+    //    if (currentItem) speakJapanese(currentItem.kun);
+  //  }
+
+    function openDetail(d, index) {
+        currentItem = d;
+        currentIndex = index;
+        document.getElementById('overlay').style.display = 'flex';
+        document.getElementById('mainK').innerText = d.k;
+        document.getElementById('onDisplay').innerText = `ON: ${d.on}`;
+        document.getElementById('kunDisplay').innerText = `KUN: ${d.kun}`;
+        
+        const list = document.getElementById('listV');
+        list.innerHTML = '';
+        
+        const isShow = document.getElementById('showV').checked;
+        document.getElementById('vocabSection').className = isShow ? '' : 'hidden';
+
+        if (isShow) {
+            d.vocab.slice(0, 5).forEach(v => {
+                const row = document.createElement('div');
+                row.className = 'vocab-row';
+                row.innerHTML = `<div class="v-kanji">${v[0]}</div><div class="v-hira">${v[1]}</div><div class="v-mean">${v[2]}</div>`;
+                row.onclick = (e) => { e.stopPropagation(); speakDual(v[1], v[2]); };
+                list.appendChild(row);
+            });
+        }
+
+        // Cập nhật trạng thái nút điều hướng
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        prevBtn.disabled = (currentIndex === 0);
+        nextBtn.disabled = (currentIndex === kanjiData.length - 1);
+
+        // Tự động đọc âm Kun khi mở popup (chỉ tiếng Nhật)
+        setTimeout(() => { speakKunOnly(); }, 200);
+    }
+
+    function closeOverlay() {
+        synth.cancel();
+        document.getElementById('overlay').style.display = 'none';
+    }
+
+    // Hàm chuyển kanji (delta = -1: lùi, 1: tiến)
+    function navigateKanji(delta) {
+        const newIndex = currentIndex + delta;
+        if (newIndex >= 0 && newIndex < kanjiData.length) {
+            const newItem = kanjiData[newIndex];
+            openDetail(newItem, newIndex);
+        }
+    }
+
+    if (speechSynthesis.onvoiceschanged !== undefined) speechSynthesis.onvoiceschanged = loadVoices;
+    
+    document.getElementById('cTxt').oninput = (e) => document.documentElement.style.setProperty('--txt', e.target.value);
+    document.getElementById('cBg').oninput = (e) => document.documentElement.style.setProperty('--bg', e.target.value);
+    
+    init();
+</script>
+</body>
+</html>
