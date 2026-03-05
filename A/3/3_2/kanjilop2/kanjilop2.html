@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Kanji">
+    <title>Kanji (Tập viết)</title>
+    <style>
+        :root { --danger: #d63031; --bg: #ffffff; --header-bg: #f8f9fa; }
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        body { 
+            font-family: -apple-system, sans-serif; 
+            background: var(--bg); 
+            overflow: hidden; 
+            height: 100vh; 
+            width: 100vw;
+        }
+
+        #home-screen { 
+            height: 100vh; display: flex; flex-direction: column; 
+            padding: env(safe-area-inset-top) 15px env(safe-area-inset-bottom) 15px; overflow-y: auto; 
+        }
+        .grid-kanji { 
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); 
+            gap: 12px; padding: 20px 0 50px 0;
+        }
+        .card-kanji { 
+            aspect-ratio: 1/1; border: 1.5px solid #333; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center; 
+            font-size: clamp(24px, 7vw, 32px); font-weight: 600; cursor: pointer;
+            background: white; transition: 0.2s;
+        }
+        .card-kanji:active { background: #f0f0f0; }
+
+        #learn-screen { 
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; 
+            background: white; display: none; flex-direction: column; z-index: 100;
+        }
+
+        .nav-top { 
+            padding: 10px 15px; 
+            border-bottom: 1px solid #eee; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            gap: 5px;
+            flex-wrap: wrap;
+            background: var(--header-bg);
+            padding-top: max(10px, env(safe-area-inset-top)); 
+            padding-left: max(15px, env(safe-area-inset-left));
+            padding-right: max(15px, env(safe-area-inset-right));
+        }
+
+        .nav-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .btn-nav { 
+            padding: 8px 12px; 
+            border: none; 
+            border-radius: 10px; 
+            font-weight: 600; 
+            font-size: 15px; 
+            cursor: pointer; 
+            background: #eee; 
+            color: #333;
+            transition: opacity 0.2s; 
+            white-space: nowrap;
+        }
+        .btn-nav:active { opacity: 0.7; }
+        .btn-back { background: #e0e0e0; }
+        .btn-clear { background: var(--danger); color: white; }
+        .btn-prev-next {
+            background: #ffffff;
+            border: 1px solid #aaa;
+        }
+        #current-title {
+            font-size: 18px;
+            margin: 0 5px;
+            text-align: center;
+            flex: 0 1 auto;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 40%;
+        }
+
+        .main-view { 
+            flex: 1; display: flex; flex-direction: row; overflow: hidden;
+            padding-left: env(safe-area-inset-left);
+            padding-right: env(safe-area-inset-right);
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        .main-view .box:first-child { flex: 2; }
+        .main-view .box:last-child { flex: 3; }
+        .box { 
+            display: flex; align-items: center; justify-content: center; 
+            padding: 0; position: relative; 
+        }
+        
+        #kanji-gif { 
+            max-width: 80%; max-height: 80%; object-fit: contain; border-radius: 12px; 
+        }
+
+        .canvas-container { 
+            position: relative; width: 100%; height: 100%; 
+            border: none; background: white; container-type: size;
+        }
+        canvas { 
+            width: 100%; height: 100%; touch-action: none; display: block;
+            background-image: linear-gradient(#f0f0f0 1px, transparent 1px), 
+                              linear-gradient(90deg, #f0f0f0 1px, transparent 1px); 
+            background-size: 20% 20%;
+        }
+        #trace-text { 
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+            color: rgba(0,0,0,0.05); pointer-events: none; white-space: nowrap; line-height: 1;
+            font-size: min(400px, 40vw, 40vh);
+        }
+        @container (min-width: 1px) {
+            #trace-text { font-size: min(70cqi, 70cqh); }
+        }
+
+        @media (max-aspect-ratio: 1/1) {
+            .main-view { flex-direction: column; }
+            .main-view .box:first-child { flex: 2; }
+            .main-view .box:last-child { flex: 3; }
+            .box { padding: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="home-screen">
+        <h2 style="text-align: center; padding: 20px 0 10px;">Kanji</h2>
+        <div class="grid-kanji" id="kanjiGrid"></div>
+    </div>
+
+    <div id="learn-screen">
+        <div class="nav-top">
+            <div class="nav-group">
+                <button class="btn-nav btn-back" onclick="goHome()">←戻る</button>
+                <button class="btn-nav btn-prev-next" onclick="prevKanji()">←前</button>
+            </div>
+            <h2 id="current-title"></h2>
+            <div class="nav-group">
+                <button class="btn-nav btn-prev-next" onclick="nextKanji()">次→</button>
+                <button class="btn-nav btn-clear" onclick="clearBoard()">消す</button>
+            </div>
+        </div>
+
+        <div class="main-view">
+            <div class="box">
+                <img id="kanji-gif" src="" alt="GIF" onerror="this.style.display='none'">
+            </div>
+            <div class="box">
+                <div class="canvas-container">
+                    <div id="trace-text"></div>
+                    <canvas id="canvas"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // --- DANH SÁCH KANJI MỚI (do người dùng cung cấp) ---
+            const rawKanjiList = [
+                "刀", "丸", "弓", "工", "才", "万", "引", "牛", "今", "元", 
+                "戸", "午", "公", "止", "少", "心", "切", "太", "内", "父", 
+                "分", "方", "毛", "友", "外", "兄", "古", "広", "矢", "市", 
+                "台", "冬", "半", "母", "北", "用", "羽", "会", "回", "交", 
+                "光", "考", "行", "合", "寺", "自", "色", "西", "多", "池", 
+                "地", "当", "同", "肉", "米", "毎", "何", "角", "汽", "近", 
+                "形", "言", "谷", "作", "社", "図", "声", "走", "体", "弟", 
+                "売", "麦", "来", "里", "画", "岩", "京", "国", "姉", "知", 
+                "長", "直", "店", "東", "歩", "妹", "明", "門", "夜", "科", 
+                "海", "活", "計", "後", "室", "首", "秋", "春", "食", "星", 
+                "前", "茶", "昼", "点", "南", "風", "思", "家", "夏", "記", 
+                "帰", "原", "高", "紙", "時", "弱", "書", "通", "馬", "魚", 
+                "教", "強", "黄", "黒", "細", "週", "雪", "船", "組", "鳥", 
+                "野", "理", "雲", "絵", "間", "場", "晴", "朝", "答", "道", 
+                "買", "番", "遠", "園", "楽", "新", "数", "電", "話", "歌", 
+                "語", "算", "読", "聞", "鳴", "線", "親", "頭", "顔", "曜"
+            ];
+
+            // --- TẠM THỜI: số nét mặc định (1) và cách đọc để trống, bạn có thể nhập sau ---
+            const strokeCounts = {};
+            const readings = {
+                "刀": "かたな",
+                "丸": "まる",
+                "弓": "ゆみ",
+                "工": "こう",
+                "才": "さい",
+                "万": "まん",
+                "引": "ひく",
+                "牛": "うし",
+                "今": "いま",
+                "元": "もと",
+                "戸": "と",
+                "午": "うま",
+                "公": "おおやけ",
+                "止": "とまる",
+                "少": "すくない",
+                "心": "こころ",
+                "切": "きる",
+                "太": "ふと",
+                "内": "うち",
+                "父": "ちち",
+                "分": "わける",
+                "方": "ほう",
+                "毛": "け",
+                "友": "とも",
+                "外": "そと",
+                "兄": "あに",
+                "古": "ふるい",
+                "広": "ひろい",
+                "矢": "や",
+                "市": "いち",
+                "台": "だい",
+                "冬": "ふゆ",
+                "半": "はん",
+                "母": "はは",
+                "北": "きた",
+                "用": "よう",
+                "羽": "はね",
+                "会": "あう",
+                "回": "まわる",
+                "交": "まじわる",
+                "光": "ひかり",
+                "考": "かんがえる",
+                "行": "いく",
+                "合": "あう",
+                "寺": "てら",
+                "自": "みずから",
+                "色": "いろ",
+                "西": "にし",
+                "多": "おおい",
+                "池": "いけ",
+                "地": "ち",
+                "当": "あたる",
+                "同": "おなじ",
+                "肉": "にく",
+                "米": "こめ",
+                "毎": "まい",
+                "何": "なに",
+                "角": "かど",
+                "汽": "き",
+                "近": "ちかい",
+                "形": "かたち",
+                "言": "いう",
+                "谷": "たに",
+                "作": "つくる",
+                "社": "しゃ",
+                "図": "ず",
+                "声": "こえ",
+                "走": "はしる",
+                "体": "からだ",
+                "弟": "おとうと",
+                "売": "うる",
+                "麦": "むぎ",
+                "来": "くる",
+                "里": "さと",
+                "画": "かく",
+                "岩": "いわ",
+                "京": "きょう",
+                "国": "くに",
+                "姉": "あね",
+                "知": "しる",
+                "長": "ながい",
+                "直": "なおす",
+                "店": "みせ",
+                "東": "ひがし",
+                "歩": "あるく",
+                "妹": "いもうと",
+                "明": "あかるい",
+                "門": "もん",
+                "夜": "よる",
+                "科": "か",
+                "海": "うみ",
+                "活": "かつ",
+                "計": "はかる",
+                "後": "あと",
+                "室": "しつ",
+                "首": "くび",
+                "秋": "あき",
+                "春": "はる",
+                "食": "たべる",
+                "星": "ほし",
+                "前": "まえ",
+                "茶": "ちゃ",
+                "昼": "ひる",
+                "点": "てん",
+                "南": "みなみ",
+                "風": "かぜ",
+                "思": "おもう",
+                "家": "いえ",
+                "夏": "なつ",
+                "記": "しるす",
+                "帰": "かえる",
+                "原": "はら",
+                "高": "たかい",
+                "紙": "かみ",
+                "時": "とき",
+                "弱": "よわい",
+                "書": "かく",
+                "通": "とおる",
+                "馬": "うま",
+                "魚": "さかな",
+                "教": "おしえる",
+                "強": "つよい",
+                "黄": "き",
+                "黒": "くろ",
+                "細": "ほそい",
+                "週": "しゅう",
+                "雪": "ゆき",
+                "船": "ふね",
+                "組": "くむ",
+                "鳥": "とり",
+                "野": "の",
+                "理": "ことわり",
+                "雲": "くも",
+                "絵": "え",
+                "間": "あいだ",
+                "場": "ば",
+                "晴": "はれる",
+                "朝": "あさ",
+                "答": "こたえる",
+                "道": "みち",
+                "買": "かう",
+                "番": "ばん",
+                "遠": "とおい",
+                "園": "その",
+                "楽": "たのしい",
+                "新": "あたらしい",
+                "数": "かず",
+                "電": "でん",
+                "話": "はなす",
+                "歌": "うた",
+                "語": "かたる",
+                "算": "さん",
+                "読": "よむ",
+                "聞": "きく",
+                "鳴": "なく",
+                "線": "せん",
+                "親": "おや",
+                "頭": "あたま",
+                "顔": "かお",
+                "曜": "よう"
+            };
+
+            rawKanjiList.forEach(k => {
+                strokeCounts[k] = 1;  // chưa có số nét chính xác, tạm để 1
+            });
+
+            // Giữ nguyên thứ tự raw (không sắp xếp lại vì thiếu strokeCounts chính xác)
+            const kanjiData = [...rawKanjiList];
+
+            // --- BIẾN TOÀN CỤC ---
+            let canvas, ctx, gif, trace, title, home, learn;
+            let drawing = false;
+            let currentIndex = 0;
+
+            function init() {
+                home = document.getElementById('home-screen');
+                learn = document.getElementById('learn-screen');
+                canvas = document.getElementById('canvas');
+                ctx = canvas.getContext('2d');
+                gif = document.getElementById('kanji-gif');
+                trace = document.getElementById('trace-text');
+                title = document.getElementById('current-title');
+
+                const grid = document.getElementById('kanjiGrid');
+                kanjiData.forEach(k => {
+                    const div = document.createElement('div');
+                    div.className = 'card-kanji';
+                    div.innerText = k;
+                    div.onclick = () => startLearn(k);
+                    grid.appendChild(div);
+                });
+
+                canvas.addEventListener('mousedown', startDrawing);
+                canvas.addEventListener('mousemove', draw);
+                canvas.addEventListener('mouseup', stopDrawing);
+                canvas.addEventListener('mouseleave', stopDrawing);
+                canvas.addEventListener('touchstart', startDrawing, { passive: false });
+                canvas.addEventListener('touchmove', draw, { passive: false });
+                canvas.addEventListener('touchend', stopDrawing);
+                canvas.addEventListener('touchcancel', stopDrawing);
+
+                window.addEventListener('resize', () => requestAnimationFrame(resizeCanvas));
+                window.addEventListener('orientationchange', () => setTimeout(() => requestAnimationFrame(resizeCanvas), 100));
+            }
+
+            // Cập nhật màn hình học với kanji k
+            function updateLearnScreen(k) {
+                const reading = readings[k] || '';
+                // Định dạng: 刀（かたな）
+                title.innerText = k + (reading ? '（' + reading + '）' : '');
+                trace.innerText = k;
+                gif.src = k + '-order.gif';   // file ảnh động (nếu có)
+                gif.style.display = '';
+                clearBoard();
+                requestAnimationFrame(() => setTimeout(resizeCanvas, 50));
+            }
+
+            // Bắt đầu học một kanji từ grid
+            function startLearn(k) {
+                home.style.display = 'none';
+                learn.style.display = 'flex';
+                currentIndex = kanjiData.indexOf(k);
+                if (currentIndex === -1) currentIndex = 0;
+                updateLearnScreen(k);
+            }
+
+            // Điều hướng: Kanji trước đó
+            window.prevKanji = function() {
+                if (currentIndex > 0) {
+                    currentIndex--;
+                    updateLearnScreen(kanjiData[currentIndex]);
+                }
+            };
+
+            // Điều hướng: Kanji tiếp theo
+            window.nextKanji = function() {
+                if (currentIndex < kanjiData.length - 1) {
+                    currentIndex++;
+                    updateLearnScreen(kanjiData[currentIndex]);
+                }
+            };
+
+            // Về màn hình chính
+            window.goHome = function() {
+                home.style.display = 'flex';
+                learn.style.display = 'none';
+                gif.src = '';
+            };
+
+            // Xóa bảng vẽ
+            window.clearBoard = function() {
+                if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+            };
+
+            function resizeCanvas() {
+                if (!canvas || !canvas.parentElement) return;
+                const container = canvas.parentElement;
+                const w = container.clientWidth;
+                const h = container.clientHeight;
+                canvas.width = w;
+                canvas.height = h;
+                clearBoard();
+            }
+
+            function getPos(e) {
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = canvas.width / rect.width;
+                const scaleY = canvas.height / rect.height;
+                let clientX, clientY;
+                if (e.touches) {
+                    clientX = e.touches[0].clientX;
+                    clientY = e.touches[0].clientY;
+                } else {
+                    clientX = e.clientX;
+                    clientY = e.clientY;
+                }
+                return {
+                    x: Math.min(Math.max((clientX - rect.left) * scaleX, 0), canvas.width),
+                    y: Math.min(Math.max((clientY - rect.top) * scaleY, 0), canvas.height)
+                };
+            }
+
+            function startDrawing(e) {
+                e.preventDefault?.();
+                drawing = true;
+                ctx.beginPath();
+                draw(e);
+            }
+
+            function stopDrawing() {
+                drawing = false;
+                ctx.beginPath();
+            }
+
+            function draw(e) {
+                if (!drawing) return;
+                e.preventDefault?.();
+                const p = getPos(e);
+                ctx.lineWidth = Math.max(8, canvas.width / 40);
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.strokeStyle = '#2d3436';
+                ctx.lineTo(p.x, p.y);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(p.x, p.y);
+            }
+
+            document.addEventListener('DOMContentLoaded', init);
+        })();
+    </script>
+</body>
+</html>

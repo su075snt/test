@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Kanji Lớp 1">
+    <title>Kanji Lớp 1 (Có đọc + Sắp xếp)</title>
+    <style>
+        :root { --danger: #d63031; --bg: #ffffff; --header-bg: #f8f9fa; }
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        body { 
+            font-family: -apple-system, sans-serif; 
+            background: var(--bg); 
+            overflow: hidden; 
+            height: 100vh; 
+            width: 100vw;
+        }
+
+        #home-screen { 
+            height: 100vh; display: flex; flex-direction: column; 
+            padding: env(safe-area-inset-top) 15px env(safe-area-inset-bottom) 15px; overflow-y: auto; 
+        }
+        .grid-kanji { 
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); 
+            gap: 12px; padding: 20px 0 50px 0;
+        }
+        .card-kanji { 
+            aspect-ratio: 1/1; border: 1.5px solid #333; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center; 
+            font-size: clamp(24px, 7vw, 32px); font-weight: 600; cursor: pointer;
+            background: white; transition: 0.2s;
+        }
+        .card-kanji:active { background: #f0f0f0; }
+
+        #learn-screen { 
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; 
+            background: white; display: none; flex-direction: column; z-index: 100;
+        }
+
+        .nav-top { 
+            padding: 10px 15px; 
+            border-bottom: 1px solid #eee; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            gap: 5px;
+            flex-wrap: wrap;
+            background: var(--header-bg);
+            padding-top: max(10px, env(safe-area-inset-top)); 
+            padding-left: max(15px, env(safe-area-inset-left));
+            padding-right: max(15px, env(safe-area-inset-right));
+        }
+
+        /* Nhóm nút bên trái và phải */
+        .nav-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .btn-nav { 
+            padding: 8px 12px; 
+            border: none; 
+            border-radius: 10px; 
+            font-weight: 600; 
+            font-size: 15px; 
+            cursor: pointer; 
+            background: #eee; 
+            color: #333;
+            transition: opacity 0.2s; 
+            white-space: nowrap;
+        }
+        .btn-nav:active { opacity: 0.7; }
+        .btn-back { background: #e0e0e0; }
+        .btn-clear { background: var(--danger); color: white; }
+        .btn-prev-next {
+            background: #ffffff;
+            border: 1px solid #aaa;
+        }
+        #current-title {
+            font-size: 18px;
+            margin: 0 5px;
+            text-align: center;
+            flex: 0 1 auto;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 40%;
+        }
+
+        .main-view { 
+            flex: 1; display: flex; flex-direction: row; overflow: hidden;
+            padding-left: env(safe-area-inset-left);
+            padding-right: env(safe-area-inset-right);
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        .main-view .box:first-child { flex: 2; }   /* 40% */
+        .main-view .box:last-child { flex: 3; }    /* 60% */
+        .box { 
+            display: flex; align-items: center; justify-content: center; 
+            padding: 0; position: relative; 
+        }
+        
+        #kanji-gif { 
+            max-width: 80%; max-height: 80%; object-fit: contain; border-radius: 12px; 
+        }
+
+        .canvas-container { 
+            position: relative; width: 100%; height: 100%; 
+            border: none; background: white; container-type: size;
+        }
+        canvas { 
+            width: 100%; height: 100%; touch-action: none; display: block;
+            background-image: linear-gradient(#f0f0f0 1px, transparent 1px), 
+                              linear-gradient(90deg, #f0f0f0 1px, transparent 1px); 
+            background-size: 20% 20%;
+        }
+        #trace-text { 
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+            color: rgba(0,0,0,0.05); pointer-events: none; white-space: nowrap; line-height: 1;
+            font-size: min(400px, 40vw, 40vh);
+        }
+        @container (min-width: 1px) {
+            #trace-text { font-size: min(70cqi, 70cqh); }
+        }
+
+        @media (max-aspect-ratio: 1/1) {
+            .main-view { flex-direction: column; }
+            .main-view .box:first-child { flex: 2; }
+            .main-view .box:last-child { flex: 3; }
+            .box { padding: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="home-screen">
+        <h2 style="text-align: center; padding: 20px 0 10px;">1年生　８０漢字</h2>
+        <div class="grid-kanji" id="kanjiGrid"></div>
+    </div>
+
+    <div id="learn-screen">
+        <!-- Thanh trên cùng với các nút được nhóm -->
+        <div class="nav-top">
+            <!-- Nhóm trái: 戻る + 前 -->
+            <div class="nav-group">
+                <button class="btn-nav btn-back" onclick="goHome()">←戻る</button>
+                <button class="btn-nav btn-prev-next" onclick="prevKanji()">←前</button>
+            </div>
+
+            <h2 id="current-title">一</h2>
+
+            <!-- Nhóm phải: 次 + 消す -->
+            <div class="nav-group">
+                <button class="btn-nav btn-prev-next" onclick="nextKanji()">次→</button>
+                <button class="btn-nav btn-clear" onclick="clearBoard()">消す</button>
+            </div>
+        </div>
+
+        <div class="main-view">
+            <div class="box">
+                <img id="kanji-gif" src="" alt="GIF" onerror="this.style.display='none'">
+            </div>
+            <div class="box">
+                <div class="canvas-container">
+                    <div id="trace-text"></div>
+                    <canvas id="canvas"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // --- DANH SÁCH KANJI GỐC (LỚP 1) ---
+            const rawKanjiList = [
+                "一", "右", "雨", "円", "王", "音", "下", "火", "花", "貝", 
+                "学", "気", "九", "休", "玉", "金", "空", "月", "犬", "見", 
+                "五", "口", "校", "左", "三", "山", "子", "四", "糸", "字", 
+                "耳", "七", "車", "手", "十", "出", "女", "小", "上", "森", 
+                "人", "水", "正", "生", "青", "夕", "石", "赤", "千", "川", 
+                "先", "早", "草", "足", "村", "大", "男", "竹", "中", "虫", 
+                "町", "天", "田", "土", "二", "日", "入", "年", "白", "八", 
+                "百", "文", "木", "本", "名", "目", "立", "力", "林"
+            ];
+
+            // --- SỐ NÉT (dùng để sắp xếp từ dễ → khó) ---
+            const strokeCounts = {
+                "一":1, "右":5, "雨":8, "円":4, "王":4, "音":9, "下":3, "火":4, "花":7, "貝":7,
+                "学":8, "気":6, "九":2, "休":6, "玉":5, "金":8, "空":8, "月":4, "犬":4, "見":7,
+                "五":4, "口":3, "校":10, "左":5, "三":3, "山":3, "子":3, "四":5, "糸":6, "字":6,
+                "耳":6, "七":2, "車":7, "手":4, "十":2, "出":5, "女":3, "小":3, "上":3, "森":12,
+                "人":2, "水":4, "正":5, "生":5, "青":8, "夕":3, "石":5, "赤":7, "千":3, "川":3,
+                "先":6, "早":6, "草":9, "足":7, "村":7, "大":3, "男":7, "竹":6, "中":4, "虫":6,
+                "町":7, "天":4, "田":5, "土":3, "二":2, "日":4, "入":2, "年":6, "白":5, "八":2,
+                "百":6, "文":4, "木":4, "本":5, "名":6, "目":5, "立":5, "力":2, "林":8
+            };
+
+            // --- CÁCH ĐỌC (furigana) cho mỗi Kanji ---
+            const readings = {
+                "一": "いち", "右": "みぎ", "雨": "あめ", "円": "えん", "王": "おう",
+                "音": "おと", "下": "した", "火": "ひ", "花": "はな", "貝": "かい",
+                "学": "がく", "気": "き", "九": "きゅう", "休": "やすみ", "玉": "たま",
+                "金": "かね", "空": "そら", "月": "つき", "犬": "いぬ", "見": "み",
+                "五": "ご", "口": "くち", "校": "こう", "左": "ひだり", "三": "さん",
+                "山": "やま", "子": "こ", "四": "よん", "糸": "いと", "字": "じ",
+                "耳": "みみ", "七": "なな", "車": "くるま", "手": "て", "十": "とお",
+                "出": "で", "女": "おんな", "小": "こ", "上": "うえ", "森": "もり",
+                "人": "ひと", "水": "みず", "正": "せい", "生": "なま", "青": "あお",
+                "夕": "ゆう", "石": "いし", "赤": "あか", "千": "せん", "川": "かわ",
+                "先": "さき", "早": "はや", "草": "くさ", "足": "あし", "村": "むら",
+                "大": "おお", "男": "おとこ", "竹": "たけ", "中": "なか", "虫": "むし",
+                "町": "まち", "天": "てん", "田": "た", "土": "つち", "二": "に",
+                "日": "ひ", "入": "いり", "年": "とし", "白": "しろ", "八": "はち",
+                "百": "ひゃく", "文": "ふみ", "木": "き", "本": "ほん", "名": "な",
+                "目": "め", "立": "たつ", "力": "ちから", "林": "はやし"
+            };
+
+            // --- SẮP XẾP KANJI THEO SỐ NÉT TĂNG DẦN (Dễ → Khó) ---
+            const kanjiData = [...rawKanjiList].sort((a, b) => strokeCounts[a] - strokeCounts[b]);
+
+            // --- BIẾN TOÀN CỤC ---
+            let canvas, ctx, gif, trace, title, home, learn;
+            let drawing = false;
+            let currentIndex = 0;          // chỉ số kanji hiện tại trong kanjiData
+
+            function init() {
+                home = document.getElementById('home-screen');
+                learn = document.getElementById('learn-screen');
+                canvas = document.getElementById('canvas');
+                ctx = canvas.getContext('2d');
+                gif = document.getElementById('kanji-gif');
+                trace = document.getElementById('trace-text');
+                title = document.getElementById('current-title');
+
+                // Tạo lưới các thẻ Kanji (đã sắp xếp)
+                const grid = document.getElementById('kanjiGrid');
+                kanjiData.forEach(k => {
+                    const div = document.createElement('div');
+                    div.className = 'card-kanji';
+                    div.innerText = k;
+                    div.onclick = () => startLearn(k);
+                    grid.appendChild(div);
+                });
+
+                // Sự kiện vẽ
+                canvas.addEventListener('mousedown', startDrawing);
+                canvas.addEventListener('mousemove', draw);
+                canvas.addEventListener('mouseup', stopDrawing);
+                canvas.addEventListener('mouseleave', stopDrawing);
+                canvas.addEventListener('touchstart', startDrawing, { passive: false });
+                canvas.addEventListener('touchmove', draw, { passive: false });
+                canvas.addEventListener('touchend', stopDrawing);
+                canvas.addEventListener('touchcancel', stopDrawing);
+
+                window.addEventListener('resize', () => requestAnimationFrame(resizeCanvas));
+                window.addEventListener('orientationchange', () => setTimeout(() => requestAnimationFrame(resizeCanvas), 100));
+            }
+
+            // Cập nhật màn hình học với kanji k
+            function updateLearnScreen(k) {
+                const reading = readings[k] || '';
+                title.innerText = k + (reading ? ' (' + reading + ')' : '');
+                trace.innerText = k;
+                gif.src = k + '-order.gif';   // file ảnh động theo tên
+                gif.style.display = '';
+                clearBoard();                  // xóa nét vẽ cũ
+                requestAnimationFrame(() => setTimeout(resizeCanvas, 50));
+            }
+
+            // Bắt đầu học một kanji từ grid
+            function startLearn(k) {
+                home.style.display = 'none';
+                learn.style.display = 'flex';
+                currentIndex = kanjiData.indexOf(k);
+                if (currentIndex === -1) currentIndex = 0; // dự phòng
+                updateLearnScreen(k);
+            }
+
+            // Điều hướng: Kanji trước đó
+            window.prevKanji = function() {
+                if (currentIndex > 0) {
+                    currentIndex--;
+                    updateLearnScreen(kanjiData[currentIndex]);
+                }
+            };
+
+            // Điều hướng: Kanji tiếp theo
+            window.nextKanji = function() {
+                if (currentIndex < kanjiData.length - 1) {
+                    currentIndex++;
+                    updateLearnScreen(kanjiData[currentIndex]);
+                }
+            };
+
+            // Về màn hình chính
+            window.goHome = function() {
+                home.style.display = 'flex';
+                learn.style.display = 'none';
+                gif.src = '';
+            };
+
+            // Xóa bảng vẽ
+            window.clearBoard = function() {
+                if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+            };
+
+            function resizeCanvas() {
+                if (!canvas || !canvas.parentElement) return;
+                const container = canvas.parentElement;
+                const w = container.clientWidth;
+                const h = container.clientHeight;
+                canvas.width = w;
+                canvas.height = h;
+                clearBoard();
+            }
+
+            function getPos(e) {
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = canvas.width / rect.width;
+                const scaleY = canvas.height / rect.height;
+                let clientX, clientY;
+                if (e.touches) {
+                    clientX = e.touches[0].clientX;
+                    clientY = e.touches[0].clientY;
+                } else {
+                    clientX = e.clientX;
+                    clientY = e.clientY;
+                }
+                return {
+                    x: Math.min(Math.max((clientX - rect.left) * scaleX, 0), canvas.width),
+                    y: Math.min(Math.max((clientY - rect.top) * scaleY, 0), canvas.height)
+                };
+            }
+
+            function startDrawing(e) {
+                e.preventDefault?.();
+                drawing = true;
+                ctx.beginPath();
+                draw(e);
+            }
+
+            function stopDrawing() {
+                drawing = false;
+                ctx.beginPath();
+            }
+
+            function draw(e) {
+                if (!drawing) return;
+                e.preventDefault?.();
+                const p = getPos(e);
+                ctx.lineWidth = Math.max(8, canvas.width / 40);
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.strokeStyle = '#2d3436';
+                ctx.lineTo(p.x, p.y);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(p.x, p.y);
+            }
+
+            document.addEventListener('DOMContentLoaded', init);
+        })();
+    </script>
+</body>
+</html>
