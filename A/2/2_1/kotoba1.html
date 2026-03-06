@@ -1,10 +1,18 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+       <meta charset="UTF-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>TỪ VỰNG VẬT DỤNG　HẰNG NGÀY</title>
     <style>
+   .btn-toggle {
+            top: 15px;
+            right: 15px;
+            top: calc(15px + env(safe-area-inset-top));
+        }
         :root { --bg: #434343; --text: #0b5394; --card: #ffffff; --accent: #0984e3; }
         body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); color: var(--text); margin: 0; transition: 0.3s; }
         #side-menu { position: fixed; right: -300px; top: 0; width: 260px; height: 100%; background: #fff; box-shadow: -2px 0 10px rgba(0,0,0,0.1); z-index: 1000; padding: 20px; transition: 0.3s; overflow-y: auto; color: #333; }
