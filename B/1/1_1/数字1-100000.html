@@ -2,7 +2,6 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -22,11 +21,11 @@
             margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh;
         }
 
-        /* 学習カウンター */
         .score-board {
             position: fixed; top: 20px; right: 20px;
             background: white; padding: 10px 25px; border-radius: 30px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1); font-weight: bold; border: 2px solid var(--accent);
+            z-index: 10;
         }
 
         h1 { margin-top: 30px; color: var(--primary); font-size: 26px; letter-spacing: 2px; }
@@ -37,7 +36,6 @@
             width: 92%; max-width: 800px; margin-top: 20px;
         }
 
-        /* 範囲選択 */
         .range-selector { margin-bottom: 25px; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
         .range-selector button {
             padding: 10px 15px; border: 1px solid #ddd; background: white; border-radius: 8px; cursor: pointer; font-family: inherit;
@@ -50,7 +48,7 @@
         }
         .display-container:hover { border-color: var(--accent); background: #fffdfa; }
 
-        .boxes-row { display: flex; justify-content: center; align-items: flex-end; gap: 12px; margin-bottom: 20px; }
+        .boxes-row { display: flex; justify-content: center; align-items: flex-end; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
 
         .digit-group { display: flex; flex-direction: column; align-items: center; }
 
@@ -62,7 +60,6 @@
             font-size: 48px; font-weight: bold; background: white;
         }
 
-        /* 回答エリア */
         .result-box {
             opacity: 0; transition: opacity 0.3s;
             border-top: 2px solid #f0f0f0; padding-top: 20px;
@@ -76,15 +73,35 @@
         }
         .next-btn:active { transform: scale(0.98); }
 
-        /* 右下の設定パネル */
-        .settings {
-            position: fixed; bottom: 20px; right: 20px; background: white;
-            padding: 15px; border-radius: 15px; box-shadow: 0 0 20px rgba(0,0,0,0.1);
-            font-size: 12px; display: flex; flex-direction: column; gap: 10px; width: 240px;
+        /* Nút bánh răng để ẩn/hiện menu cài đặt */
+        .settings-toggle {
+            position: fixed; bottom: 20px; right: 20px;
+            background: var(--primary); color: white;
+            width: 50px; height: 50px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 26px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            border: 2px solid white; z-index: 30;
+            transition: transform 0.2s;
         }
-        .voice-mode { display: flex; flex-direction: column; gap: 6px; border-top: 1px solid #eee; padding-top: 10px; }
+        .settings-toggle:active { transform: scale(0.95); }
+
+        /* Menu cài đặt – ẩn mặc định, hiện khi class "show" được thêm */
+        .settings {
+            position: fixed; bottom: 80px; right: 20px;
+            background: white; padding: 18px; border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            font-size: 13px; width: 260px; z-index: 20;
+            transition: opacity 0.2s, transform 0.2s;
+            opacity: 0; transform: translateY(10px); pointer-events: none;
+            border: 1px solid #ddd;
+        }
+        .settings.show {
+            opacity: 1; transform: translateY(0); pointer-events: auto;
+        }
+        .voice-mode { display: flex; flex-direction: column; gap: 6px; border-top: 1px solid #eee; padding-top: 10px; margin-top: 5px; }
         .voice-mode label { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; }
-        select, input[type="range"] { width: 100%; }
+        select, input[type="range"] { width: 100%; margin-top: 3px; }
+        hr { margin: 10px 0; border: none; border-top: 1px solid #eee; }
     </style>
 </head>
 <body>
@@ -115,7 +132,11 @@
         <button class="next-btn" onclick="generateNext()">次へ進む</button>
     </div>
 
-    <div class="settings">
+    <!-- Nút bánh răng để mở/đóng menu cài đặt -->
+    <div class="settings-toggle" id="settingsToggle" onclick="toggleSettings()">⚙️</div>
+
+    <!-- Menu cài đặt (ẩn ban đầu) -->
+    <div class="settings" id="settingsPanel">
         <strong>⚙️ 音声設定 (Settings)</strong>
         <div class="voice-mode">
             <label><input type="radio" name="mode" value="ja" checked> 日本語のみ (Chỉ Nhật)</label>
@@ -135,6 +156,11 @@
     <script>
         let min = 100, max = 1000, currentNum = 0, solvedCount = 0;
         const synth = window.speechSynthesis;
+
+        function toggleSettings() {
+            const panel = document.getElementById('settingsPanel');
+            panel.classList.toggle('show');
+        }
 
         function getUnitLabel(digit, pos) {
             if (digit === 0) return "";
@@ -213,7 +239,8 @@
                 const msg = new SpeechSynthesisUtterance(currentNum.toString());
                 msg.lang = 'ja-JP';
                 msg.rate = rate;
-                msg.voice = synth.getVoices().find(v => v.name === document.getElementById('voiceJa').value);
+                const selectedVoiceName = document.getElementById('voiceJa').value;
+                msg.voice = synth.getVoices().find(v => v.name === selectedVoiceName);
                 return msg;
             };
 
@@ -221,7 +248,8 @@
                 const msg = new SpeechSynthesisUtterance(currentNum.toString());
                 msg.lang = 'vi-VN';
                 msg.rate = rate;
-                msg.voice = synth.getVoices().find(v => v.name === document.getElementById('voiceVi').value);
+                const selectedVoiceName = document.getElementById('voiceVi').value;
+                msg.voice = synth.getVoices().find(v => v.name === selectedVoiceName);
                 return msg;
             };
 
@@ -247,12 +275,30 @@
             const selectJa = document.getElementById('voiceJa');
             const selectVi = document.getElementById('voiceVi');
             
-            selectJa.innerHTML = voices.filter(v => v.lang.includes('ja')).map(v => `<option value="${v.name}">${v.name}</option>`).join('');
-            selectVi.innerHTML = voices.filter(v => v.lang.includes('vi')).map(v => `<option value="${v.name}">${v.name}</option>`).join('');
+            // Lọc giọng tiếng Nhật
+            const jaVoices = voices.filter(v => v.lang.includes('ja'));
+            selectJa.innerHTML = jaVoices.map(v => `<option value="${v.name}">${v.name}</option>`).join('');
+
+            // Lọc giọng tiếng Việt
+            const viVoices = voices.filter(v => v.lang.includes('vi'));
+            selectVi.innerHTML = viVoices.map(v => `<option value="${v.name}">${v.name}</option>`).join('');
+
+            // Ưu tiên chọn giọng "Kyoko" nếu có (giọng Nhật phổ biến trên macOS)
+            const kyokoVoice = jaVoices.find(v => v.name.includes('Kyoko'));
+            if (kyokoVoice) {
+                selectJa.value = kyokoVoice.name;
+            } else if (jaVoices.length > 0) {
+                // Nếu không có Kyoko, chọn giọng Nhật đầu tiên
+                selectJa.selectedIndex = 0;
+            }
         }
 
+        // Khi voices thay đổi (tải lần đầu hoặc thay đổi), gọi loadVoices
         synth.onvoiceschanged = loadVoices;
+        // Gọi ngay lập tức đề phòng onvoiceschanged không kích hoạt
         loadVoices();
+
+        // Tạo số ngẫu nhiên đầu tiên
         generateNext();
     </script>
 </body>
