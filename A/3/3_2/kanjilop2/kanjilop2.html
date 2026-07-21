@@ -25,6 +25,33 @@
             padding: env(safe-area-inset-top) 15px env(safe-area-inset-bottom) 15px; 
             overflow-y: auto; 
         }
+        .search-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0 5px 0;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .search-row h2 {
+            margin: 0;
+            font-size: 22px;
+        }
+        #searchInput {
+            padding: 8px 15px;
+            border-radius: 30px;
+            border: 1.5px solid #ccc;
+            font-size: 16px;
+            width: 200px;
+            max-width: 60%;
+            outline: none;
+            transition: 0.3s;
+            background: #f9f9f9;
+        }
+        #searchInput:focus {
+            border-color: #2d3436;
+            background: white;
+        }
         .grid-kanji { 
             display: grid; 
             grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); 
@@ -183,7 +210,10 @@
 <body>
 
     <div id="home-screen">
-        <h2 style="text-align: center; padding: 20px 0 10px;">2年生１６０漢字</h2>
+        <div class="search-row">
+            <h2>2年生　160漢字</h2>
+            <input type="text" id="searchInput" placeholder="検索 (か, ka...)" autocomplete="off">
+        </div>
         <div class="grid-kanji" id="kanjiGrid"></div>
     </div>
 
@@ -257,7 +287,7 @@
                 "語":14, "算":14, "読":14, "聞":14, "鳴":14, "線":15, "親":16, "頭":16, "顔":18, "曜":18
             };
 
-            // --- CÁCH ĐỌC HIRAGANA (kunyomi ưu tiên, nếu không có thì dùng onyomi) ---
+            // --- CÁCH ĐỌC HIRAGANA (kunyomi ưu tiên) ---
             var readings = {
                 "刀":"かたな", "丸":"まる", "弓":"ゆみ", "工":"こう", "才":"さい",
                 "万":"まん", "引":"ひく", "牛":"うし", "今":"いま", "元":"もと",
@@ -268,7 +298,7 @@
                 "台":"だい", "冬":"ふゆ", "半":"はんぶん", "母":"はは", "北":"きた",
                 "用":"よう", "羽":"はね", "会":"あう", "回":"まわす", "交":"まじわる",
                 "光":"ひかり", "考":"かんがえる", "行":"いく", "合":"あう", "寺":"てら",
-                "自":"みずから", "色":"いろ", "西":"にし", "多":"おおい", "池":"いけ",
+                "自":"みずから／じ", "色":"いろ", "西":"にし", "多":"おおい", "池":"いけ",
                 "地":"ち", "当":"あたる", "同":"おなじ", "肉":"にく", "米":"こめ",
                 "毎":"まい", "何":"なに", "角":"かど", "汽":"き", "近":"ちかい",
                 "形":"かたち", "言":"いう", "谷":"たに", "作":"つくる", "社":"しゃ",
@@ -293,17 +323,121 @@
                 "線":"せん", "親":"おや", "頭":"あたま", "顔":"かお", "曜":"よう"
             };
 
+            // --- CHUYỂN HIRAGANA -> ROMAJI (Hepburn cơ bản) ---
+            var hiraToRomaji = {
+                'あ':'a','い':'i','う':'u','え':'e','お':'o',
+                'か':'ka','き':'ki','く':'ku','け':'ke','こ':'ko',
+                'さ':'sa','し':'shi','す':'su','せ':'se','そ':'so',
+                'た':'ta','ち':'chi','つ':'tsu','て':'te','と':'to',
+                'な':'na','に':'ni','ぬ':'nu','ね':'ne','の':'no',
+                'は':'ha','ひ':'hi','ふ':'fu','へ':'he','ほ':'ho',
+                'ま':'ma','み':'mi','む':'mu','め':'me','も':'mo',
+                'や':'ya','ゆ':'yu','よ':'yo',
+                'ら':'ra','り':'ri','る':'ru','れ':'re','ろ':'ro',
+                'わ':'wa','を':'wo','ん':'n',
+                'が':'ga','ぎ':'gi','ぐ':'gu','げ':'ge','ご':'go',
+                'ざ':'za','じ':'ji','ず':'zu','ぜ':'ze','ぞ':'zo',
+                'だ':'da','ぢ':'ji','づ':'zu','で':'de','ど':'do',
+                'ば':'ba','び':'bi','ぶ':'bu','べ':'be','ぼ':'bo',
+                'ぱ':'pa','ぴ':'pi','ぷ':'pu','ぺ':'pe','ぽ':'po',
+                'きゃ':'kya','きゅ':'kyu','きょ':'kyo',
+                'しゃ':'sha','しゅ':'shu','しょ':'sho',
+                'ちゃ':'cha','ちゅ':'chu','ちょ':'cho',
+                'にゃ':'nya','にゅ':'nyu','にょ':'nyo',
+                'ひゃ':'hya','ひゅ':'hyu','ひょ':'hyo',
+                'みゃ':'mya','みゅ':'myu','みょ':'myo',
+                'りゃ':'rya','りゅ':'ryu','りょ':'ryo',
+                'ぎゃ':'gya','ぎゅ':'gyu','ぎょ':'gyo',
+                'じゃ':'ja','じゅ':'ju','じょ':'jo',
+                'びゃ':'bya','びゅ':'byu','びょ':'byo',
+                'ぴゃ':'pya','ぴゅ':'pyu','ぴょ':'pyo'
+            };
+
+            function hiraganaToRomaji(str) {
+                // Xử lý các cụm đặc biệt trước (các ký tự có 2 chữ cái)
+                var result = '';
+                var i = 0;
+                while (i < str.length) {
+                    // Kiểm tra 2 ký tự (có thể là cụm như きゃ)
+                    if (i + 1 < str.length) {
+                        var two = str.substr(i, 2);
+                        if (hiraToRomaji[two]) {
+                            result += hiraToRomaji[two];
+                            i += 2;
+                            continue;
+                        }
+                    }
+                    // Kiểm tra 1 ký tự
+                    var one = str[i];
+                    if (hiraToRomaji[one]) {
+                        result += hiraToRomaji[one];
+                    } else {
+                        result += one; // giữ nguyên nếu không có (ít xảy ra)
+                    }
+                    i++;
+                }
+                return result;
+            }
+
             // --- SẮP XẾP THEO SỐ NÉT TĂNG DẦN ---
             var kanjiData = rawKanjiList.slice();
             kanjiData.sort(function(a, b) {
                 return (strokeCounts[a] || 99) - (strokeCounts[b] || 99);
             });
 
+            // --- TẠO ROMAJI MAP ---
+            var romajiMap = {};
+            kanjiData.forEach(function(k) {
+                var hira = readings[k] || '';
+                romajiMap[k] = hiraganaToRomaji(hira);
+            });
+
             // --- BIẾN TOÀN CỤC ---
             var canvas, ctx, gif, trace, title, home, learn;
             var drawing = false;
             var currentIndex = 0;
+            var grid = document.getElementById('kanjiGrid');
+            var searchInput = document.getElementById('searchInput');
 
+            // Hàm render grid với danh sách kanji
+            function renderGrid(list) {
+                grid.innerHTML = '';
+                for (var i = 0; i < list.length; i++) {
+                    var k = list[i];
+                    var div = document.createElement('div');
+                    div.className = 'card-kanji';
+                    div.innerText = k;
+                    div.onclick = (function(kanji) {
+                        return function() { startLearn(kanji); };
+                    })(k);
+                    grid.appendChild(div);
+                }
+            }
+
+            // Lọc danh sách theo từ khóa
+            function filterKanji(keyword) {
+                if (!keyword.trim()) return kanjiData.slice(); // hiển thị tất cả
+                var kw = keyword.trim().toLowerCase();
+                return kanjiData.filter(function(k) {
+                    // Tìm trong kanji
+                    if (k.indexOf(kw) !== -1) return true;
+                    // Tìm trong hiragana
+                    var hira = readings[k] || '';
+                    if (hira.indexOf(kw) !== -1) return true;
+                    // Tìm trong romaji
+                    var roma = romajiMap[k] || '';
+                    if (roma.indexOf(kw) !== -1) return true;
+                    return false;
+                });
+            }
+
+            // Sự kiện tìm kiếm
+            searchInput.addEventListener('input', function() {
+                var filtered = filterKanji(this.value);
+                renderGrid(filtered);
+            });
+
+            // --- HÀM KHỞI TẠO ---
             function init() {
                 home = document.getElementById('home-screen');
                 learn = document.getElementById('learn-screen');
@@ -313,18 +447,8 @@
                 trace = document.getElementById('trace-text');
                 title = document.getElementById('current-title');
 
-                // Tạo lưới các thẻ Kanji (đã sắp xếp)
-                var grid = document.getElementById('kanjiGrid');
-                for (var i = 0; i < kanjiData.length; i++) {
-                    var k = kanjiData[i];
-                    var div = document.createElement('div');
-                    div.className = 'card-kanji';
-                    div.innerText = k;
-                    div.onclick = (function(kanji) {
-                        return function() { startLearn(kanji); };
-                    })(k);
-                    grid.appendChild(div);
-                }
+                // Render ban đầu (tất cả)
+                renderGrid(kanjiData);
 
                 // Sự kiện vẽ
                 canvas.addEventListener('mousedown', startDrawing);
@@ -384,6 +508,10 @@
                 home.style.display = 'flex';
                 learn.style.display = 'none';
                 gif.src = '';
+                // Cập nhật lại grid theo từ khóa hiện tại (để giữ trạng thái tìm kiếm)
+                var kw = searchInput.value;
+                var filtered = filterKanji(kw);
+                renderGrid(filtered);
             };
 
             window.clearBoard = function() {
