@@ -2,13 +2,15 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
+    <!-- Viewport với safe area -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <!-- Chế độ standalone trên iOS -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Kanji Lớp 1">
     <title>Kanji Lớp 1</title>
     <style>
-        :root { --danger: #d63031; --bg: #ffffff; --header-bg: #f8f9fa; --border: #ddd; }
+        :root { --danger: #d63031; --bg: #ffffff; --header-bg: #f8f9fa; }
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         body { 
             font-family: -apple-system, sans-serif; 
@@ -25,143 +27,34 @@
             padding: env(safe-area-inset-top) 15px env(safe-area-inset-bottom) 15px; 
             overflow-y: auto; 
         }
-
-        .home-header {
-            position: sticky;
-            top: 0;
-            background: white;
-            z-index: 10;
-            padding: 12px 0 8px 0;
-        }
-        .home-header h2 {
-            text-align: center;
-            font-size: 22px;
-            font-weight: 700;
-            letter-spacing: 1px;
-            color: #2d3436;
-            margin-bottom: 8px;
-        }
-
-        .search-wrap {
-            position: relative;
-            width: 100%;
-        }
-        .search-wrap input {
-            width: 100%;
-            padding: 12px 44px 12px 18px;
-            font-size: 16px;
-            border: 2px solid var(--border);
-            border-radius: 14px;
-            outline: none;
-            background: #fafafa;
-            transition: border-color 0.25s, box-shadow 0.25s;
-            color: #2d3436;
-        }
-        .search-wrap input:focus {
-            border-color: #666;
-            box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.04);
-            background: white;
-        }
-        .search-wrap input::placeholder {
-            color: #aaa;
-            font-weight: 400;
-        }
-        .search-clear {
-            position: absolute;
-            right: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
-            border: none;
-            font-size: 20px;
-            color: #bbb;
-            cursor: pointer;
-            padding: 4px 6px;
-            border-radius: 50%;
-            display: none;
-            transition: color 0.2s;
-        }
-        .search-clear:active { color: #555; }
-        .search-clear.visible { display: block; }
-
-        .search-stats {
-            font-size: 13px;
-            color: #888;
-            text-align: center;
-            padding: 4px 0 6px 0;
-            min-height: 24px;
-        }
-        .search-stats em {
-            font-style: normal;
-            font-weight: 600;
-            color: #2d3436;
-        }
-
         .grid-kanji { 
             display: grid; 
             grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); 
             gap: 12px; 
-            padding: 8px 0 50px 0;
-            flex: 1;
-            align-content: start;
+            padding: 20px 0 50px 0;
         }
-
         .card-kanji { 
             aspect-ratio: 1/1; 
             border: 1.5px solid #333; 
             border-radius: 12px;
             display: flex; 
-            flex-direction: column;
             align-items: center; 
             justify-content: center; 
+            /* Fallback cho clamp: dùng vw với giới hạn bằng media query */
+            font-size: 7vw; 
             font-weight: 600; 
             cursor: pointer;
             background: white; 
             transition: 0.2s;
-            padding: 4px;
-            line-height: 1.2;
-            text-align: center;
-            user-select: none;
         }
-        .card-kanji:active { background: #f0f0f0; transform: scale(0.96); }
-
-        .card-kanji .kanji-only {
-            font-size: clamp(24px, 7vw, 34px);
-            font-weight: 600;
-        }
-        .card-kanji .reading-sm {
-            font-size: 10px;
-            font-weight: 400;
-            color: #666;
-            margin-top: 1px;
-            letter-spacing: 0.3px;
-            line-height: 1.2;
-            max-width: 100%;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        @media (max-width: 400px) {
-            .card-kanji .kanji-only { font-size: 6.5vw; }
+        /* Giới hạn kích thước chữ */
+        @media (min-width: 400px) {
+            .card-kanji { font-size: 28px; }
         }
         @media (max-width: 300px) {
-            .card-kanji .kanji-only { font-size: 5vw; }
+            .card-kanji { font-size: 20px; }
         }
-
-        .no-results {
-            grid-column: 1 / -1;
-            text-align: center;
-            padding: 60px 20px;
-            color: #aaa;
-            font-size: 16px;
-            font-weight: 500;
-        }
-        .no-results span {
-            display: block;
-            font-size: 40px;
-            margin-bottom: 12px;
-        }
+        .card-kanji:active { background: #f0f0f0; }
 
         #learn-screen { 
             position: fixed; 
@@ -234,8 +127,8 @@
             padding-right: env(safe-area-inset-right);
             padding-bottom: env(safe-area-inset-bottom);
         }
-        .main-view .box:first-child { flex: 2; }
-        .main-view .box:last-child { flex: 3; }
+        .main-view .box:first-child { flex: 2; }   /* 40% */
+        .main-view .box:last-child { flex: 3; }    /* 60% */
         .box { 
             display: flex; 
             align-items: center; 
@@ -277,8 +170,10 @@
             pointer-events: none; 
             white-space: nowrap; 
             line-height: 1;
+            /* Fallback nếu container query không được hỗ trợ (iOS 12 không hỗ trợ container) */
             font-size: 40vw;
         }
+        /* Container query chỉ áp dụng nếu trình duyệt hỗ trợ, không ảnh hưởng đến iOS 12 */
         @container (min-width: 1px) {
             #trace-text { font-size: min(70cqi, 70cqh); }
         }
@@ -289,42 +184,27 @@
             .main-view .box:last-child { flex: 3; }
             .box { padding: 0; }
         }
-
-        @media (max-width: 480px) {
-            .grid-kanji { grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap: 10px; }
-            .card-kanji .kanji-only { font-size: clamp(20px, 6vw, 28px); }
-            .card-kanji .reading-sm { font-size: 9px; }
-            .search-wrap input { font-size: 15px; padding: 10px 40px 10px 14px; }
-            .home-header h2 { font-size: 19px; }
-        }
-        @media (max-width: 380px) {
-            .grid-kanji { grid-template-columns: repeat(auto-fill, minmax(50px, 1fr)); gap: 8px; }
-            .card-kanji .kanji-only { font-size: clamp(16px, 5vw, 22px); }
-            .card-kanji .reading-sm { font-size: 7px; }
-        }
     </style>
 </head>
 <body>
 
     <div id="home-screen">
-        <div class="home-header">
-            <h2>📖 1年生 ８０漢字</h2>
-            <div class="search-wrap">
-                <input type="text" id="searchInput" placeholder="🔍 Tìm theo âm đọc (いち), Romaji (ichi), hoặc chữ Hán (一)" autocomplete="off" spellcheck="false">
-                <button class="search-clear" id="searchClear" aria-label="Xóa tìm kiếm">✕</button>
-            </div>
-            <div class="search-stats" id="searchStats">Tổng số <em>80</em> Kanji</div>
-        </div>
+        <h2 style="text-align: center; padding: 20px 0 10px;">1年生　８０漢字</h2>
         <div class="grid-kanji" id="kanjiGrid"></div>
     </div>
 
     <div id="learn-screen">
+        <!-- Thanh trên cùng với các nút được nhóm -->
         <div class="nav-top">
+            <!-- Nhóm trái: 戻る + 前 -->
             <div class="nav-group">
                 <button class="btn-nav btn-back" onclick="goHome()">←戻る</button>
                 <button class="btn-nav btn-prev-next" onclick="prevKanji()">←前</button>
             </div>
+
             <h2 id="current-title">一</h2>
+
+            <!-- Nhóm phải: 次 + 消す -->
             <div class="nav-group">
                 <button class="btn-nav btn-prev-next" onclick="nextKanji()">次→</button>
                 <button class="btn-nav btn-clear" onclick="clearBoard()">消す</button>
@@ -346,7 +226,7 @@
 
     <script>
         (function() {
-            // ---- DANH SÁCH KANJI GỐC (LỚP 1) ----
+            // --- DANH SÁCH KANJI GỐC (LỚP 1) ---
             var rawKanjiList = [
                 "一", "右", "雨", "円", "王", "音", "下", "火", "花", "貝", 
                 "学", "気", "九", "休", "玉", "金", "空", "月", "犬", "見", 
@@ -358,7 +238,7 @@
                 "百", "文", "木", "本", "名", "目", "立", "力", "林"
             ];
 
-            // ---- SỐ NÉT ----
+            // --- SỐ NÉT (dùng để sắp xếp từ dễ → khó) ---
             var strokeCounts = {
                 "一":1, "右":5, "雨":8, "円":4, "王":4, "音":9, "下":3, "火":4, "花":7, "貝":7,
                 "学":8, "気":6, "九":2, "休":6, "玉":5, "金":8, "空":8, "月":4, "犬":4, "見":7,
@@ -370,7 +250,7 @@
                 "百":6, "文":4, "木":4, "本":5, "名":6, "目":5, "立":5, "力":2, "林":8
             };
 
-            // ---- CÁCH ĐỌC (hiragana) ----
+            // --- CÁCH ĐỌC (furigana) cho mỗi Kanji ---
             var readings = {
                 "一": "いち", "右": "みぎ", "雨": "あめ", "円": "えん", "王": "おう",
                 "音": "おと", "下": "した", "火": "ひ", "花": "はな", "貝": "かい",
@@ -390,79 +270,17 @@
                 "目": "め", "立": "たつ", "力": "ちから", "林": "はやし"
             };
 
-            // ---- ROMAJI CONVERTER ----
-            // Chuyển đổi hiragana sang romaji (Hepburn)
-            var kanaToRomaji = (function() {
-                // single kana
-                var single = {
-                    'あ':'a','い':'i','う':'u','え':'e','お':'o',
-                    'か':'ka','き':'ki','く':'ku','け':'ke','こ':'ko',
-                    'さ':'sa','し':'shi','す':'su','せ':'se','そ':'so',
-                    'た':'ta','ち':'chi','つ':'tsu','て':'te','と':'to',
-                    'な':'na','に':'ni','ぬ':'nu','ね':'ne','の':'no',
-                    'は':'ha','ひ':'hi','ふ':'fu','へ':'he','ほ':'ho',
-                    'ま':'ma','み':'mi','む':'mu','め':'me','も':'mo',
-                    'や':'ya','ゆ':'yu','よ':'yo',
-                    'ら':'ra','り':'ri','る':'ru','れ':'re','ろ':'ro',
-                    'わ':'wa','を':'wo','ん':'n',
-                    'が':'ga','ぎ':'gi','ぐ':'gu','げ':'ge','ご':'go',
-                    'ざ':'za','じ':'ji','ず':'zu','ぜ':'ze','ぞ':'zo',
-                    'だ':'da','ぢ':'ji','づ':'zu','で':'de','ど':'do',
-                    'ば':'ba','び':'bi','ぶ':'bu','べ':'be','ぼ':'bo',
-                    'ぱ':'pa','ぴ':'pi','ぷ':'pu','ぺ':'pe','ぽ':'po'
-                };
-                // combo kana (e.g., しゃ, きゃ, etc.)
-                var combo = {
-                    'きゃ':'kya','きゅ':'kyu','きょ':'kyo',
-                    'しゃ':'sha','しゅ':'shu','しょ':'sho',
-                    'ちゃ':'cha','ちゅ':'chu','ちょ':'cho',
-                    'にゃ':'nya','にゅ':'nyu','にょ':'nyo',
-                    'ひゃ':'hya','ひゅ':'hyu','ひょ':'hyo',
-                    'みゃ':'mya','みゅ':'myu','みょ':'myo',
-                    'りゃ':'rya','りゅ':'ryu','りょ':'ryo',
-                    'ぎゃ':'gya','ぎゅ':'gyu','ぎょ':'gyo',
-                    'じゃ':'ja','じゅ':'ju','じょ':'jo',
-                    'ぢゃ':'ja','ぢゅ':'ju','ぢょ':'jo',
-                    'びゃ':'bya','びゅ':'byu','びょ':'byo',
-                    'ぴゃ':'pya','ぴゅ':'pyu','ぴょ':'pyo'
-                };
-
-                return function(hiragana) {
-                    if (!hiragana) return '';
-                    var result = '';
-                    var i = 0;
-                    while (i < hiragana.length) {
-                        // check combo (2 chars)
-                        if (i + 1 < hiragana.length) {
-                            var two = hiragana.substr(i, 2);
-                            if (combo[two]) {
-                                result += combo[two];
-                                i += 2;
-                                continue;
-                            }
-                        }
-                        // single char
-                        var ch = hiragana[i];
-                        result += single[ch] || ch; // fallback
-                        i++;
-                    }
-                    return result;
-                };
-            })();
-
-            // ---- SẮP XẾP KANJI THEO SỐ NÉT ----
-            var kanjiData = rawKanjiList.slice();
+            // --- SẮP XẾP KANJI THEO SỐ NÉT TĂNG DẦN (Dễ → Khó) ---
+            var kanjiData = rawKanjiList.slice(); // tạo bản sao
             kanjiData.sort(function(a, b) {
                 return strokeCounts[a] - strokeCounts[b];
             });
 
-            // ---- BIẾN TOÀN CỤC ----
-            var canvas, ctx, gif, trace, title, home, learn, grid, searchInput, searchClear, searchStats;
+            // --- BIẾN TOÀN CỤC ---
+            var canvas, ctx, gif, trace, title, home, learn;
             var drawing = false;
-            var currentIndex = 0;
-            var currentFilter = '';
+            var currentIndex = 0;          // chỉ số kanji hiện tại trong kanjiData
 
-            // ---- KHỞI TẠO ----
             function init() {
                 home = document.getElementById('home-screen');
                 learn = document.getElementById('learn-screen');
@@ -471,12 +289,19 @@
                 gif = document.getElementById('kanji-gif');
                 trace = document.getElementById('trace-text');
                 title = document.getElementById('current-title');
-                grid = document.getElementById('kanjiGrid');
-                searchInput = document.getElementById('searchInput');
-                searchClear = document.getElementById('searchClear');
-                searchStats = document.getElementById('searchStats');
 
-                renderGrid();
+                // Tạo lưới các thẻ Kanji (đã sắp xếp)
+                var grid = document.getElementById('kanjiGrid');
+                for (var i = 0; i < kanjiData.length; i++) {
+                    var k = kanjiData[i];
+                    var div = document.createElement('div');
+                    div.className = 'card-kanji';
+                    div.innerText = k;
+                    div.onclick = (function(kanji) {
+                        return function() { startLearn(kanji); };
+                    })(k); // tránh lỗi closure
+                    grid.appendChild(div);
+                }
 
                 // Sự kiện vẽ
                 canvas.addEventListener('mousedown', startDrawing);
@@ -494,139 +319,31 @@
                 window.addEventListener('orientationchange', function() {
                     setTimeout(function() { requestAnimationFrame(resizeCanvas); }, 100);
                 });
-
-                // Sự kiện tìm kiếm
-                searchInput.addEventListener('input', onSearchInput);
-                searchClear.addEventListener('click', clearSearch);
-                searchInput.addEventListener('keydown', function(e) {
-                    if (e.key === 'Escape') {
-                        clearSearch();
-                        searchInput.blur();
-                    }
-                });
             }
 
-            // ---- TÌM KIẾM (bao gồm Romaji) ----
-            function onSearchInput() {
-                var q = searchInput.value;
-                currentFilter = q;
-                searchClear.classList.toggle('visible', q.length > 0);
-                renderGrid();
-            }
-
-            function clearSearch() {
-                searchInput.value = '';
-                currentFilter = '';
-                searchClear.classList.remove('visible');
-                renderGrid();
-                searchInput.focus();
-            }
-
-            // Lọc Kanji theo: Kanji, Hiragana, Romaji
-            function filterKanji(query) {
-                var trimmed = query.trim();
-                if (!trimmed) return kanjiData;
-
-                var q = trimmed.toLowerCase();
-                var hasKanji = /[\u4e00-\u9faf]/.test(q);
-
-                var results = [];
-                for (var i = 0; i < kanjiData.length; i++) {
-                    var k = kanjiData[i];
-                    var reading = readings[k] || '';
-                    var romaji = kanaToRomaji(reading).toLowerCase();
-
-                    var matchKanji = k.includes(q);
-                    var matchReading = reading.includes(q);
-                    var matchRomaji = romaji.includes(q);
-
-                    if (hasKanji) {
-                        // Nếu query có chữ Hán, chỉ tìm theo Kanji
-                        if (matchKanji) results.push(k);
-                    } else {
-                        // Tìm theo Kanji, Hiragana, hoặc Romaji
-                        if (matchKanji || matchReading || matchRomaji) {
-                            results.push(k);
-                        }
-                    }
-                }
-                return results;
-            }
-
-            // ---- RENDER GRID ----
-            function renderGrid() {
-                var filtered = filterKanji(currentFilter);
-                var total = kanjiData.length;
-                var found = filtered.length;
-
-                if (currentFilter.trim()) {
-                    searchStats.innerHTML = '🔍 Tìm thấy <em>' + found + '</em> / ' + total + ' Kanji';
-                } else {
-                    searchStats.innerHTML = 'Tổng số <em>' + total + '</em> Kanji';
-                }
-
-                grid.innerHTML = '';
-
-                if (found === 0) {
-                    var empty = document.createElement('div');
-                    empty.className = 'no-results';
-                    empty.innerHTML = '<span>🔎</span> Không tìm thấy Kanji nào cho “' + currentFilter.trim() + '”';
-                    grid.appendChild(empty);
-                    return;
-                }
-
-                var isSearching = currentFilter.trim().length > 0;
-
-                for (var i = 0; i < filtered.length; i++) {
-                    var k = filtered[i];
-                    var card = document.createElement('div');
-                    card.className = 'card-kanji';
-                    card.dataset.kanji = k;
-
-                    var kanjiSpan = document.createElement('span');
-                    kanjiSpan.className = 'kanji-only';
-                    kanjiSpan.textContent = k;
-                    card.appendChild(kanjiSpan);
-
-                    if (isSearching) {
-                        var reading = readings[k] || '';
-                        if (reading) {
-                            var readingSpan = document.createElement('span');
-                            readingSpan.className = 'reading-sm';
-                            readingSpan.textContent = reading;
-                            card.appendChild(readingSpan);
-                        }
-                    }
-
-                    card.onclick = (function(kanji) {
-                        return function() { startLearn(kanji); };
-                    })(k);
-
-                    grid.appendChild(card);
-                }
-            }
-
-            // ---- HỌC KANJI ----
+            // Cập nhật màn hình học với kanji k
             function updateLearnScreen(k) {
                 var reading = readings[k] || '';
                 title.innerText = k + (reading ? ' (' + reading + ')' : '');
                 trace.innerText = k;
-                gif.src = k + '-order.gif';
+                gif.src = k + '-order.gif';   // file ảnh động theo tên
                 gif.style.display = '';
-                clearBoard();
+                clearBoard();                  // xóa nét vẽ cũ
                 requestAnimationFrame(function() {
                     setTimeout(resizeCanvas, 50);
                 });
             }
 
+            // Bắt đầu học một kanji từ grid
             function startLearn(k) {
                 home.style.display = 'none';
                 learn.style.display = 'flex';
                 currentIndex = kanjiData.indexOf(k);
-                if (currentIndex === -1) currentIndex = 0;
+                if (currentIndex === -1) currentIndex = 0; // dự phòng
                 updateLearnScreen(k);
             }
 
+            // Điều hướng: Kanji trước đó
             window.prevKanji = function() {
                 if (currentIndex > 0) {
                     currentIndex--;
@@ -634,6 +351,7 @@
                 }
             };
 
+            // Điều hướng: Kanji tiếp theo
             window.nextKanji = function() {
                 if (currentIndex < kanjiData.length - 1) {
                     currentIndex++;
@@ -641,12 +359,14 @@
                 }
             };
 
+            // Về màn hình chính
             window.goHome = function() {
                 home.style.display = 'flex';
                 learn.style.display = 'none';
                 gif.src = '';
             };
 
+            // Xóa bảng vẽ
             window.clearBoard = function() {
                 if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
             };
@@ -675,12 +395,14 @@
                 }
                 var x = (clientX - rect.left) * scaleX;
                 var y = (clientY - rect.top) * scaleY;
+                // giới hạn trong canvas
                 x = Math.min(Math.max(x, 0), canvas.width);
                 y = Math.min(Math.max(y, 0), canvas.height);
                 return { x: x, y: y };
             }
 
             function startDrawing(e) {
+                // Thay thế optional chaining bằng kiểm tra an toàn
                 if (e.preventDefault) e.preventDefault();
                 drawing = true;
                 ctx.beginPath();
@@ -706,6 +428,7 @@
                 ctx.moveTo(p.x, p.y);
             }
 
+            // Khởi tạo khi DOM sẵn sàng
             document.addEventListener('DOMContentLoaded', init);
         })();
     </script>
