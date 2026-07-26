@@ -1279,6 +1279,61 @@
                     ] }
             };
 
+            // ═══════════════════════════════════════════════════════════════
+            //  THÊM BẢNG CHUYỂN HIRAGANA → ROMAJI
+            // ═══════════════════════════════════════════════════════════════
+
+            var hiraToRomaji = {
+                'あ':'a','い':'i','う':'u','え':'e','お':'o',
+                'か':'ka','き':'ki','く':'ku','け':'ke','こ':'ko',
+                'さ':'sa','し':'shi','す':'su','せ':'se','そ':'so',
+                'た':'ta','ち':'chi','つ':'tsu','て':'te','と':'to',
+                'な':'na','に':'ni','ぬ':'nu','ね':'ne','の':'no',
+                'は':'ha','ひ':'hi','ふ':'fu','へ':'he','ほ':'ho',
+                'ま':'ma','み':'mi','む':'mu','め':'me','も':'mo',
+                'や':'ya','ゆ':'yu','よ':'yo',
+                'ら':'ra','り':'ri','る':'ru','れ':'re','ろ':'ro',
+                'わ':'wa','を':'wo','ん':'n',
+                'が':'ga','ぎ':'gi','ぐ':'gu','げ':'ge','ご':'go',
+                'ざ':'za','じ':'ji','ず':'zu','ぜ':'ze','ぞ':'zo',
+                'だ':'da','ぢ':'ji','づ':'zu','で':'de','ど':'do',
+                'ば':'ba','び':'bi','ぶ':'bu','べ':'be','ぼ':'bo',
+                'ぱ':'pa','ぴ':'pi','ぷ':'pu','ぺ':'pe','ぽ':'po',
+                'きゃ':'kya','きゅ':'kyu','きょ':'kyo',
+                'しゃ':'sha','しゅ':'shu','しょ':'sho',
+                'ちゃ':'cha','ちゅ':'chu','ちょ':'cho',
+                'にゃ':'nya','にゅ':'nyu','にょ':'nyo',
+                'ひゃ':'hya','ひゅ':'hyu','ひょ':'hyo',
+                'みゃ':'mya','みゅ':'myu','みょ':'myo',
+                'りゃ':'rya','りゅ':'ryu','りょ':'ryo',
+                'ぎゃ':'gya','ぎゅ':'gyu','ぎょ':'gyo',
+                'じゃ':'ja','じゅ':'ju','じょ':'jo',
+                'びゃ':'bya','びゅ':'byu','びょ':'byo',
+                'ぴゃ':'pya','ぴゅ':'pyu','ぴょ':'pyo'
+            };
+
+            function toRomaji(hira) {
+                if (!hira) return '';
+                var result = '';
+                var i = 0;
+                while (i < hira.length) {
+                    var two = hira.substr(i, 2);
+                    if (hiraToRomaji[two]) {
+                        result += hiraToRomaji[two];
+                        i += 2;
+                    } else {
+                        var one = hira[i];
+                        if (hiraToRomaji[one]) {
+                            result += hiraToRomaji[one];
+                        } else {
+                            result += one; // giữ nguyên ký tự không phải hiragana
+                        }
+                        i++;
+                    }
+                }
+                return result;
+            }
+
             // ─── SẮP XẾP KANJI THEO SỐ NÉT ──────────────────────────────
             var kanjiData = rawKanjiList.slice();
             kanjiData.sort(function(a, b) {
@@ -1405,7 +1460,7 @@
                 noResults.classList.remove('visible');
             }
 
-            // ─── FILTER GRID ──────────────────────────────────────────
+            // ─── FILTER GRID (có hỗ trợ Romaji) ────────────────────
             function filterGrid(term) {
                 if (!term) {
                     var allCards = document.querySelectorAll('.card-kanji');
@@ -1425,11 +1480,15 @@
                     var detail = kanjiDetails[k];
                     var on = (detail && detail.on) ? detail.on : '';
                     var kun = (detail && detail.kun) ? detail.kun : '';
+                    var onRomaji = toRomaji(on).toLowerCase();
+                    var kunRomaji = toRomaji(kun).toLowerCase();
                     var match = false;
 
                     if (k.includes(term)) match = true;
                     if (on.toLowerCase().includes(lower)) match = true;
                     if (kun.toLowerCase().includes(lower)) match = true;
+                    if (onRomaji.includes(lower)) match = true;
+                    if (kunRomaji.includes(lower)) match = true;
 
                     if (match) {
                         card.classList.remove('hidden');
@@ -1446,7 +1505,7 @@
                 }
             }
 
-            // ─── TÌM KANJI THEO TỪ KHÓA ──────────────────────────────
+            // ─── TÌM KANJI THEO TỪ KHÓA (có hỗ trợ Romaji) ────────
             function findKanjiByTerm(term) {
                 if (!term) return null;
                 var lower = term.toLowerCase().trim();
@@ -1457,12 +1516,16 @@
                     var detail = kanjiDetails[k];
                     var on = (detail && detail.on) ? detail.on : '';
                     var kun = (detail && detail.kun) ? detail.kun : '';
+                    var onRomaji = toRomaji(on).toLowerCase();
+                    var kunRomaji = toRomaji(kun).toLowerCase();
                     var score = 0;
 
                     if (k === term) return k;
                     if (k.includes(term)) score += 100;
                     if (on.toLowerCase().includes(lower)) score += 50;
                     if (kun.toLowerCase().includes(lower)) score += 50;
+                    if (onRomaji.includes(lower)) score += 50;
+                    if (kunRomaji.includes(lower)) score += 50;
 
                     if (score > 0) {
                         candidates.push({ kanji: k, score: score });
@@ -1483,7 +1546,6 @@
                 var strokes = strokeCounts[k] || '?';
 
                 title.innerText = k + '（' + (detail.kun || '') + '）';
-                // Đã xóa phần kanjiChar
                 onReading.textContent = detail.on || '—';
                 kunReading.textContent = detail.kun || '—';
                 strokeDisplay.textContent = strokes;
