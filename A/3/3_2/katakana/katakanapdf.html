@@ -760,8 +760,8 @@
                     if (page > 0) pdf.addPage();
 
                     // Tiêu đề trang
-                    pdf.setFontSize(16);
-                    pdf.text('Bảng tập viết Katakana (Trang ' + (page + 1) + '/' + totalPages + ')', pageWidth / 2, 12, { align: 'center' });
+                    pdf.setFontSize(0);
+                    pdf.text('カタカナ (Trang ' + (page + 1) + '/' + totalPages + ')', pageWidth / 2, 12, { align: 'center' });
 
                     var startIdx = page * maxCellsPerPage;
                     var endIdx = Math.min(startIdx + maxCellsPerPage, keys.length);
@@ -782,8 +782,8 @@
                         pdf.rect(x, y, cellWidth, cellHeight, 'S');
 
                         // In chữ và romaji phía trên ô
-                        pdf.setFontSize(10);
-                        pdf.text(ch + ' (' + romaji + ')', x + 2, y + 6);
+                        pdf.setFontSize(0);
+                        pdf.text(ch + ' (' + romaji + ')', x + 0, y + 0);
 
                         // Chèn ảnh vào ô (nếu có)
                         var imgData = savedMap[ch];
