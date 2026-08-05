@@ -1,0 +1,2122 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Kanji Lớp 1">
+    <title>Kanji Lớp 1</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js">
+    </script>
+    <style>
+        /* ... (giữ nguyên CSS như lần trước, tôi không thay đổi) ... */
+        :root {
+            --danger: #d63031;
+            --bg: #ffffff;
+            --header-bg: #f8f9fa;
+            --border: #ddd;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            font-family: -apple-system, sans-serif;
+            background: var(--bg);
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+        }
+        #home-screen {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: env(safe-area-inset-top) 15px env(safe-area-inset-bottom) 15px;
+            overflow-y: auto;
+        }
+        .home-header {
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 10;
+            padding: 12px 0 8px 0;
+        }
+        .home-header h2 {
+            text-align: center;
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: #2d3436;
+            margin-bottom: 8px;
+        }
+        .search-wrap {
+            position: relative;
+            width: 100%;
+        }
+        .search-wrap input {
+            width: 100%;
+            padding: 12px 44px 12px 18px;
+            font-size: 16px;
+            border: 2px solid var(--border);
+            border-radius: 14px;
+            outline: none;
+            background: #fafafa;
+            transition: border-color 0.25s, box-shadow 0.25s;
+            color: #2d3436;
+        }
+        .search-wrap input:focus {
+            border-color: #666;
+            box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.04);
+            background: white;
+        }
+        .search-wrap input::placeholder {
+            color: #aaa;
+            font-weight: 400;
+        }
+        .search-clear {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: #bbb;
+            cursor: pointer;
+            padding: 4px 6px;
+            border-radius: 50%;
+            display: none;
+            transition: color 0.2s;
+        }
+        .search-clear:active {
+            color: #555;
+        }
+        .search-clear.visible {
+            display: block;
+        }
+        .search-stats {
+            font-size: 13px;
+            color: #888;
+            text-align: center;
+            padding: 4px 0 6px 0;
+            min-height: 24px;
+        }
+        .search-stats em {
+            font-style: normal;
+            font-weight: 600;
+            color: #2d3436;
+        }
+        .grid-kanji {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+            gap: 12px;
+            padding: 8px 0 50px 0;
+            flex: 1;
+            align-content: start;
+        }
+        .card-kanji {
+            aspect-ratio: 1/1;
+            border: 1.5px solid #333;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            cursor: pointer;
+            background: white;
+            transition: 0.2s;
+            padding: 4px;
+            line-height: 1.2;
+            text-align: center;
+            user-select: none;
+        }
+        .card-kanji:active {
+            background: #f0f0f0;
+            transform: scale(0.96);
+        }
+        .card-kanji .kanji-only {
+            font-size: clamp(24px, 7vw, 34px);
+            font-weight: 600;
+        }
+        .card-kanji .reading-sm {
+            font-size: 10px;
+            font-weight: 400;
+            color: #666;
+            margin-top: 1px;
+            letter-spacing: 0.3px;
+            line-height: 1.2;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .card-kanji.saved {
+            border-color: #2d7d46;
+            border-width: 3px;
+            background-color: #f0fff0;
+        }
+        @media (max-width: 400px) {
+            .card-kanji .kanji-only {
+                font-size: 6.5vw;
+            }
+        }
+        @media (max-width: 300px) {
+            .card-kanji .kanji-only {
+                font-size: 5vw;
+            }
+        }
+        .no-results {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 60px 20px;
+            color: #aaa;
+            font-size: 16px;
+            font-weight: 500;
+        }
+        .no-results span {
+            display: block;
+            font-size: 40px;
+            margin-bottom: 12px;
+        }
+        #learn-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: white;
+            display: none;
+            flex-direction: column;
+            z-index: 100;
+        }
+        .nav-top {
+            padding: 10px 15px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 5px;
+            flex-wrap: wrap;
+            background: var(--header-bg);
+            padding-top: max(10px, env(safe-area-inset-top));
+            padding-left: max(15px, env(safe-area-inset-left));
+            padding-right: max(15px, env(safe-area-inset-right));
+        }
+        .nav-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .btn-nav {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            background: #eee;
+            color: #333;
+            transition: opacity 0.2s;
+            white-space: nowrap;
+        }
+        .btn-nav:active {
+            opacity: 0.7;
+        }
+        .btn-back {
+            background: #e0e0e0;
+        }
+        .btn-clear {
+            background: var(--danger);
+            color: white;
+        }
+        .btn-prev-next {
+            background: #ffffff;
+            border: 1px solid #aaa;
+        }
+        .btn-save {
+            background: #2980b9;
+            color: white;
+        }
+        .btn-pdf {
+            background: #2d7d46;
+            color: white;
+        }
+        .btn-clear-collection {
+            background: #e67e22;
+            color: white;
+        }
+        #current-title {
+            font-size: 18px;
+            margin: 0 5px;
+            text-align: center;
+            flex: 0 1 auto;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 40%;
+        }
+        .main-view {
+            flex: 1;
+            display: flex;
+            flex-direction: row;
+            overflow: hidden;
+            padding-left: env(safe-area-inset-left);
+            padding-right: env(safe-area-inset-right);
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        .main-view .left-col {
+            flex: 2;
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
+            overflow-y: auto;
+            border-right: 1px solid #eee;
+        }
+        .main-view .right-col {
+            flex: 3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            position: relative;
+        }
+        #kanji-gif {
+            max-width: 100%;
+            max-height: 150px;
+            object-fit: contain;
+            border-radius: 8px;
+            display: block;
+            margin-bottom: 8px;
+        }
+        .vocab-section {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+        }
+        .vocab-section h3 {
+            font-size: 16px;
+            margin: 4px 0 8px 0;
+            color: #2d3436;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 4px;
+        }
+        .vocab-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        .vocab-table th {
+            background: #f0f0f0;
+            padding: 6px 4px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 1px solid #ddd;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+        .vocab-table td {
+            padding: 6px 4px;
+            border-bottom: 1px solid #f0f0f0;
+            vertical-align: top;
+        }
+        .vocab-table .word {
+            font-weight: 600;
+            font-size: 1.05em;
+        }
+        .vocab-table .reading {
+            color: #666;
+            font-size: 0.9em;
+        }
+        .vocab-table .meaning {
+            color: #2d7d46;
+            font-weight: 500;
+        }
+        .vocab-table tr:last-child td {
+            border-bottom: none;
+        }
+        .info-row {
+            display: flex;
+            gap: 12px;
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+        .info-row span {
+            background: #f5f5f5;
+            padding: 2px 10px;
+            border-radius: 12px;
+        }
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: white;
+            container-type: size;
+        }
+        canvas {
+            width: 100%;
+            height: 100%;
+            touch-action: none;
+            display: block;
+            background-image: linear-gradient(#f0f0f0 1px, transparent 1px),
+                linear-gradient(90deg, #f0f0f0 1px, transparent 1px);
+            background-size: 20% 20%;
+        }
+        #trace-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: rgba(0, 0, 0, 0.05);
+            pointer-events: none;
+            white-space: nowrap;
+            line-height: 1;
+            font-size: 40vw;
+        }
+        @container (min-width: 1px) {
+            #trace-text {
+                font-size: min(70cqi, 70cqh);
+            }
+        }
+        @media (max-aspect-ratio: 1/1) {
+            .main-view {
+                flex-direction: column;
+            }
+            .main-view .left-col {
+                flex: 0 0 40%;
+                border-right: none;
+                border-bottom: 1px solid #eee;
+                padding: 6px 10px;
+                overflow-y: auto;
+            }
+            .main-view .right-col {
+                flex: 1;
+            }
+            #kanji-gif {
+                max-height: 100px;
+            }
+            .vocab-table {
+                font-size: 13px;
+            }
+            .vocab-table th,
+            .vocab-table td {
+                padding: 4px 2px;
+            }
+        }
+        @media (max-width: 480px) {
+            .grid-kanji {
+                grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+                gap: 10px;
+            }
+            .card-kanji .kanji-only {
+                font-size: clamp(20px, 6vw, 28px);
+            }
+            .card-kanji .reading-sm {
+                font-size: 9px;
+            }
+            .search-wrap input {
+                font-size: 15px;
+                padding: 10px 40px 10px 14px;
+            }
+            .home-header h2 {
+                font-size: 19px;
+            }
+        }
+        @media (max-width: 380px) {
+            .grid-kanji {
+                grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+                gap: 8px;
+            }
+            .card-kanji .kanji-only {
+                font-size: clamp(16px, 5vw, 22px);
+            }
+            .card-kanji .reading-sm {
+                font-size: 7px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="home-screen">
+        <div class="home-header">
+            <h2>📖 1年生 ８０漢字</h2>
+            <div class="search-wrap">
+                <input type="text" id="searchInput" placeholder="🔍 Tìm theo âm đọc (いち), Romaji (ichi), hoặc chữ Hán (一)" autocomplete="off" spellcheck="false">
+                <button class="search-clear" id="searchClear" aria-label="Xóa tìm kiếm">✕</button>
+            </div>
+            <div class="search-stats" id="searchStats">Tổng số <em>80</em> Kanji</div>
+        </div>
+        <div class="grid-kanji" id="kanjiGrid"></div>
+    </div>
+
+    <div id="learn-screen">
+        <div class="nav-top">
+            <div class="nav-group">
+                <button class="btn-nav btn-back" onclick="goHome()">←戻る</button>
+                <button class="btn-nav btn-prev-next" onclick="prevKanji()">←前</button>
+            </div>
+            <h2 id="current-title">一</h2>
+            <div class="nav-group">
+                <button class="btn-nav btn-prev-next" onclick="nextKanji()">次→</button>
+                <button class="btn-nav btn-clear" onclick="clearBoard()">消す</button>
+                <button class="btn-nav btn-save" onclick="saveCurrent()">📥 Lưu</button>
+                <button class="btn-nav btn-pdf" onclick="exportPDF()">📄 PDF</button>
+                <button class="btn-nav btn-clear-collection" onclick="clearCollection()">🗑️ Xóa</button>
+            </div>
+        </div>
+
+        <div class="main-view">
+            <!-- Cột trái: GIF + từ vựng -->
+            <div class="left-col" id="leftCol">
+                <img id="kanji-gif" src="" alt="GIF" onerror="this.style.display='none'">
+                <div class="info-row" id="infoRow">
+                    <span id="onReading">ON: </span>
+                    <span id="kunReading">KUN: </span>
+                    <span id="strokeCount">画: </span>
+                </div>
+                <div class="vocab-section" id="vocabSection">
+                    <h3>📚 Từ vựng gợi ý</h3>
+                    <table class="vocab-table" id="vocabTable">
+                        <thead><tr><th>Từ</th><th>Đọc</th><th>Nghĩa</th></tr></thead>
+                        <tbody id="vocabBody"></tbody>
+                    </table>
+                </div>
+            </div>
+            <!-- Cột phải: canvas vẽ -->
+            <div class="right-col">
+                <div class="canvas-container">
+                    <div id="trace-text"></div>
+                    <canvas id="canvas"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // ---- DANH SÁCH KANJI GỐC (LỚP 1) ----
+            var rawKanjiList = [
+                "一", "右", "雨", "円", "王", "音", "下", "火", "花", "貝",
+                "学", "気", "九", "休", "玉", "金", "空", "月", "犬", "見",
+                "五", "口", "校", "左", "三", "山", "子", "四", "糸", "字",
+                "耳", "七", "車", "手", "十", "出", "女", "小", "上", "森",
+                "人", "水", "正", "生", "青", "夕", "石", "赤", "千", "川",
+                "先", "早", "草", "足", "村", "大", "男", "竹", "中", "虫",
+                "町", "天", "田", "土", "二", "日", "入", "年", "白", "八",
+                "百", "文", "木", "本", "名", "目", "立", "力", "林"
+            ];
+
+            // ---- SỐ NÉT ----
+            var strokeCounts = {
+                "一": 1,
+                "右": 5,
+                "雨": 8,
+                "円": 4,
+                "王": 4,
+                "音": 9,
+                "下": 3,
+                "火": 4,
+                "花": 7,
+                "貝": 7,
+                "学": 8,
+                "気": 6,
+                "九": 2,
+                "休": 6,
+                "玉": 5,
+                "金": 8,
+                "空": 8,
+                "月": 4,
+                "犬": 4,
+                "見": 7,
+                "五": 4,
+                "口": 3,
+                "校": 10,
+                "左": 5,
+                "三": 3,
+                "山": 3,
+                "子": 3,
+                "四": 5,
+                "糸": 6,
+                "字": 6,
+                "耳": 6,
+                "七": 2,
+                "車": 7,
+                "手": 4,
+                "十": 2,
+                "出": 5,
+                "女": 3,
+                "小": 3,
+                "上": 3,
+                "森": 12,
+                "人": 2,
+                "水": 4,
+                "正": 5,
+                "生": 5,
+                "青": 8,
+                "夕": 3,
+                "石": 5,
+                "赤": 7,
+                "千": 3,
+                "川": 3,
+                "先": 6,
+                "早": 6,
+                "草": 9,
+                "足": 7,
+                "村": 7,
+                "大": 3,
+                "男": 7,
+                "竹": 6,
+                "中": 4,
+                "虫": 6,
+                "町": 7,
+                "天": 4,
+                "田": 5,
+                "土": 3,
+                "二": 2,
+                "日": 4,
+                "入": 2,
+                "年": 6,
+                "白": 5,
+                "八": 2,
+                "百": 6,
+                "文": 4,
+                "木": 4,
+                "本": 5,
+                "名": 6,
+                "目": 5,
+                "立": 5,
+                "力": 2,
+                "林": 8
+            };
+
+            // ---- CÁCH ĐỌC (hiragana) ----
+            var readings = {
+                "一": "いち",
+                "右": "みぎ",
+                "雨": "あめ",
+                "円": "えん",
+                "王": "おう",
+                "音": "おと",
+                "下": "した",
+                "火": "ひ",
+                "花": "はな",
+                "貝": "かい",
+                "学": "がく",
+                "気": "き",
+                "九": "きゅう",
+                "休": "やすみ",
+                "玉": "たま",
+                "金": "かね",
+                "空": "そら",
+                "月": "つき",
+                "犬": "いぬ",
+                "見": "み",
+                "五": "ご",
+                "口": "くち",
+                "校": "こう",
+                "左": "ひだり",
+                "三": "さん",
+                "山": "やま",
+                "子": "こ",
+                "四": "よん",
+                "糸": "いと",
+                "字": "じ",
+                "耳": "みみ",
+                "七": "なな",
+                "車": "くるま",
+                "手": "て",
+                "十": "とお",
+                "出": "で",
+                "女": "おんな",
+                "小": "こ",
+                "上": "うえ",
+                "森": "もり",
+                "人": "ひと",
+                "水": "みず",
+                "正": "せい",
+                "生": "なま",
+                "青": "あお",
+                "夕": "ゆう",
+                "石": "いし",
+                "赤": "あか",
+                "千": "せん",
+                "川": "かわ",
+                "先": "さき",
+                "早": "はや",
+                "草": "くさ",
+                "足": "あし",
+                "村": "むら",
+                "大": "おお",
+                "男": "おとこ",
+                "竹": "たけ",
+                "中": "なか",
+                "虫": "むし",
+                "町": "まち",
+                "天": "てん",
+                "田": "た",
+                "土": "つち",
+                "二": "に",
+                "日": "ひ",
+                "入": "いり",
+                "年": "とし",
+                "白": "しろ",
+                "八": "はち",
+                "百": "ひゃく",
+                "文": "ふみ",
+                "木": "き",
+                "本": "ほん",
+                "名": "な",
+                "目": "め",
+                "立": "たつ",
+                "力": "ちから",
+                "林": "はやし"
+            };
+
+            // ---- ROMAJI CONVERTER ----
+            var kanaToRomaji = (function() {
+                var single = {
+                    'あ': 'a',
+                    'い': 'i',
+                    'う': 'u',
+                    'え': 'e',
+                    'お': 'o',
+                    'か': 'ka',
+                    'き': 'ki',
+                    'く': 'ku',
+                    'け': 'ke',
+                    'こ': 'ko',
+                    'さ': 'sa',
+                    'し': 'shi',
+                    'す': 'su',
+                    'せ': 'se',
+                    'そ': 'so',
+                    'た': 'ta',
+                    'ち': 'chi',
+                    'つ': 'tsu',
+                    'て': 'te',
+                    'と': 'to',
+                    'な': 'na',
+                    'に': 'ni',
+                    'ぬ': 'nu',
+                    'ね': 'ne',
+                    'の': 'no',
+                    'は': 'ha',
+                    'ひ': 'hi',
+                    'ふ': 'fu',
+                    'へ': 'he',
+                    'ほ': 'ho',
+                    'ま': 'ma',
+                    'み': 'mi',
+                    'む': 'mu',
+                    'め': 'me',
+                    'も': 'mo',
+                    'や': 'ya',
+                    'ゆ': 'yu',
+                    'よ': 'yo',
+                    'ら': 'ra',
+                    'り': 'ri',
+                    'る': 'ru',
+                    'れ': 're',
+                    'ろ': 'ro',
+                    'わ': 'wa',
+                    'を': 'wo',
+                    'ん': 'n',
+                    'が': 'ga',
+                    'ぎ': 'gi',
+                    'ぐ': 'gu',
+                    'げ': 'ge',
+                    'ご': 'go',
+                    'ざ': 'za',
+                    'じ': 'ji',
+                    'ず': 'zu',
+                    'ぜ': 'ze',
+                    'ぞ': 'zo',
+                    'だ': 'da',
+                    'ぢ': 'ji',
+                    'づ': 'zu',
+                    'で': 'de',
+                    'ど': 'do',
+                    'ば': 'ba',
+                    'び': 'bi',
+                    'ぶ': 'bu',
+                    'べ': 'be',
+                    'ぼ': 'bo',
+                    'ぱ': 'pa',
+                    'ぴ': 'pi',
+                    'ぷ': 'pu',
+                    'ぺ': 'pe',
+                    'ぽ': 'po'
+                };
+                var combo = {
+                    'きゃ': 'kya',
+                    'きゅ': 'kyu',
+                    'きょ': 'kyo',
+                    'しゃ': 'sha',
+                    'しゅ': 'shu',
+                    'しょ': 'sho',
+                    'ちゃ': 'cha',
+                    'ちゅ': 'chu',
+                    'ちょ': 'cho',
+                    'にゃ': 'nya',
+                    'にゅ': 'nyu',
+                    'にょ': 'nyo',
+                    'ひゃ': 'hya',
+                    'ひゅ': 'hyu',
+                    'ひょ': 'hyo',
+                    'みゃ': 'mya',
+                    'みゅ': 'myu',
+                    'みょ': 'myo',
+                    'りゃ': 'rya',
+                    'りゅ': 'ryu',
+                    'りょ': 'ryo',
+                    'ぎゃ': 'gya',
+                    'ぎゅ': 'gyu',
+                    'ぎょ': 'gyo',
+                    'じゃ': 'ja',
+                    'じゅ': 'ju',
+                    'じょ': 'jo',
+                    'ぢゃ': 'ja',
+                    'ぢゅ': 'ju',
+                    'ぢょ': 'jo',
+                    'びゃ': 'bya',
+                    'びゅ': 'byu',
+                    'びょ': 'byo',
+                    'ぴゃ': 'pya',
+                    'ぴゅ': 'pyu',
+                    'ぴょ': 'pyo'
+                };
+                return function(hiragana) {
+                    if (!hiragana) return '';
+                    var result = '';
+                    var i = 0;
+                    while (i < hiragana.length) {
+                        if (i + 1 < hiragana.length) {
+                            var two = hiragana.substr(i, 2);
+                            if (combo[two]) {
+                                result += combo[two];
+                                i += 2;
+                                continue;
+                            }
+                        }
+                        var ch = hiragana[i];
+                        result += single[ch] || ch;
+                        i++;
+                    }
+                    return result;
+                };
+            })();
+
+            // ---- DỮ LIỆU TỪ VỰNG (ON/KUN + 5+ từ ghép cho mỗi kanji) ----
+            // Tôi đã mở rộng để mỗi kanji có ít nhất 5 từ.
+            var vocabData = {
+                "一": {
+                    on: "イチ",
+                    kun: "ひと",
+                    words: [
+                        { word: "一つ", reading: "ひとつ", meaning: "một cái" },
+                        { word: "一人", reading: "ひとり", meaning: "một người" },
+                        { word: "一日", reading: "ついたち", meaning: "ngày mùng 1" },
+                        { word: "一月", reading: "いちがつ", meaning: "tháng 1" },
+                        { word: "一年", reading: "いちねん", meaning: "một năm" }
+                    ]
+                },
+                "二": {
+                    on: "ニ",
+                    kun: "ふた",
+                    words: [
+                        { word: "二つ", reading: "ふたつ", meaning: "hai cái" },
+                        { word: "二人", reading: "ふたり", meaning: "hai người" },
+                        { word: "二月", reading: "にがつ", meaning: "tháng 2" },
+                        { word: "二日", reading: "ふつか", meaning: "ngày mùng 2" },
+                        { word: "二度", reading: "にど", meaning: "hai lần" }
+                    ]
+                },
+                "三": {
+                    on: "サン",
+                    kun: "みっ",
+                    words: [
+                        { word: "三つ", reading: "みっつ", meaning: "ba cái" },
+                        { word: "三人", reading: "さんにん", meaning: "ba người" },
+                        { word: "三月", reading: "さんがつ", meaning: "tháng 3" },
+                        { word: "三日", reading: "みっか", meaning: "ngày mùng 3" },
+                        { word: "三度", reading: "さんど", meaning: "ba lần" }
+                    ]
+                },
+                "四": {
+                    on: "シ",
+                    kun: "よん",
+                    words: [
+                        { word: "四つ", reading: "よっつ", meaning: "bốn cái" },
+                        { word: "四人", reading: "よにん", meaning: "bốn người" },
+                        { word: "四月", reading: "しがつ", meaning: "tháng 4" },
+                        { word: "四日", reading: "よっか", meaning: "ngày mùng 4" },
+                        { word: "四角", reading: "しかく", meaning: "hình vuông" }
+                    ]
+                },
+                "五": {
+                    on: "ゴ",
+                    kun: "いつ",
+                    words: [
+                        { word: "五つ", reading: "いつつ", meaning: "năm cái" },
+                        { word: "五人", reading: "ごにん", meaning: "năm người" },
+                        { word: "五月", reading: "ごがつ", meaning: "tháng 5" },
+                        { word: "五日", reading: "いつか", meaning: "ngày mùng 5" },
+                        { word: "五重", reading: "ごじゅう", meaning: "năm tầng" }
+                    ]
+                },
+                "六": {
+                    on: "ロク",
+                    kun: "むっ",
+                    words: [
+                        { word: "六つ", reading: "むっつ", meaning: "sáu cái" },
+                        { word: "六人", reading: "ろくにん", meaning: "sáu người" },
+                        { word: "六月", reading: "ろくがつ", meaning: "tháng 6" },
+                        { word: "六日", reading: "むいか", meaning: "ngày mùng 6" },
+                        { word: "六角", reading: "ろっかく", meaning: "hình lục giác" }
+                    ]
+                },
+                "七": {
+                    on: "シチ",
+                    kun: "なな",
+                    words: [
+                        { word: "七つ", reading: "ななつ", meaning: "bảy cái" },
+                        { word: "七人", reading: "しちにん", meaning: "bảy người" },
+                        { word: "七月", reading: "しちがつ", meaning: "tháng 7" },
+                        { word: "七日", reading: "なのか", meaning: "ngày mùng 7" },
+                        { word: "七歳", reading: "しちさい", meaning: "7 tuổi" }
+                    ]
+                },
+                "八": {
+                    on: "ハチ",
+                    kun: "やっ",
+                    words: [
+                        { word: "八つ", reading: "やっつ", meaning: "tám cái" },
+                        { word: "八人", reading: "はちにん", meaning: "tám người" },
+                        { word: "八月", reading: "はちがつ", meaning: "tháng 8" },
+                        { word: "八日", reading: "ようか", meaning: "ngày mùng 8" },
+                        { word: "八百", reading: "はっぴゃく", meaning: "tám trăm" }
+                    ]
+                },
+                "九": {
+                    on: "キュウ",
+                    kun: "ここの",
+                    words: [
+                        { word: "九つ", reading: "ここのつ", meaning: "chín cái" },
+                        { word: "九人", reading: "きゅうにん", meaning: "chín người" },
+                        { word: "九月", reading: "くがつ", meaning: "tháng 9" },
+                        { word: "九日", reading: "ここのか", meaning: "ngày mùng 9" },
+                        { word: "九州", reading: "きゅうしゅう", meaning: "Kyushu" }
+                    ]
+                },
+                "十": {
+                    on: "ジュウ",
+                    kun: "とお",
+                    words: [
+                        { word: "十", reading: "とお", meaning: "mười" },
+                        { word: "十日", reading: "とおか", meaning: "ngày mùng 10" },
+                        { word: "十月", reading: "じゅうがつ", meaning: "tháng 10" },
+                        { word: "十人", reading: "じゅうにん", meaning: "mười người" },
+                        { word: "十文字", reading: "じゅうもんじ", meaning: "hình chữ thập" }
+                    ]
+                },
+                "百": {
+                    on: "ヒャク",
+                    kun: "",
+                    words: [
+                        { word: "百", reading: "ひゃく", meaning: "một trăm" },
+                        { word: "三百", reading: "さんびゃく", meaning: "ba trăm" },
+                        { word: "六百", reading: "ろっぴゃく", meaning: "sáu trăm" },
+                        { word: "八百", reading: "はっぴゃく", meaning: "tám trăm" },
+                        { word: "百円", reading: "ひゃくえん", meaning: "100 yên" }
+                    ]
+                },
+                "千": {
+                    on: "セン",
+                    kun: "",
+                    words: [
+                        { word: "千", reading: "せん", meaning: "một nghìn" },
+                        { word: "三千", reading: "さんぜん", meaning: "ba nghìn" },
+                        { word: "八千", reading: "はっせん", meaning: "tám nghìn" },
+                        { word: "千円", reading: "せんえん", meaning: "1000 yên" },
+                        { word: "千年", reading: "せんねん", meaning: "một nghìn năm" }
+                    ]
+                },
+                "右": {
+                    on: "ウ",
+                    kun: "みぎ",
+                    words: [
+                        { word: "右", reading: "みぎ", meaning: "bên phải" },
+                        { word: "右手", reading: "みぎて", meaning: "tay phải" },
+                        { word: "右足", reading: "みぎあし", meaning: "chân phải" },
+                        { word: "右側", reading: "みぎがわ", meaning: "phía bên phải" },
+                        { word: "右折", reading: "うせつ", meaning: "rẽ phải" }
+                    ]
+                },
+                "雨": {
+                    on: "ウ",
+                    kun: "あめ",
+                    words: [
+                        { word: "雨", reading: "あめ", meaning: "mưa" },
+                        { word: "大雨", reading: "おおあめ", meaning: "mưa to" },
+                        { word: "小雨", reading: "こさめ", meaning: "mưa nhỏ" },
+                        { word: "雨具", reading: "あまぐ", meaning: "đồ dùng chống mưa" },
+                        { word: "雨降り", reading: "あめふり", meaning: "trời mưa" }
+                    ]
+                },
+                "円": {
+                    on: "エン",
+                    kun: "",
+                    words: [
+                        { word: "円", reading: "えん", meaning: "yên (tiền)" },
+                        { word: "百円", reading: "ひゃくえん", meaning: "100 yên" },
+                        { word: "千円", reading: "せんえん", meaning: "1000 yên" },
+                        { word: "円形", reading: "えんけい", meaning: "hình tròn" },
+                        { word: "円安", reading: "えんやす", meaning: "yên yếu" }
+                    ]
+                },
+                "王": {
+                    on: "オウ",
+                    kun: "",
+                    words: [
+                        { word: "王", reading: "おう", meaning: "vua" },
+                        { word: "王様", reading: "おうさま", meaning: "nhà vua" },
+                        { word: "王国", reading: "おうこく", meaning: "vương quốc" },
+                        { word: "王女", reading: "おうじょ", meaning: "công chúa" },
+                        { word: "王子", reading: "おうじ", meaning: "hoàng tử" }
+                    ]
+                },
+                "音": {
+                    on: "オン",
+                    kun: "おと",
+                    words: [
+                        { word: "音", reading: "おと", meaning: "âm thanh" },
+                        { word: "音楽", reading: "おんがく", meaning: "âm nhạc" },
+                        { word: "音読", reading: "おんどく", meaning: "đọc to" },
+                        { word: "音声", reading: "おんせい", meaning: "giọng nói" },
+                        { word: "音読み", reading: "おんよみ", meaning: "âm On" }
+                    ]
+                },
+                "下": {
+                    on: "カ・ゲ",
+                    kun: "した",
+                    words: [
+                        { word: "下", reading: "した", meaning: "dưới" },
+                        { word: "下着", reading: "したぎ", meaning: "đồ lót" },
+                        { word: "下がる", reading: "さがる", meaning: "hạ xuống" },
+                        { word: "下り", reading: "くだり", meaning: "xuống" },
+                        { word: "下町", reading: "したまち", meaning: "khu phố cổ" }
+                    ]
+                },
+                "火": {
+                    on: "カ",
+                    kun: "ひ",
+                    words: [
+                        { word: "火", reading: "ひ", meaning: "lửa" },
+                        { word: "火曜日", reading: "かようび", meaning: "thứ Ba" },
+                        { word: "花火", reading: "はなび", meaning: "pháo hoa" },
+                        { word: "火事", reading: "かじ", meaning: "hỏa hoạn" },
+                        { word: "火山", reading: "かざん", meaning: "núi lửa" }
+                    ]
+                },
+                "花": {
+                    on: "カ",
+                    kun: "はな",
+                    words: [
+                        { word: "花", reading: "はな", meaning: "hoa" },
+                        { word: "花火", reading: "はなび", meaning: "pháo hoa" },
+                        { word: "花瓶", reading: "かびん", meaning: "bình hoa" },
+                        { word: "花見", reading: "はなみ", meaning: "ngắm hoa" },
+                        { word: "花屋", reading: "はなや", meaning: "cửa hàng hoa" }
+                    ]
+                },
+                "貝": {
+                    on: "バイ",
+                    kun: "かい",
+                    words: [
+                        { word: "貝", reading: "かい", meaning: "sò, ốc" },
+                        { word: "貝殻", reading: "かいがら", meaning: "vỏ sò" },
+                        { word: "貝塚", reading: "かいづか", meaning: "đống vỏ" },
+                        { word: "貝柱", reading: "かいばしら", meaning: "thịt sò" }
+                    ]
+                },
+                "学": {
+                    on: "ガク",
+                    kun: "まな",
+                    words: [
+                        { word: "学校", reading: "がっこう", meaning: "trường học" },
+                        { word: "学生", reading: "がくせい", meaning: "học sinh" },
+                        { word: "勉強", reading: "べんきょう", meaning: "học tập" },
+                        { word: "学ぶ", reading: "まなぶ", meaning: "học" },
+                        { word: "大学", reading: "だいがく", meaning: "đại học" }
+                    ]
+                },
+                "気": {
+                    on: "キ",
+                    kun: "",
+                    words: [
+                        { word: "気", reading: "き", meaning: "tinh thần, khí" },
+                        { word: "天気", reading: "てんき", meaning: "thời tiết" },
+                        { word: "病気", reading: "びょうき", meaning: "bệnh" },
+                        { word: "元気", reading: "げんき", meaning: "khỏe mạnh" },
+                        { word: "気分", reading: "きぶん", meaning: "tâm trạng" }
+                    ]
+                },
+                "休": {
+                    on: "キュウ",
+                    kun: "やす",
+                    words: [
+                        { word: "休む", reading: "やすむ", meaning: "nghỉ" },
+                        { word: "休日", reading: "きゅうじつ", meaning: "ngày nghỉ" },
+                        { word: "夏休み", reading: "なつやすみ", meaning: "nghỉ hè" },
+                        { word: "冬休み", reading: "ふゆやすみ", meaning: "nghỉ đông" },
+                        { word: "休憩", reading: "きゅうけい", meaning: "nghỉ giải lao" }
+                    ]
+                },
+                "玉": {
+                    on: "ギョク",
+                    kun: "たま",
+                    words: [
+                        { word: "玉", reading: "たま", meaning: "viên, quả" },
+                        { word: "球", reading: "たま", meaning: "quả bóng" },
+                        { word: "宝石", reading: "ほうせき", meaning: "đá quý" },
+                        { word: "玉ねぎ", reading: "たまねぎ", meaning: "hành tây" },
+                        { word: "白玉", reading: "しろたま", meaning: "tròn trắng" }
+                    ]
+                },
+                "金": {
+                    on: "キン・コン",
+                    kun: "かね",
+                    words: [
+                        { word: "金", reading: "かね", meaning: "tiền, vàng" },
+                        { word: "金曜日", reading: "きんようび", meaning: "thứ Sáu" },
+                        { word: "お金", reading: "おかね", meaning: "tiền" },
+                        { word: "金貨", reading: "きんか", meaning: "tiền vàng" },
+                        { word: "金魚", reading: "きんぎょ", meaning: "cá vàng" }
+                    ]
+                },
+                "空": {
+                    on: "クウ",
+                    kun: "そら",
+                    words: [
+                        { word: "空", reading: "そら", meaning: "bầu trời" },
+                        { word: "空気", reading: "くうき", meaning: "không khí" },
+                        { word: "空手", reading: "からて", meaning: "karate" },
+                        { word: "空港", reading: "くうこう", meaning: "sân bay" },
+                        { word: "空想", reading: "くうそう", meaning: "tưởng tượng" }
+                    ]
+                },
+                "月": {
+                    on: "ゲツ・ガツ",
+                    kun: "つき",
+                    words: [
+                        { word: "月", reading: "つき", meaning: "mặt trăng" },
+                        { word: "月曜日", reading: "げつようび", meaning: "thứ Hai" },
+                        { word: "一月", reading: "いちがつ", meaning: "tháng 1" },
+                        { word: "月給", reading: "げっきゅう", meaning: "lương tháng" },
+                        { word: "月見", reading: "つきみ", meaning: "ngắm trăng" }
+                    ]
+                },
+                "犬": {
+                    on: "ケン",
+                    kun: "いぬ",
+                    words: [
+                        { word: "犬", reading: "いぬ", meaning: "chó" },
+                        { word: "子犬", reading: "こいぬ", meaning: "chó con" },
+                        { word: "犬小屋", reading: "いぬごや", meaning: "chuồng chó" },
+                        { word: "野犬", reading: "やけん", meaning: "chó hoang" },
+                        { word: "愛犬", reading: "あいけん", meaning: "chó cưng" }
+                    ]
+                },
+                "見": {
+                    on: "ケン",
+                    kun: "み",
+                    words: [
+                        { word: "見る", reading: "みる", meaning: "nhìn" },
+                        { word: "見える", reading: "みえる", meaning: "có thể nhìn thấy" },
+                        { word: "見物", reading: "けんぶつ", meaning: "tham quan" },
+                        { word: "見学", reading: "けんがく", meaning: "tham quan học tập" },
+                        { word: "見事", reading: "みごと", meaning: "tuyệt vời" }
+                    ]
+                },
+                "口": {
+                    on: "コウ",
+                    kun: "くち",
+                    words: [
+                        { word: "口", reading: "くち", meaning: "miệng" },
+                        { word: "口内", reading: "こうない", meaning: "trong miệng" },
+                        { word: "口調", reading: "くちょう", meaning: "giọng điệu" },
+                        { word: "口笛", reading: "くちぶえ", meaning: "huýt sáo" },
+                        { word: "口答え", reading: "くちこたえ", meaning: "cãi lại" }
+                    ]
+                },
+                "校": {
+                    on: "コウ",
+                    kun: "",
+                    words: [
+                        { word: "学校", reading: "がっこう", meaning: "trường học" },
+                        { word: "校庭", reading: "こうてい", meaning: "sân trường" },
+                        { word: "校長", reading: "こうちょう", meaning: "hiệu trưởng" },
+                        { word: "校舎", reading: "こうしゃ", meaning: "tòa nhà trường" },
+                        { word: "校則", reading: "こうそく", meaning: "nội quy trường" }
+                    ]
+                },
+                "左": {
+                    on: "サ",
+                    kun: "ひだり",
+                    words: [
+                        { word: "左", reading: "ひだり", meaning: "trái" },
+                        { word: "左手", reading: "ひだりて", meaning: "tay trái" },
+                        { word: "左足", reading: "ひだりあし", meaning: "chân trái" },
+                        { word: "左側", reading: "ひだりがわ", meaning: "bên trái" },
+                        { word: "左折", reading: "させつ", meaning: "rẽ trái" }
+                    ]
+                },
+                "山": {
+                    on: "サン",
+                    kun: "やま",
+                    words: [
+                        { word: "山", reading: "やま", meaning: "núi" },
+                        { word: "火山", reading: "かざん", meaning: "núi lửa" },
+                        { word: "山登り", reading: "やまのぼり", meaning: "leo núi" },
+                        { word: "山脈", reading: "さんみゃく", meaning: "dãy núi" },
+                        { word: "山頂", reading: "さんちょう", meaning: "đỉnh núi" }
+                    ]
+                },
+                "子": {
+                    on: "シ",
+                    kun: "こ",
+                    words: [
+                        { word: "子", reading: "こ", meaning: "trẻ con" },
+                        { word: "子供", reading: "こども", meaning: "trẻ em" },
+                        { word: "女子", reading: "じょし", meaning: "con gái" },
+                        { word: "男子", reading: "だんし", meaning: "con trai" },
+                        { word: "子犬", reading: "こいぬ", meaning: "chó con" }
+                    ]
+                },
+                "糸": {
+                    on: "シ",
+                    kun: "いと",
+                    words: [
+                        { word: "糸", reading: "いと", meaning: "sợi chỉ" },
+                        { word: "糸巻き", reading: "いとまき", meaning: "cuộn chỉ" },
+                        { word: "糸車", reading: "いとぐるま", meaning: "con quay sợi" }
+                    ]
+                },
+                "字": {
+                    on: "ジ",
+                    kun: "",
+                    words: [
+                        { word: "漢字", reading: "かんじ", meaning: "chữ Hán" },
+                        { word: "文字", reading: "もじ", meaning: "chữ cái" },
+                        { word: "数字", reading: "すうじ", meaning: "chữ số" },
+                        { word: "字体", reading: "じたい", meaning: "kiểu chữ" },
+                        { word: "字引", reading: "じびき", meaning: "từ điển" }
+                    ]
+                },
+                "耳": {
+                    on: "ジ",
+                    kun: "みみ",
+                    words: [
+                        { word: "耳", reading: "みみ", meaning: "tai" },
+                        { word: "耳鼻科", reading: "じびか", meaning: "khoa tai mũi họng" },
+                        { word: "耳栓", reading: "みみせん", meaning: "nút tai" },
+                        { word: "耳飾り", reading: "みみかざり", meaning: "hoa tai" }
+                    ]
+                },
+                "車": {
+                    on: "シャ",
+                    kun: "くるま",
+                    words: [
+                        { word: "車", reading: "くるま", meaning: "xe" },
+                        { word: "電車", reading: "でんしゃ", meaning: "tàu điện" },
+                        { word: "自動車", reading: "じどうしゃ", meaning: "ô tô" },
+                        { word: "車椅子", reading: "くるまいす", meaning: "xe lăn" },
+                        { word: "駐車", reading: "ちゅうしゃ", meaning: "đỗ xe" }
+                    ]
+                },
+                "手": {
+                    on: "シュ",
+                    kun: "て",
+                    words: [
+                        { word: "手", reading: "て", meaning: "tay" },
+                        { word: "上手", reading: "じょうず", meaning: "giỏi" },
+                        { word: "手紙", reading: "てがみ", meaning: "thư từ" },
+                        { word: "手伝う", reading: "てつだう", meaning: "giúp đỡ" },
+                        { word: "手袋", reading: "てぶくろ", meaning: "găng tay" }
+                    ]
+                },
+                "出": {
+                    on: "シュツ",
+                    kun: "で",
+                    words: [
+                        { word: "出る", reading: "でる", meaning: "ra" },
+                        { word: "出口", reading: "でぐち", meaning: "lối ra" },
+                        { word: "出かける", reading: "でかける", meaning: "đi ra ngoài" },
+                        { word: "出会う", reading: "であう", meaning: "gặp gỡ" },
+                        { word: "出身", reading: "しゅっしん", meaning: "quê quán" }
+                    ]
+                },
+                "女": {
+                    on: "ジョ",
+                    kun: "おんな",
+                    words: [
+                        { word: "女", reading: "おんな", meaning: "đàn bà" },
+                        { word: "女子", reading: "じょし", meaning: "con gái" },
+                        { word: "女の子", reading: "おんなのこ", meaning: "bé gái" },
+                        { word: "女性", reading: "じょせい", meaning: "phụ nữ" },
+                        { word: "女神", reading: "めがみ", meaning: "nữ thần" }
+                    ]
+                },
+                "小": {
+                    on: "ショウ",
+                    kun: "ちい",
+                    words: [
+                        { word: "小さい", reading: "ちいさい", meaning: "nhỏ" },
+                        { word: "小学校", reading: "しょうがっこう", meaning: "trường tiểu học" },
+                        { word: "小さな", reading: "ちいさな", meaning: "nhỏ bé" },
+                        { word: "小川", reading: "おがわ", meaning: "suối" },
+                        { word: "小鳥", reading: "ことり", meaning: "chim nhỏ" }
+                    ]
+                },
+                "上": {
+                    on: "ジョウ",
+                    kun: "うえ",
+                    words: [
+                        { word: "上", reading: "うえ", meaning: "trên" },
+                        { word: "上手", reading: "じょうず", meaning: "giỏi" },
+                        { word: "上着", reading: "うわぎ", meaning: "áo khoác" },
+                        { word: "上がる", reading: "あがる", meaning: "lên" },
+                        { word: "上達", reading: "じょうたつ", meaning: "tiến bộ" }
+                    ]
+                },
+                "森": {
+                    on: "シン",
+                    kun: "もり",
+                    words: [
+                        { word: "森", reading: "もり", meaning: "rừng" },
+                        { word: "森林", reading: "しんりん", meaning: "rừng cây" },
+                        { word: "森の中", reading: "もりのなか", meaning: "trong rừng" }
+                    ]
+                },
+                "人": {
+                    on: "ジン・ニン",
+                    kun: "ひと",
+                    words: [
+                        { word: "人", reading: "ひと", meaning: "người" },
+                        { word: "日本人", reading: "にほんじん", meaning: "người Nhật" },
+                        { word: "人間", reading: "にんげん", meaning: "con người" },
+                        { word: "人口", reading: "じんこう", meaning: "dân số" },
+                        { word: "人工", reading: "じんこう", meaning: "nhân tạo" }
+                    ]
+                },
+                "水": {
+                    on: "スイ",
+                    kun: "みず",
+                    words: [
+                        { word: "水", reading: "みず", meaning: "nước" },
+                        { word: "水曜日", reading: "すいようび", meaning: "thứ Tư" },
+                        { word: "水泳", reading: "すいえい", meaning: "bơi lội" },
+                        { word: "水着", reading: "みずぎ", meaning: "áo tắm" },
+                        { word: "水道", reading: "すいどう", meaning: "vòi nước" }
+                    ]
+                },
+                "正": {
+                    on: "セイ",
+                    kun: "ただ",
+                    words: [
+                        { word: "正しい", reading: "ただしい", meaning: "đúng" },
+                        { word: "正月", reading: "しょうがつ", meaning: "tháng Giêng" },
+                        { word: "正午", reading: "しょうご", meaning: "buổi trưa" },
+                        { word: "正直", reading: "しょうじき", meaning: "thật thà" },
+                        { word: "正解", reading: "せいかい", meaning: "đáp án đúng" }
+                    ]
+                },
+                "生": {
+                    on: "セイ",
+                    kun: "い",
+                    words: [
+                        { word: "生きる", reading: "いきる", meaning: "sống" },
+                        { word: "生まれる", reading: "うまれる", meaning: "sinh ra" },
+                        { word: "学生", reading: "がくせい", meaning: "học sinh" },
+                        { word: "人生", reading: "じんせい", meaning: "cuộc đời" },
+                        { word: "生花", reading: "いけばな", meaning: "hoa cắm" }
+                    ]
+                },
+                "青": {
+                    on: "セイ",
+                    kun: "あお",
+                    words: [
+                        { word: "青", reading: "あお", meaning: "xanh" },
+                        { word: "青空", reading: "あおぞら", meaning: "trời xanh" },
+                        { word: "青虫", reading: "あおむし", meaning: "sâu xanh" },
+                        { word: "青い", reading: "あおい", meaning: "màu xanh" }
+                    ]
+                },
+                "夕": {
+                    on: "セキ",
+                    kun: "ゆう",
+                    words: [
+                        { word: "夕方", reading: "ゆうがた", meaning: "chiều" },
+                        { word: "夕日", reading: "ゆうひ", meaning: "mặt trời lặn" },
+                        { word: "夕飯", reading: "ゆうはん", meaning: "bữa tối" },
+                        { word: "夕焼け", reading: "ゆうやけ", meaning: "hoàng hôn" }
+                    ]
+                },
+                "石": {
+                    on: "セキ",
+                    kun: "いし",
+                    words: [
+                        { word: "石", reading: "いし", meaning: "đá" },
+                        { word: "石油", reading: "せきゆ", meaning: "dầu mỏ" },
+                        { word: "石けん", reading: "せっけん", meaning: "xà phòng" },
+                        { word: "宝石", reading: "ほうせき", meaning: "đá quý" }
+                    ]
+                },
+                "赤": {
+                    on: "セキ",
+                    kun: "あか",
+                    words: [
+                        { word: "赤", reading: "あか", meaning: "đỏ" },
+                        { word: "赤ちゃん", reading: "あかちゃん", meaning: "em bé" },
+                        { word: "赤色", reading: "あかいろ", meaning: "màu đỏ" },
+                        { word: "赤信号", reading: "あかしんごう", meaning: "đèn đỏ" }
+                    ]
+                },
+                "川": {
+                    on: "セン",
+                    kun: "かわ",
+                    words: [
+                        { word: "川", reading: "かわ", meaning: "sông" },
+                        { word: "川岸", reading: "かわぎし", meaning: "bờ sông" },
+                        { word: "川底", reading: "かわぞこ", meaning: "lòng sông" },
+                        { word: "川沿い", reading: "かわぞい", meaning: "dọc sông" }
+                    ]
+                },
+                "先": {
+                    on: "セン",
+                    kun: "さき",
+                    words: [
+                        { word: "先", reading: "さき", meaning: "trước" },
+                        { word: "先週", reading: "せんしゅう", meaning: "tuần trước" },
+                        { word: "先生", reading: "せんせい", meaning: "thầy giáo" },
+                        { word: "先月", reading: "せんげつ", meaning: "tháng trước" },
+                        { word: "先日", reading: "せんじつ", meaning: "ngày trước" }
+                    ]
+                },
+                "早": {
+                    on: "ソウ",
+                    kun: "はや",
+                    words: [
+                        { word: "早い", reading: "はやい", meaning: "nhanh, sớm" },
+                        { word: "早口", reading: "はやくち", meaning: "nói nhanh" },
+                        { word: "早朝", reading: "そうちょう", meaning: "sáng sớm" },
+                        { word: "早速", reading: "さっそく", meaning: "ngay lập tức" }
+                    ]
+                },
+                "草": {
+                    on: "ソウ",
+                    kun: "くさ",
+                    words: [
+                        { word: "草", reading: "くさ", meaning: "cỏ" },
+                        { word: "草花", reading: "くさばな", meaning: "hoa cỏ" },
+                        { word: "草むら", reading: "くさむら", meaning: "bụi cỏ" },
+                        { word: "草履", reading: "ぞうり", meaning: "dép cỏ" }
+                    ]
+                },
+                "足": {
+                    on: "ソク",
+                    kun: "あし",
+                    words: [
+                        { word: "足", reading: "あし", meaning: "chân" },
+                        { word: "足りる", reading: "たりる", meaning: "đủ" },
+                        { word: "足す", reading: "たす", meaning: "cộng thêm" },
+                        { word: "足音", reading: "あしおと", meaning: "tiếng bước chân" },
+                        { word: "足跡", reading: "あしあと", meaning: "dấu chân" }
+                    ]
+                },
+                "村": {
+                    on: "ソン",
+                    kun: "むら",
+                    words: [
+                        { word: "村", reading: "むら", meaning: "làng" },
+                        { word: "村民", reading: "そんみん", meaning: "dân làng" },
+                        { word: "村長", reading: "そんちょう", meaning: "trưởng thôn" },
+                        { word: "村中", reading: "むらじゅう", meaning: "cả làng" }
+                    ]
+                },
+                "大": {
+                    on: "ダイ",
+                    kun: "おお",
+                    words: [
+                        { word: "大きい", reading: "おおきい", meaning: "to lớn" },
+                        { word: "大学", reading: "だいがく", meaning: "đại học" },
+                        { word: "大好き", reading: "だいすき", meaning: "rất thích" },
+                        { word: "大事件", reading: "だいじけん", meaning: "sự kiện lớn" },
+                        { word: "大金", reading: "たいきん", meaning: "số tiền lớn" }
+                    ]
+                },
+                "男": {
+                    on: "ダン",
+                    kun: "おとこ",
+                    words: [
+                        { word: "男", reading: "おとこ", meaning: "đàn ông" },
+                        { word: "男の子", reading: "おとこのこ", meaning: "bé trai" },
+                        { word: "男女", reading: "だんじょ", meaning: "nam nữ" },
+                        { word: "男性", reading: "だんせい", meaning: "nam giới" },
+                        { word: "男優", reading: "だんゆう", meaning: "nam diễn viên" }
+                    ]
+                },
+                "竹": {
+                    on: "チク",
+                    kun: "たけ",
+                    words: [
+                        { word: "竹", reading: "たけ", meaning: "tre" },
+                        { word: "竹林", reading: "ちくりん", meaning: "rừng tre" },
+                        { word: "竹の子", reading: "たけのこ", meaning: "măng tre" },
+                        { word: "竹刀", reading: "しない", meaning: "kiếm tập" }
+                    ]
+                },
+                "中": {
+                    on: "チュウ",
+                    kun: "なか",
+                    words: [
+                        { word: "中", reading: "なか", meaning: "trong, giữa" },
+                        { word: "中学校", reading: "ちゅうがっこう", meaning: "trung học cơ sở" },
+                        { word: "中国", reading: "ちゅうごく", meaning: "Trung Quốc" },
+                        { word: "中級", reading: "ちゅうきゅう", meaning: "trung cấp" },
+                        { word: "中身", reading: "なかみ", meaning: "nội dung" }
+                    ]
+                },
+                "虫": {
+                    on: "チュウ",
+                    kun: "むし",
+                    words: [
+                        { word: "虫", reading: "むし", meaning: "côn trùng" },
+                        { word: "虫歯", reading: "むしば", meaning: "sâu răng" },
+                        { word: "虫眼鏡", reading: "むしめがね", meaning: "kính lúp" },
+                        { word: "害虫", reading: "がいちゅう", meaning: "sâu bọ" }
+                    ]
+                },
+                "町": {
+                    on: "チョウ",
+                    kun: "まち",
+                    words: [
+                        { word: "町", reading: "まち", meaning: "thị trấn" },
+                        { word: "町内", reading: "ちょうない", meaning: "trong thị trấn" },
+                        { word: "町長", reading: "ちょうちょう", meaning: "thị trưởng" },
+                        { word: "町中", reading: "まちじゅう", meaning: "khắp thị trấn" }
+                    ]
+                },
+                "天": {
+                    on: "テン",
+                    kun: "",
+                    words: [
+                        { word: "天", reading: "てん", meaning: "trời" },
+                        { word: "天気", reading: "てんき", meaning: "thời tiết" },
+                        { word: "天国", reading: "てんごく", meaning: "thiên đường" },
+                        { word: "天才", reading: "てんさい", meaning: "thiên tài" },
+                        { word: "天文", reading: "てんもん", meaning: "thiên văn" }
+                    ]
+                },
+                "田": {
+                    on: "デン",
+                    kun: "た",
+                    words: [
+                        { word: "田", reading: "た", meaning: "ruộng" },
+                        { word: "田んぼ", reading: "たんぼ", meaning: "cánh đồng" },
+                        { word: "田園", reading: "でんえん", meaning: "đồng quê" },
+                        { word: "田舎", reading: "いなか", meaning: "quê" },
+                        { word: "田植え", reading: "たうえ", meaning: "cấy lúa" }
+                    ]
+                },
+                "土": {
+                    on: "ド・ト",
+                    kun: "つち",
+                    words: [
+                        { word: "土", reading: "つち", meaning: "đất" },
+                        { word: "土曜日", reading: "どようび", meaning: "thứ Bảy" },
+                        { word: "土木", reading: "どぼく", meaning: "xây dựng" },
+                        { word: "土産", reading: "みやげ", meaning: "quà lưu niệm" },
+                        { word: "土地", reading: "とち", meaning: "đất đai" }
+                    ]
+                },
+                "日": {
+                    on: "ニチ・ジツ",
+                    kun: "ひ・か",
+                    words: [
+                        { word: "日本", reading: "にほん", meaning: "Nhật Bản" },
+                        { word: "今日", reading: "きょう", meaning: "hôm nay" },
+                        { word: "明日", reading: "あした", meaning: "ngày mai" },
+                        { word: "毎日", reading: "まいにち", meaning: "mỗi ngày" },
+                        { word: "三日", reading: "みっか", meaning: "ngày mùng 3" }
+                    ]
+                },
+                "入": {
+                    on: "ニュウ",
+                    kun: "い",
+                    words: [
+                        { word: "入る", reading: "はいる", meaning: "vào" },
+                        { word: "入口", reading: "いりぐち", meaning: "lối vào" },
+                        { word: "入学", reading: "にゅうがく", meaning: "nhập học" },
+                        { word: "入力", reading: "にゅうりょく", meaning: "nhập dữ liệu" },
+                        { word: "入浴", reading: "にゅうよく", meaning: "tắm" }
+                    ]
+                },
+                "年": {
+                    on: "ネン",
+                    kun: "とし",
+                    words: [
+                        { word: "年", reading: "とし", meaning: "tuổi, năm" },
+                        { word: "一年", reading: "いちねん", meaning: "một năm" },
+                        { word: "今年", reading: "ことし", meaning: "năm nay" },
+                        { word: "毎年", reading: "まいとし", meaning: "mỗi năm" },
+                        { word: "年賀", reading: "ねんが", meaning: "chúc mừng năm mới" }
+                    ]
+                },
+                "白": {
+                    on: "ハク",
+                    kun: "しろ",
+                    words: [
+                        { word: "白", reading: "しろ", meaning: "màu trắng" },
+                        { word: "白い", reading: "しろい", meaning: "trắng" },
+                        { word: "白黒", reading: "しろくろ", meaning: "đen trắng" },
+                        { word: "白米", reading: "はくまい", meaning: "gạo trắng" },
+                        { word: "白紙", reading: "はくし", meaning: "giấy trắng" }
+                    ]
+                },
+                "文": {
+                    on: "ブン",
+                    kun: "ふみ",
+                    words: [
+                        { word: "文", reading: "ふみ", meaning: "văn bản" },
+                        { word: "文学", reading: "ぶんがく", meaning: "văn học" },
+                        { word: "文字", reading: "もじ", meaning: "chữ viết" },
+                        { word: "文化", reading: "ぶんか", meaning: "văn hóa" },
+                        { word: "文章", reading: "ぶんしょう", meaning: "bài viết" }
+                    ]
+                },
+                "木": {
+                    on: "モク・ボク",
+                    kun: "き",
+                    words: [
+                        { word: "木", reading: "き", meaning: "cây" },
+                        { word: "木曜日", reading: "もくようび", meaning: "thứ Năm" },
+                        { word: "林", reading: "はやし", meaning: "rừng" },
+                        { word: "木片", reading: "きへん", meaning: "mảnh gỗ" },
+                        { word: "木の実", reading: "きのみ", meaning: "trái cây" }
+                    ]
+                },
+                "本": {
+                    on: "ホン",
+                    kun: "もと",
+                    words: [
+                        { word: "本", reading: "ほん", meaning: "cuốn sách" },
+                        { word: "日本", reading: "にほん", meaning: "Nhật Bản" },
+                        { word: "本物", reading: "ほんもの", meaning: "thật, chính cống" },
+                        { word: "本棚", reading: "ほんだな", meaning: "giá sách" },
+                        { word: "本屋", reading: "ほんや", meaning: "hiệu sách" }
+                    ]
+                },
+                "名": {
+                    on: "メイ・ミョウ",
+                    kun: "な",
+                    words: [
+                        { word: "名前", reading: "なまえ", meaning: "tên" },
+                        { word: "名", reading: "な", meaning: "tên" },
+                        { word: "有名", reading: "ゆうめい", meaning: "nổi tiếng" },
+                        { word: "名作", reading: "めいさく", meaning: "kiệt tác" },
+                        { word: "名人", reading: "めいじん", meaning: "bậc thầy" }
+                    ]
+                },
+                "目": {
+                    on: "モク",
+                    kun: "め",
+                    words: [
+                        { word: "目", reading: "め", meaning: "mắt" },
+                        { word: "目玉", reading: "めだま", meaning: "nhãn cầu" },
+                        { word: "目標", reading: "もくひょう", meaning: "mục tiêu" },
+                        { word: "目的", reading: "もくてき", meaning: "mục đích" },
+                        { word: "目次", reading: "もくじ", meaning: "mục lục" }
+                    ]
+                },
+                "立": {
+                    on: "リツ",
+                    kun: "た",
+                    words: [
+                        { word: "立つ", reading: "たつ", meaning: "đứng" },
+                        { word: "立ち上がる", reading: "たちあがる", meaning: "đứng lên" },
+                        { word: "独立", reading: "どくりつ", meaning: "độc lập" },
+                        { word: "立場", reading: "たちば", meaning: "lập trường" },
+                        { word: "立派", reading: "りっぱ", meaning: "xuất sắc" }
+                    ]
+                },
+                "力": {
+                    on: "リョク",
+                    kun: "ちから",
+                    words: [
+                        { word: "力", reading: "ちから", meaning: "sức mạnh" },
+                        { word: "体力", reading: "たいりょく", meaning: "thể lực" },
+                        { word: "努力", reading: "どりょく", meaning: "nỗ lực" },
+                        { word: "能力", reading: "のうりょく", meaning: "năng lực" },
+                        { word: "力強い", reading: "ちからづよい", meaning: "mạnh mẽ" }
+                    ]
+                },
+                "林": {
+                    on: "リン",
+                    kun: "はやし",
+                    words: [
+                        { word: "林", reading: "はやし", meaning: "rừng" },
+                        { word: "森林", reading: "しんりん", meaning: "rừng cây" },
+                        { word: "林道", reading: "りんどう", meaning: "đường rừng" },
+                        { word: "林業", reading: "りんぎょう", meaning: "lâm nghiệp" }
+                    ]
+                }
+            };
+
+            // ---- HÀM LẤY DỮ LIỆU TỪ VỰNG ----
+            function getVocab(kanji) {
+                var def = vocabData[kanji];
+                if (!def) {
+                    var on = readings[kanji] ? readings[kanji].toUpperCase() : "?";
+                    var kun = readings[kanji] || "?";
+                    return {
+                        on: on,
+                        kun: kun,
+                        words: [
+                            { word: kanji, reading: readings[kanji] || "", meaning: "（chưa có dữ liệu）" }
+                        ]
+                    };
+                }
+                return def;
+            }
+
+            // ---- SẮP XẾP KANJI THEO SỐ NÉT ----
+            var kanjiData = rawKanjiList.slice();
+            kanjiData.sort(function(a, b) {
+                return strokeCounts[a] - strokeCounts[b];
+            });
+
+            // ---- BIẾN TOÀN CỤC ----
+            var canvas, ctx, gif, trace, title, home, learn, grid, searchInput, searchClear, searchStats;
+            var onReading, kunReading, strokeCount, vocabBody;
+            var drawing = false;
+            var currentIndex = 0;
+            var currentFilter = '';
+            var currentKanji = '';
+            var savedMap = {};
+
+            // ---- KHỞI TẠO ----
+            function init() {
+                home = document.getElementById('home-screen');
+                learn = document.getElementById('learn-screen');
+                canvas = document.getElementById('canvas');
+                ctx = canvas.getContext('2d');
+                gif = document.getElementById('kanji-gif');
+                trace = document.getElementById('trace-text');
+                title = document.getElementById('current-title');
+                grid = document.getElementById('kanjiGrid');
+                searchInput = document.getElementById('searchInput');
+                searchClear = document.getElementById('searchClear');
+                searchStats = document.getElementById('searchStats');
+                onReading = document.getElementById('onReading');
+                kunReading = document.getElementById('kunReading');
+                strokeCount = document.getElementById('strokeCount');
+                vocabBody = document.getElementById('vocabBody');
+
+                loadSaved();
+                renderGrid();
+
+                canvas.addEventListener('mousedown', startDrawing);
+                canvas.addEventListener('mousemove', draw);
+                canvas.addEventListener('mouseup', stopDrawing);
+                canvas.addEventListener('mouseleave', stopDrawing);
+                canvas.addEventListener('touchstart', startDrawing, { passive: false });
+                canvas.addEventListener('touchmove', draw, { passive: false });
+                canvas.addEventListener('touchend', stopDrawing);
+                canvas.addEventListener('touchcancel', stopDrawing);
+
+                window.addEventListener('resize', function() {
+                    requestAnimationFrame(resizeCanvas);
+                });
+                window.addEventListener('orientationchange', function() {
+                    setTimeout(function() { requestAnimationFrame(resizeCanvas); }, 100);
+                });
+
+                searchInput.addEventListener('input', onSearchInput);
+                searchClear.addEventListener('click', clearSearch);
+                searchInput.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') {
+                        clearSearch();
+                        searchInput.blur();
+                    }
+                });
+            }
+
+            // ---- LƯU / TẢI DỮ LIỆU ----
+            function saveSaved() {
+                try {
+                    var data = JSON.stringify(savedMap);
+                    localStorage.setItem('kanji_saved', data);
+                } catch (e) {}
+            }
+
+            function loadSaved() {
+                try {
+                    var data = localStorage.getItem('kanji_saved');
+                    if (data) {
+                        savedMap = JSON.parse(data);
+                        for (var key in savedMap) {
+                            if (kanjiData.indexOf(key) === -1) {
+                                delete savedMap[key];
+                            }
+                        }
+                    }
+                } catch (e) {}
+            }
+
+            // ---- TÌM KIẾM ----
+            function onSearchInput() {
+                var q = searchInput.value;
+                currentFilter = q;
+                searchClear.classList.toggle('visible', q.length > 0);
+                renderGrid();
+            }
+
+            function clearSearch() {
+                searchInput.value = '';
+                currentFilter = '';
+                searchClear.classList.remove('visible');
+                renderGrid();
+                searchInput.focus();
+            }
+
+            function filterKanji(query) {
+                var trimmed = query.trim();
+                if (!trimmed) return kanjiData;
+                var q = trimmed.toLowerCase();
+                var hasKanji = /[\u4e00-\u9faf]/.test(q);
+                var results = [];
+                for (var i = 0; i < kanjiData.length; i++) {
+                    var k = kanjiData[i];
+                    var reading = readings[k] || '';
+                    var romaji = kanaToRomaji(reading).toLowerCase();
+                    var matchKanji = k.includes(q);
+                    var matchReading = reading.includes(q);
+                    var matchRomaji = romaji.includes(q);
+                    if (hasKanji) {
+                        if (matchKanji) results.push(k);
+                    } else {
+                        if (matchKanji || matchReading || matchRomaji) {
+                            results.push(k);
+                        }
+                    }
+                }
+                return results;
+            }
+
+            // ---- RENDER GRID ----
+            function renderGrid() {
+                var filtered = filterKanji(currentFilter);
+                var total = kanjiData.length;
+                var found = filtered.length;
+
+                if (currentFilter.trim()) {
+                    searchStats.innerHTML = '🔍 Tìm thấy <em>' + found + '</em> / ' + total + ' Kanji';
+                } else {
+                    searchStats.innerHTML = 'Tổng số <em>' + total + '</em> Kanji';
+                }
+
+                grid.innerHTML = '';
+
+                if (found === 0) {
+                    var empty = document.createElement('div');
+                    empty.className = 'no-results';
+                    empty.innerHTML = '<span>🔎</span> Không tìm thấy Kanji nào cho “' + currentFilter.trim() + '”';
+                    grid.appendChild(empty);
+                    return;
+                }
+
+                var isSearching = currentFilter.trim().length > 0;
+
+                for (var i = 0; i < filtered.length; i++) {
+                    var k = filtered[i];
+                    var card = document.createElement('div');
+                    card.className = 'card-kanji';
+                    if (savedMap[k]) {
+                        card.classList.add('saved');
+                    }
+                    card.dataset.kanji = k;
+
+                    var kanjiSpan = document.createElement('span');
+                    kanjiSpan.className = 'kanji-only';
+                    kanjiSpan.textContent = k;
+                    card.appendChild(kanjiSpan);
+
+                    if (isSearching) {
+                        var reading = readings[k] || '';
+                        if (reading) {
+                            var readingSpan = document.createElement('span');
+                            readingSpan.className = 'reading-sm';
+                            readingSpan.textContent = reading;
+                            card.appendChild(readingSpan);
+                        }
+                    }
+
+                    card.onclick = (function(kanji) {
+                        return function() { startLearn(kanji); };
+                    })(k);
+
+                    grid.appendChild(card);
+                }
+            }
+
+            // ---- HIỂN THỊ TỪ VỰNG ----
+            function renderVocab(kanji) {
+                var data = getVocab(kanji);
+                onReading.textContent = 'ON: ' + data.on;
+                kunReading.textContent = 'KUN: ' + data.kun;
+                strokeCount.textContent = '画: ' + (strokeCounts[kanji] || '?');
+
+                var html = '';
+                var words = data.words || [];
+                if (words.length === 0) {
+                    html = '<tr><td colspan="3" style="text-align:center;color:#aaa;">Chưa có từ vựng</td></tr>';
+                } else {
+                    for (var i = 0; i < words.length; i++) {
+                        var w = words[i];
+                        html += '<tr>' +
+                            '<td class="word">' + w.word + '</td>' +
+                            '<td class="reading">' + w.reading + '</td>' +
+                            '<td class="meaning">' + w.meaning + '</td>' +
+                            '</tr>';
+                    }
+                }
+                vocabBody.innerHTML = html;
+            }
+
+            // ---- HỌC KANJI ----
+            function updateLearnScreen(k) {
+                currentKanji = k;
+                var reading = readings[k] || '';
+                title.innerText = k + (reading ? ' (' + reading + ')' : '');
+                trace.innerText = k;
+                gif.src = k + '-order.gif';
+                gif.style.display = '';
+                clearBoard();
+                renderVocab(k);
+                requestAnimationFrame(function() {
+                    setTimeout(resizeCanvas, 50);
+                });
+            }
+
+            function startLearn(k) {
+                if (currentKanji && currentKanji !== k) {
+                    saveCurrent();
+                }
+                home.style.display = 'none';
+                learn.style.display = 'flex';
+                currentIndex = kanjiData.indexOf(k);
+                if (currentIndex === -1) currentIndex = 0;
+                updateLearnScreen(k);
+            }
+
+            window.prevKanji = function() {
+                if (currentIndex > 0) {
+                    saveCurrent();
+                    currentIndex--;
+                    updateLearnScreen(kanjiData[currentIndex]);
+                }
+            };
+
+            window.nextKanji = function() {
+                if (currentIndex < kanjiData.length - 1) {
+                    saveCurrent();
+                    currentIndex++;
+                    updateLearnScreen(kanjiData[currentIndex]);
+                }
+            };
+
+            window.goHome = function() {
+                if (currentKanji) {
+                    saveCurrent();
+                }
+                home.style.display = 'flex';
+                learn.style.display = 'none';
+                gif.src = '';
+                renderGrid();
+            };
+
+            window.clearBoard = function() {
+                if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+            };
+
+            window.saveCurrent = function() {
+                if (!currentKanji) return;
+                var imgData = canvas.toDataURL('image/png');
+                savedMap[currentKanji] = imgData;
+                saveSaved();
+                renderGrid();
+            };
+
+            window.clearCollection = function() {
+                if (Object.keys(savedMap).length === 0) return;
+                if (confirm('Bạn có chắc muốn xóa tất cả các chữ đã lưu?')) {
+                    savedMap = {};
+                    saveSaved();
+                    renderGrid();
+                }
+            };
+
+            // ---- XUẤT PDF ----
+            window.exportPDF = function() {
+                var keys = Object.keys(savedMap);
+                if (keys.length === 0) {
+                    alert('Bạn chưa lưu chữ nào! Hãy vẽ và nhấn "Lưu" hoặc dùng nút "次" để tự động lưu.');
+                    return;
+                }
+                keys.sort(function(a, b) {
+                    return kanjiData.indexOf(a) - kanjiData.indexOf(b);
+                });
+
+                var { jsPDF } = window.jspdf;
+                var pdf = new jsPDF('l', 'mm', 'a4');
+                var pageWidth = pdf.internal.pageSize.getWidth();
+                var pageHeight = pdf.internal.pageSize.getHeight();
+
+                var margin = 10;
+                var cols = 5;
+                var rowsPerPage = 4;
+                var maxCellsPerPage = cols * rowsPerPage;
+                var totalPages = Math.ceil(keys.length / maxCellsPerPage);
+
+                var cellWidth = (pageWidth - 2 * margin) / cols;
+                var cellHeight = (pageHeight - 2 * margin - 15) / rowsPerPage;
+
+                for (var page = 0; page < totalPages; page++) {
+                    if (page > 0) pdf.addPage();
+
+                    pdf.setFontSize(0);
+                    pdf.text('Kanji Lớp 1 (Trang ' + (page + 1) + '/' + totalPages + ')', pageWidth / 2, 12, { align: 'center' });
+
+                    var startIdx = page * maxCellsPerPage;
+                    var endIdx = Math.min(startIdx + maxCellsPerPage, keys.length);
+
+                    for (var i = startIdx; i < endIdx; i++) {
+                        var ch = keys[i];
+                        var reading = readings[ch] || '';
+                        var idx = i - startIdx;
+                        var row = Math.floor(idx / cols);
+                        var col = idx % cols;
+
+                        var x = margin + col * cellWidth;
+                        var y = margin + row * cellHeight + 14;
+
+                        pdf.setDrawColor(150);
+                        pdf.setLineWidth(0.5);
+                        pdf.rect(x, y, cellWidth, cellHeight, 'S');
+
+                        pdf.setFontSize(0);
+                        pdf.text(ch + ' (' + reading + ')', x + 2, y + 4);
+
+                        var imgData = savedMap[ch];
+                        if (imgData) {
+                            var maxImgWidth = cellWidth - 6;
+                            var maxImgHeight = cellHeight - 16;
+                            var img = new Image();
+                            img.src = imgData;
+
+                            var imgW, imgH;
+                            if (img.complete) {
+                                var ratio = Math.min(maxImgWidth / img.width, maxImgHeight / img.height);
+                                imgW = img.width * ratio;
+                                imgH = img.height * ratio;
+                            } else {
+                                imgW = maxImgWidth * 0.8;
+                                imgH = maxImgHeight * 0.8;
+                            }
+
+                            var posX = x + (cellWidth - imgW) / 2;
+                            var posY = y + 12 + (cellHeight - 12 - imgH) / 2;
+
+                            try {
+                                pdf.addImage(imgData, 'PNG', posX, posY, imgW, imgH);
+                            } catch (e) {
+                                console.log('Lỗi chèn ảnh cho ' + ch);
+                            }
+                        }
+                    }
+                }
+
+                pdf.save('Kanji_Lop1_da_luu.pdf');
+            };
+
+            // ---- VẼ ----
+            function resizeCanvas() {
+                if (!canvas || !canvas.parentElement) return;
+                var container = canvas.parentElement;
+                var w = container.clientWidth;
+                var h = container.clientHeight;
+                canvas.width = w;
+                canvas.height = h;
+                clearBoard();
+            }
+
+            function getPos(e) {
+                var rect = canvas.getBoundingClientRect();
+                var scaleX = canvas.width / rect.width;
+                var scaleY = canvas.height / rect.height;
+                var clientX, clientY;
+                if (e.touches) {
+                    clientX = e.touches[0].clientX;
+                    clientY = e.touches[0].clientY;
+                } else {
+                    clientX = e.clientX;
+                    clientY = e.clientY;
+                }
+                var x = (clientX - rect.left) * scaleX;
+                var y = (clientY - rect.top) * scaleY;
+                x = Math.min(Math.max(x, 0), canvas.width);
+                y = Math.min(Math.max(y, 0), canvas.height);
+                return { x: x, y: y };
+            }
+
+            function startDrawing(e) {
+                if (e.preventDefault) e.preventDefault();
+                drawing = true;
+                ctx.beginPath();
+                draw(e);
+            }
+
+            function stopDrawing() {
+                drawing = false;
+                ctx.beginPath();
+            }
+
+            function draw(e) {
+                if (!drawing) return;
+                if (e.preventDefault) e.preventDefault();
+                var p = getPos(e);
+                ctx.lineWidth = Math.max(8, canvas.width / 40);
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.strokeStyle = '#2d3436';
+                ctx.lineTo(p.x, p.y);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(p.x, p.y);
+            }
+
+            document.addEventListener('DOMContentLoaded', init);
+        })();
+    </script>
+</body>
+</html>
