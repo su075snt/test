@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>ドラム - Drum Kit</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;900&display=swap" rel="stylesheet">
+    <style>
+        html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; position: fixed; width: 100%;
+            touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none;
+            background: linear-gradient(135deg, #2c1810 0%, #4a2c1a 50%, #1e0e08 100%); }
+        body { font-family: 'Nunito', 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            box-sizing: border-box;
+            padding: max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) 
+                     max(10px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left)); }
+        .top-bar { position: fixed; top: max(15px, env(safe-area-inset-top)); right: max(15px, env(safe-area-inset-right));
+            display: flex; gap: 10px; z-index: 100; }
+        .mode-btn, .auto-btn, .stop-btn, .back-btn { background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.3); color: white; padding: 10px 18px;
+            font-size: 14px; font-weight: 900; border-radius: 25px; cursor: pointer; transition: all 0.2s ease;
+            font-family: 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif; white-space: nowrap; }
+        .mode-btn:hover, .auto-btn:hover, .stop-btn:hover, .back-btn:hover { background: rgba(255,255,255,0.25); }
+        .mode-btn:active, .auto-btn:active, .stop-btn:active, .back-btn:active { transform: scale(0.95); }
+        .auto-btn { background: linear-gradient(135deg, #2ecc71, #27ae60); border-color: #27ae60;
+            box-shadow: 0 4px 15px rgba(46, 204, 113, 0.4); display: none; }
+        .auto-btn.show { display: block; }
+        .stop-btn { background: linear-gradient(135deg, #e74c3c, #c0392b); border-color: #c0392b;
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4); display: none; }
+        .stop-btn.show { display: block; }
+        .back-btn { position: fixed; top: max(15px, env(safe-area-inset-top)); left: max(15px, env(safe-area-inset-left));
+            z-index: 100; display: none; }
+        .back-btn.show { display: block; }
+        .pattern-title { position: fixed; top: max(15px, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%);
+            color: white; font-size: 15px; font-weight: 900; padding: 10px 20px; background: rgba(0,0,0,0.35);
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 25px;
+            z-index: 100; display: none; font-family: 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
+            max-width: 45vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .pattern-title.show { display: block; }
+        .song-panel { position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            z-index: 300; display: none; justify-content: center; align-items: center;
+            padding: 20px; box-sizing: border-box; }
+        .song-panel.show { display: flex; }
+        .song-panel-inner { background: linear-gradient(135deg, #3a2318, #1e0e08); border-radius: 20px; padding: 25px;
+            max-width: 1000px; width: 100%; max-height: 88vh; overflow-y: auto;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.7); border: 1px solid rgba(255,255,255,0.1);
+            -webkit-overflow-scrolling: touch; }
+        .panel-header { display: flex; justify-content: space-between; align-items: center; color: white;
+            margin-bottom: 20px; font-size: 20px; font-weight: 900; position: sticky; top: 0;
+            background: linear-gradient(135deg, #3a2318, #1e0e08); padding-bottom: 10px; z-index: 5; }
+        .close-btn { background: rgba(255,255,255,0.1); border: none; color: white; width: 40px; height: 40px;
+            border-radius: 50%; font-size: 24px; cursor: pointer; font-weight: 900;
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .tab-bar { display: flex; gap: 8px; margin-bottom: 15px; overflow-x: auto; scrollbar-width: none; padding-bottom: 5px; }
+        .tab-bar::-webkit-scrollbar { display: none; }
+        .tab-btn { flex-shrink: 0; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
+            color: rgba(255,255,255,0.7); padding: 8px 16px; font-size: 13px; font-weight: 900;
+            border-radius: 20px; cursor: pointer; transition: all 0.2s;
+            font-family: 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif; }
+        .tab-btn.active { background: linear-gradient(135deg, #f39c12, #e67e22); color: white;
+            border-color: #f39c12; box-shadow: 0 4px 12px rgba(243, 156, 18, 0.4); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .section-title { color: #f39c12; font-size: 14px; font-weight: 900; margin: 18px 0 10px 0;
+            padding-bottom: 6px; border-bottom: 2px solid rgba(243, 156, 18, 0.3);
+            font-family: 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif; letter-spacing: 1px; }
+        .section-title:first-child { margin-top: 0; }
+        .song-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+        .song-item { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: white;
+            padding: 12px 8px; border-radius: 10px; cursor: pointer; text-align: center; font-weight: 700;
+            font-size: 12px; transition: all 0.15s; font-family: 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
+            line-height: 1.3; overflow: hidden; text-overflow: ellipsis; }
+        .song-item:hover { background: rgba(255,255,255,0.18); transform: translateY(-2px); }
+        .song-item:active { transform: scale(0.96); }
+        .song-item.full-song { background: linear-gradient(135deg, rgba(243, 156, 18, 0.15), rgba(230, 126, 34, 0.1));
+            border-color: rgba(243, 156, 18, 0.4); }
+        .song-item.full-song:hover { background: linear-gradient(135deg, rgba(243, 156, 18, 0.3), rgba(230, 126, 34, 0.2)); }
+        .song-item.hiphop { background: linear-gradient(135deg, rgba(155, 89, 182, 0.15), rgba(142, 68, 173, 0.1));
+            border-color: rgba(155, 89, 182, 0.4); }
+        .song-item.hiphop:hover { background: linear-gradient(135deg, rgba(155, 89, 182, 0.3), rgba(142, 68, 173, 0.2)); }
+        .sheet-display { display: none; width: 98%; max-width: 1300px; height: 80px; margin-bottom: 8px;
+            background: rgba(255,255,255,0.95); border-radius: 15px; padding: 10px 15px;
+            overflow-x: auto; overflow-y: hidden; scroll-behavior: smooth; scrollbar-width: none;
+            white-space: nowrap; box-shadow: 0 10px 30px rgba(0,0,0,0.4); align-items: center;
+            box-sizing: border-box; flex-shrink: 0; }
+        .sheet-display.show { display: flex; }
+        .sheet-display::-webkit-scrollbar { display: none; }
+        .sheet-note { display: inline-flex; flex-direction: column; justify-content: center; align-items: center;
+            min-width: 55px; height: 58px; margin: 0 3px; border-radius: 10px; font-size: 13px;
+            font-weight: 900; color: white; flex-shrink: 0; transition: all 0.3s;
+            font-family: 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif; padding: 0 6px; border: 2px solid transparent; }
+        .sheet-note .note-name { font-size: 13px; line-height: 1; }
+        .sheet-note .note-key { font-size: 9px; color: rgba(255,255,255,0.75); margin-top: 4px;
+            font-weight: 900; background: rgba(0,0,0,0.25); padding: 1px 5px; border-radius: 4px; }
+        .sheet-note.done { opacity: 0.4; filter: grayscale(60%); }
+        .sheet-note.current { transform: scale(1.15); box-shadow: 0 8px 25px rgba(255, 154, 68, 0.6);
+            animation: sheetPulse 0.8s infinite; border: 2px solid #ff9a44; }
+        @keyframes sheetPulse { 0%, 100% { transform: scale(1.15); } 50% { transform: scale(1.25); } }
+        .sheet-note.section-start { margin-left: 20px; }
+        .sheet-note.section-start::before { content: ''; position: absolute; left: -14px; top: 0; bottom: 0;
+            width: 2px; background: #f39c12; border-radius: 1px; }
+        .drum-kit { position: relative; width: 95%; max-width: 1100px; height: 60vh; max-height: 550px;
+            min-height: 350px; background: radial-gradient(ellipse at 50% 30%, #3d2314 0%, #1a0d06 100%);
+            border-radius: 20px; box-shadow: 0 25px 60px rgba(0,0,0,0.7),
+                inset 0 2px 5px rgba(255,255,255,0.05), inset 0 -10px 30px rgba(0,0,0,0.5); flex-shrink: 0; }
+        .drum-kit::before { content: ''; position: absolute; inset: 0;
+            background-image: linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 40px 40px; border-radius: 20px; pointer-events: none; }
+        .pad { position: absolute; border-radius: 50%; transform: translate(-50%, -50%); cursor: pointer;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            transition: transform 0.06s ease, filter 0.1s ease; user-select: none; aspect-ratio: 1; z-index: 1; }
+        .pad .jp-label { font-size: clamp(9px, 1.4vw, 14px); font-weight: 900; color: rgba(255,255,255,0.95);
+            text-shadow: 0 1px 3px rgba(0,0,0,0.8); pointer-events: none;
+            font-family: 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif; text-align: center; line-height: 1.1; padding: 0 4px; }
+        .pad .key-label { position: absolute; bottom: 12%; left: 50%; transform: translateX(-50%);
+            font-size: clamp(8px, 1.1vw, 12px); color: rgba(255,255,255,0.85); font-weight: 900;
+            background: rgba(0,0,0,0.5); padding: 2px 7px; border-radius: 4px;
+            border: 1px solid rgba(255,255,255,0.25); font-family: 'Courier New', monospace; pointer-events: none; }
+        .pad.drum { background: radial-gradient(circle at 38% 32%, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.5) 8%,
+                rgba(255,255,255,0.05) 30%, transparent 55%),
+            radial-gradient(circle at 50% 50%, var(--pad-color-1) 0%, var(--pad-color-2) 60%, var(--pad-color-3) 100%);
+            border: 5px solid var(--pad-rim); box-shadow: inset 0 -8px 15px rgba(0,0,0,0.4),
+                inset 0 6px 12px rgba(255,255,255,0.25), 0 8px 20px rgba(0,0,0,0.5), 0 0 0 2px rgba(0,0,0,0.4); }
+        .pad.cymbal { background: radial-gradient(circle at 35% 30%, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.6) 6%,
+                rgba(255,255,255,0.1) 25%, transparent 50%),
+            radial-gradient(circle at 50% 50%, var(--pad-color-1) 0%, var(--pad-color-2) 55%, var(--pad-color-3) 100%);
+            border: 4px solid var(--pad-rim); box-shadow: inset 0 -4px 10px rgba(0,0,0,0.3),
+                inset 0 3px 8px rgba(255,255,255,0.5), 0 6px 18px rgba(0,0,0,0.5), 0 0 0 2px rgba(0,0,0,0.3); }
+        .pad:active, .pad.active { transform: translate(-50%, -50%) scale(0.92); filter: brightness(1.5) saturate(1.3); }
+        .pad.target { animation: targetGlow 1s infinite; }
+        @keyframes targetGlow { 0%, 100% { box-shadow: 0 8px 20px rgba(0,0,0,0.5), 0 0 20px 4px #2ecc71, inset 0 -8px 15px rgba(0,0,0,0.4); filter: brightness(1.15); }
+            50% { box-shadow: 0 8px 20px rgba(0,0,0,0.5), 0 0 40px 8px #2ecc71, inset 0 -8px 15px rgba(0,0,0,0.4); filter: brightness(1.35); } }
+        .pad.wrong { animation: wrongShake 0.3s ease; filter: brightness(1.5) hue-rotate(-40deg) saturate(2) !important; }
+        @keyframes wrongShake { 0%, 100% { transform: translate(-50%, -50%) rotate(0deg); }
+            25% { transform: translate(-50%, -50%) rotate(-6deg); } 50% { transform: translate(-50%, -50%) rotate(6deg); }
+            75% { transform: translate(-50%, -50%) rotate(-6deg); } }
+        @media (orientation: landscape) and (min-width: 768px) { .drum-kit { height: 65vh; max-height: 550px; } }
+        @media (orientation: portrait) and (min-width: 768px) { .drum-kit { height: 50vh; max-height: 480px; } }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <button class="auto-btn" id="autoBtn">▶ 自動演奏</button>
+        <button class="stop-btn" id="stopBtn">⏹ 停止</button>
+        <button class="mode-btn" id="modeBtn">🥁 練習</button>
+    </div>
+    <button class="back-btn" id="backBtn">← 選ぶ</button>
+    <div class="pattern-title" id="patternTitle"></div>
+    <div class="song-panel" id="songPanel">
+        <div class="song-panel-inner">
+            <div class="panel-header">
+                <span>🥁 選んでください</span>
+                <button class="close-btn" id="closePanel">×</button>
+            </div>
+            <div class="tab-bar" id="tabBar">
+                <button class="tab-btn active" data-tab="fullExtended">🎼 Bài Full (100)</button>
+                <button class="tab-btn" data-tab="hiphop">🎤 Hip-Hop Full (100)</button>
+                <button class="tab-btn" data-tab="fullShort">🎵 Bài Full ngắn (15)</button>
+                <button class="tab-btn" data-tab="patterns">🥁 Mẫu nhịp (25)</button>
+            </div>
+            <div class="tab-content active" id="tab-fullExtended"></div>
+            <div class="tab-content" id="tab-hiphop"></div>
+            <div class="tab-content" id="tab-fullShort"></div>
+            <div class="tab-content" id="tab-patterns"></div>
+        </div>
+    </div>
+    <div class="sheet-display" id="sheetDisplay"></div>
+    <div class="drum-kit" id="drumKit"></div>
+
+    <script>
+        // ============ DRUM DEFINITIONS ============
+        const drums = [
+            { id: 'kick',       jp: 'バスドラム', shortJp: 'バス',   key: 'B', type: 'drum',   pos: [34, 65], size: 32,
+              colors: ['#ff9999', '#c0392b', '#4a0e0e'], rim: '#2b0606' },
+            { id: 'snare',      jp: 'スネア',     shortJp: 'スネア', key: 'J', type: 'drum',   pos: [33, 38], size: 18,
+              colors: ['#fff5e0', '#e0c9a6', '#8b6f47'], rim: '#4a3428' },
+            { id: 'hiHatClose', jp: 'ハイハット',  shortJp: 'HH',    key: 'F', type: 'cymbal', pos: [8, 38],  size: 15,
+              colors: ['#fff9d6', '#d4af37', '#5c4a0e'], rim: '#8b6914' },
+            { id: 'hiHatOpen',  jp: 'オープンHH',  shortJp: 'HH開',  key: 'G', type: 'cymbal', pos: [8, 62],  size: 15,
+              colors: ['#fff9d6', '#c9a227', '#3d3009'], rim: '#7a5c10' },
+            { id: 'crash',      jp: 'クラッシュ',  shortJp: 'クラ',  key: 'A', type: 'cymbal', pos: [10, 8],  size: 14,
+              colors: ['#fffbe6', '#f1c40f', '#7a5c10'], rim: '#5c4408' },
+            { id: 'ride',       jp: 'ライド',     shortJp: 'ライド', key: 'K', type: 'cymbal', pos: [78, 8],  size: 14,
+              colors: ['#f5e8b0', '#b8860b', '#4a3208'], rim: '#3d2806' },
+            { id: 'hiTom',      jp: 'ハイタム',    shortJp: 'タム1',  key: 'S', type: 'drum',   pos: [25, 12], size: 14,
+              colors: ['#ffd9a0', '#e67e22', '#6b3410'], rim: '#4a2308' },
+            { id: 'midTom',     jp: 'ミッドタム',   shortJp: 'タム2',  key: 'D', type: 'drum',   pos: [50, 12], size: 14,
+              colors: ['#ffcc80', '#d35400', '#5a2505'], rim: '#3d1a04' },
+            { id: 'floorTom',   jp: 'フロアタム',   shortJp: 'FT',    key: 'L', type: 'drum',   pos: [78, 40], size: 17,
+              colors: ['#e8c9a0', '#a0522d', '#4a2410'], rim: '#3d1a08' }
+        ];
+
+        // ============ PARSER ============
+        const charMap = { 'k':'kick','s':'snare','h':'hiHatClose','H':'hiHatOpen',
+            'c':'crash','r':'ride','1':'hiTom','2':'midTom','3':'floorTom' };
+        function parse(str) { return str.split('').map(c => charMap[c]).filter(Boolean); }
+
+        // ============ COMPOSE FULL SONG from verse/hook/fill ============
+        // Cấu trúc: Intro(V) - Verse1(V,V) - Chorus1(H,H) - Fill1(F) - Verse2(V,V) - Chorus2(H,H) - Fill2(F) - Outro(H,H)
+        function composeSong(verse, hook, fill) {
+            return verse + verse + verse + hook + hook + fill + verse + verse + hook + hook + fill + hook + hook;
+        }
+
+        // ============ SHORT PATTERNS (25) ============
+        const patterns = [
+            { name: '4つ打ち',        notes: parse('kkkkkkkk') },
+            { name: '8ビート',         notes: parse('khshkhsh') },
+            { name: 'ロックビート',    notes: parse('khshkksh') },
+            { name: '16ビート',        notes: parse('hhhhshhhhhhhhsh') },
+            { name: 'バラード',        notes: parse('khshkhsh') },
+            { name: '演歌',           notes: parse('kskskkss') },
+            { name: 'シャッフル',      notes: parse('khskhs') },
+            { name: '3連符',          notes: parse('ksskss') },
+            { name: 'ドラムロール',    notes: parse('ssssssssssss') },
+            { name: 'フィルイン入門',  notes: parse('123s123s') },
+            { name: 'ワルツ',         notes: parse('ksskss') },
+            { name: 'マーチ',         notes: parse('ksksksks') },
+            { name: 'ファンク',        notes: parse('khshkksh') },
+            { name: 'レゲエ',         notes: parse('khshkhsh') },
+            { name: 'ボサノバ',        notes: parse('khshkhsh') },
+            { name: 'タンゴ',         notes: parse('ksskss') },
+            { name: 'サンバ',         notes: parse('khshkhss') },
+            { name: 'ジャズ',         notes: parse('khshkhsh') },
+            { name: 'ヒップホップ',    notes: parse('kskkss') },
+            { name: 'メタル',         notes: parse('kkskkkss') },
+            { name: 'クラッシュ入門',  notes: parse('ckshcksc') },
+            { name: 'タム回し',       notes: parse('121233') },
+            { name: 'シンコペーション', notes: parse('khskhshs') },
+            { name: '6/8ビート',      notes: parse('khhshh') },
+            { name: 'ワンタムフィル',  notes: parse('ss11ss22') }
+        ];
+
+        // ============ 100 HIP-HOP FULL SONGS ============
+        // Định dạng: [name, verse, hook, fill, tempo]
+        // Verse: groove chính (8 nhịp) - Hook: groove mạnh (8 nhịp) - Fill: chuyển đoạn (8 nhịp)
+        // Compose tự động thành ~104 nhịp full song
+        const hiphopData = [
+            // ===== Boom Bap (10) =====
+            ['Boom Bap 01', 'khshkhsh', 'khskkhss', 'ss123s12', 340],
+            ['Boom Bap 02', 'kkhshkhs', 'khshkksh', 's1s2s3s1', 340],
+            ['Boom Bap 03', 'khsskhsh', 'kkhskhsh', 'ss1233s', 340],
+            ['Boom Bap 04', 'khshkhhs', 'khshkhss', '123123ss', 340],
+            ['Boom Bap 05', 'khshkksh', 'khsskhsh', 's1s2s3sc', 340],
+            ['Boom Bap 06', 'kkhshkhs', 'khshkhkh', '12312s3', 340],
+            ['Boom Bap 07', 'khshkhsh', 'kkhssksh', 'ss1ss2ss', 340],
+            ['Boom Bap 08', 'khhshkhh', 'khhskhsh', '121212s', 340],
+            ['Boom Bap 09', 'khshkhhs', 'khshkkhs', 's3s2s1ss', 340],
+            ['Boom Bap 10', 'kkhshhkh', 'khshkhsh', '12312ssc', 340],
+            // ===== Classic Hip-Hop (5) =====
+            ['Classic HH 01', 'khshkhsh', 'kshskksh', 's123s3sc', 350],
+            ['Classic HH 02', 'kshskksh', 'khshkhsh', '123ss123', 350],
+            ['Classic HH 03', 'khhskshs', 'khshkhss', 's1s2s3sc', 350],
+            ['Classic HH 04', 'khshkshs', 'khshkhhs', '12s12s3c', 350],
+            ['Classic HH 05', 'khshkhsk', 'khshkhsh', 'ss123scs', 350],
+            // ===== East Coast (5) =====
+            ['East Coast 01', 'khskhshs', 'kkhssksh', '123ss12s', 330],
+            ['East Coast 02', 'kkhssksh', 'khshkhss', 's1s2s3sc', 330],
+            ['East Coast 03', 'khshkhss', 'khskkhss', '123sc123', 330],
+            ['East Coast 04', 'khshkshs', 'kkhskhsh', 'ss123ssc', 330],
+            ['East Coast 05', 'khhshksh', 'khshkhsh', '1212s3sc', 330],
+            // ===== West Coast (5) =====
+            ['West Coast 01', 'khshkhsh', 'kkhshksh', 's123ss1c', 360],
+            ['West Coast 02', 'kkhshksh', 'khskhksh', 's1s2s3ss', 360],
+            ['West Coast 03', 'khskhksh', 'khshkksh', 'ss123sc1', 360],
+            ['West Coast 04', 'khshkksh', 'khshkhhs', '123sss12', 360],
+            ['West Coast 05', 'khshkhhs', 'khshkhsh', 's1s2s3s1', 360],
+            // ===== G-Funk (5) =====
+            ['G-Funk 01', 'khshkhsh', 'khhshksh', '123s12sc', 340],
+            ['G-Funk 02', 'khhshksh', 'khshkhkh', 's123s123', 340],
+            ['G-Funk 03', 'khshkhkh', 'khshkksh', 'ss12s3sc', 340],
+            ['G-Funk 04', 'khshkksh', 'kkhshkhh', '1s2s3s12', 340],
+            ['G-Funk 05', 'kkhshkhh', 'khhshksh', '12312ssc', 340],
+            // ===== Trap (15) =====
+            ['Trap 01', 'khhhshhh', 'khshkhsh', 'ss123s12', 280],
+            ['Trap 02', 'khhshhhs', 'khhhkshh', '1s2s3s12', 280],
+            ['Trap 03', 'khhhkshh', 'khshkhhh', 'ss123scs', 280],
+            ['Trap 04', 'khhhhshh', 'kkhshhhh', '12s3s123', 280],
+            ['Trap 05', 'kkhshhhh', 'khhhshhh', 's123ssc1', 280],
+            ['Trap 06', 'khshkhhh', 'khhshhhs', 'ss1ss2ss', 280],
+            ['Trap 07', 'khhhshhs', 'khhhkshh', '121212s3', 280],
+            ['Trap 08', 'kkhshhhs', 'kkhshhhh', 's1s2s3ss', 280],
+            ['Trap 09', 'khshkkhh', 'khhhhshh', '12312ssc', 280],
+            ['Trap 10', 'khhhhshh', 'khshkkhh', 's3s2s1ss', 280],
+            ['Trap 11', 'khhhkshs', 'khshkhhs', 'ss1233sc', 280],
+            ['Trap 12', 'khshkhhs', 'khhshhhh', '1s2s3s12', 280],
+            ['Trap 13', 'khhhshhh', 'kkhshhhh', '123ss12c', 280],
+            ['Trap 14', 'khhhhshh', 'khhhshhs', 's1s2s3sc', 280],
+            ['Trap 15', 'kkhshhhh', 'khshkkhh', 'ss123s3c', 280],
+            // ===== Drill (10) =====
+            ['Drill 01', 'khhhshhk', 'khhshkhh', 's123s12s', 250],
+            ['Drill 02', 'khhshkhh', 'kkhshhhs', '123sss12', 250],
+            ['Drill 03', 'kkhshhhs', 'khhhshhh', 's1s2s3ss', 250],
+            ['Drill 04', 'khhhshhh', 'khhshkhh', 'ss123ssc', 250],
+            ['Drill 05', 'khshkhhs', 'khhhshhk', '1212s3sc', 250],
+            ['Drill 06', 'khhshhhh', 'khhshkhh', 's123s123', 250],
+            ['Drill 07', 'kkhshhkh', 'kkhshhhs', 's1s2s3s1', 250],
+            ['Drill 08', 'khhhshhs', 'khhhshhh', '12312ssc', 250],
+            ['Drill 09', 'khshkkhs', 'khshkhhs', 'ss1ss2s3', 250],
+            ['Drill 10', 'khhhkshh', 'khhshhhh', 's1s2s3s1', 250],
+            // ===== Lo-Fi (10) =====
+            ['Lo-Fi 01', 'khshkhsh', 'khshkhhs', 'ss123scs', 380],
+            ['Lo-Fi 02', 'khshkhhs', 'khshkksh', '123s12s3', 380],
+            ['Lo-Fi 03', 'kskhskhs', 'khhshksh', 'ss12s3sc', 400],
+            ['Lo-Fi 04', 'khshkksh', 'khshkhsh', '1s2s3s12', 380],
+            ['Lo-Fi 05', 'khhshksh', 'khshkshh', 's123s12s', 380],
+            ['Lo-Fi 06', 'khshkshh', 'khhshhs', '121212s3', 380],
+            ['Lo-Fi 07', 'khhskhsh', 'kkhshksh', 'ss1233sc', 380],
+            ['Lo-Fi 08', 'kkhshksh', 'khshkhss', 's1s2s3sc', 380],
+            ['Lo-Fi 09', 'khshkhss', 'khhshhs', 'ss1ss2ss', 380],
+            ['Lo-Fi 10', 'khhshhsh', 'khshkhhs', '123sss12', 380],
+            // ===== Crunk (5) =====
+            ['Crunk 01', 'khskkhss', 'kkskkkss', 'ss123sc1', 320],
+            ['Crunk 02', 'kkskkkss', 'khskkshs', '12312s3c', 320],
+            ['Crunk 03', 'khskkshs', 'ksksksks', 'ss12s3ss', 320],
+            ['Crunk 04', 'ksksksks', 'kkhskkss', 's1s2s3sc', 320],
+            ['Crunk 05', 'kkhskkss', 'khskkhss', '123ss12s', 320],
+            // ===== Miami Bass (5) =====
+            ['Miami Bass 01', 'khshkhsh', 'khhshkksh', 's123s12s', 350],
+            ['Miami Bass 02', 'khhshkksh', 'kkhshkhs', 'ss1233sc', 350],
+            ['Miami Bass 03', 'kkhshkhs', 'khskhskh', '1s2s3s12', 350],
+            ['Miami Bass 04', 'khskhskh', 'khshkhhs', 's1s2s3s1', 350],
+            ['Miami Bass 05', 'khshkhhs', 'khshkhsh', '12312ssc', 350],
+            // ===== Phonk (5) =====
+            ['Phonk 01', 'khhhkshh', 'kshhkshh', 'ss123ssc', 270],
+            ['Phonk 02', 'kshhkshh', 'khshkhhs', '1212s3sc', 270],
+            ['Phonk 03', 'khshkhhs', 'kkhshhkh', 's123s123', 270],
+            ['Phonk 04', 'kkhshhkh', 'khhhshhs', 'ss1ss2ss', 270],
+            ['Phonk 05', 'khhhshhs', 'khhhkshh', '123123ss', 270],
+            // ===== Cloud Rap (5) =====
+            ['Cloud Rap 01', 'khhhshh', 'khshkhhh', 's123ss12', 300],
+            ['Cloud Rap 02', 'khshkhhh', 'khhshhkh', 'ss123ssc', 300],
+            ['Cloud Rap 03', 'khhshhkh', 'kkhhshh', '1s2s3s12', 300],
+            ['Cloud Rap 04', 'kkhhshh', 'khshkhhs', 's1s2s3sc', 300],
+            ['Cloud Rap 05', 'khshkhhs', 'khhhshh', '121212s3', 300],
+            // ===== Jazz Hop (5) =====
+            ['Jazz Hop 01', 'khshkhsh', 'khhshksh', 'ss123sc1', 360],
+            ['Jazz Hop 02', 'khhshksh', 'khshkhss', 's123s12c', 360],
+            ['Jazz Hop 03', 'khshkhss', 'kkhshkhh', '12s3s123', 360],
+            ['Jazz Hop 04', 'kkhshkhh', 'khhskhsh', 'ss1ss2sc', 360],
+            ['Jazz Hop 05', 'khhskhsh', 'khshkhsh', '1212s3sc', 360],
+            // ===== Underground (5) =====
+            ['Underground 01', 'khhkhshh', 'khshkhhh', 's123ss1s', 320],
+            ['Underground 02', 'khshkhhh', 'kkhshhhh', '123sss12', 320],
+            ['Underground 03', 'kkhshhhh', 'khhkshhh', 's1s2s3ss', 320],
+            ['Underground 04', 'khhkshhh', 'khshhkhh', 'ss123ssc', 320],
+            ['Underground 05', 'khshhkhh', 'khhkhshh', '121212s3', 320],
+            // ===== Abstract (5) =====
+            ['Abstract 01', 'khhkskhh', 'khshhkhs', 's123s12s', 310],
+            ['Abstract 02', 'khshhkhs', 'kkhhkhhs', 'ss123scs', 310],
+            ['Abstract 03', 'kkhhkhhs', 'khhkkhhh', '1s2s3s12', 310],
+            ['Abstract 04', 'khhkkhhh', 'khshhhkh', 's1s2s3sc', 310],
+            ['Abstract 05', 'khshhhkh', 'khhkskhh', '12312ssc', 310]
+        ];
+
+        const hiphopPatterns = hiphopData.map(([name, verse, hook, fill, tempo]) => ({
+            name: name,
+            notes: parse(composeSong(verse, hook, fill)),
+            tempo: tempo,
+            structure: { verse, hook, fill }
+        }));
+
+        // ============ 15 SHORT FULL SONGS ============
+        const fullSongs = [
+            { name: '👑 We Will Rock You', tempo: 400,
+              notes: parse('kkskkskkskkskhkskhkskhkskhksckkskksckkskksc') },
+            { name: '👑 Another One Bites', tempo: 320,
+              notes: parse('khshkkshkhshkkshkhshkkshkhshkkshss1233sc') },
+            { name: '🎸 Back in Black', tempo: 300,
+              notes: parse('khshkhshkhshkhshkhshkhshkhshkksc sshh112233') },
+            { name: '🎸 Highway to Hell', tempo: 320,
+              notes: parse('khshkhshkhshkkshkhshkhshcksksksksc112233sc') },
+            { name: '🎸 Smoke on the Water', tempo: 350,
+              notes: parse('kskskskskskskksckskskskskskksss') },
+            { name: '🎤 Billie Jean', tempo: 280,
+              notes: parse('khshkhshkhshkhshkhshkhshkhshksss1233sc') },
+            { name: '🎤 Beat It', tempo: 300,
+              notes: parse('kkskskkskkskskkskkskskkskkskssssscssc') },
+            { name: '🎤 Sweet Child O Mine', tempo: 340,
+              notes: parse('khshkhshkhshkksskhshkhshkhshcksc') },
+            { name: '🌸 残酷な天使のテーゼ', tempo: 280,
+              notes: parse('ckskskskhshkhshkhshkkshckkskksckksksscc123s123c') },
+            { name: '🌸 千本桜', tempo: 260,
+              notes: parse('khshkhshkhshkkshkhshkhshkhskkscsssssssc kkskkskc') },
+            { name: '🌸 紅蓮の弓矢', tempo: 240,
+              notes: parse('kksskksskksskksckhshkhshkhshkkscsssss123c') },
+            { name: '🎌 ドラえもんのうた', tempo: 340,
+              notes: parse('kskskskskhshkskskskskskskhshcscs') },
+            { name: '🎌 となりのトトロ', tempo: 380,
+              notes: parse('kskskskskhshkskskskskskskhshcscs') },
+            { name: '⭐ Seven Nation Army', tempo: 320,
+              notes: parse('kskskksskskskksckskskksskskskksc123s123c') },
+            { name: '⭐ アニマル風ドラム', tempo: 280,
+              notes: parse('khshkkshkhshkksckksskksskksskkscs1s123sc') }
+        ];
+
+        // ============ 100 EXTENDED FULL SONGS ============
+        const extendedRaw = [
+            // Rock (20)
+            ['🎸 Bohemian Rhapsody','ckskkkskkhshkhshkhshkkshckkskksckksksscss123c',340],
+            ['🎸 Stairway to Heaven','khshkhshkhshkhshkhshkhskkshkssskhshcksc',360],
+            ['🎸 Enter Sandman','kkskkskkskkskkskhshkhshkkskkkss123s123c',300],
+            ['🎸 Nothing Else Matters','kshkshkshkshkshkhshkhshkshkshss1233c',380],
+            ['🎸 Master of Puppets','kkkkkkkkkkksssshhhhhhhhckscs123c',260],
+            ['🎸 Paranoid','khshkhshkkhshkhsckhshkhshksss1233c',300],
+            ['🎸 Ace of Spades','kkkskkkskkkskkkskhshkhshkhsksss123c',280],
+            ['🎸 Immigrant Song','kksskksskksskksckksskksskksskksc123s123c',300],
+            ['🎸 Whole Lotta Love','khshkhshkhshkhshkhshkhshkkshckss123c',340],
+            ['🎸 Stairway (Live)','kskskskskhshkhshkhshkhshcksss123c',340],
+            ['🎸 Born to Run','khshkhshkhshkhshckhshkhshkhshkhsc123s123c',300],
+            ['🎸 Livin on a Prayer','khshkkshkhshkkshckhshkkshkhshkksc123s123c',320],
+            ['🎸 Sweet Home Alabama','khshkhshkhshkkhsckhshkhshkhshkksc123s123c',320],
+            ['🎸 Free Bird','khshkhshkhshkhshkhshkhshkkshcksss123c',340],
+            ['🎸 Hotel California','khshkhshkhshkhshkhshkhshkkshckss123c',340],
+            ['🎸 Wonderwall','khshkhshkhshkhshkhshkhshkhshksss1233c',360],
+            ['🎸 Creep','khshkhshkhshkhshckhshkhshkhshkhsc123s123c',340],
+            ['🎸 Smells Like Teen Spirit','kkskkkskkskkksckkskkskkskksc123s123c',300],
+            ['🎸 Come as You Are','khshkhshkhshkkshkhshkhshkhshkkscss123c',300],
+            ['🎸 Under the Bridge','khshkhshkhshkhshkhshkhshkkshckss123c',340],
+            // Pop (20)
+            ['🎤 Shape of You','khshkkshkhshkkshkhshkkshkhshkkscss123c',320],
+            ['🎤 Blinding Lights','khhhshhkhhhshhckhhhshhkhhhshhc123s123c',300],
+            ['🎤 Uptown Funk','khskkhsskhskkhssckhskkhsskhskkhssc123s123c',300],
+            ['🎤 Rolling in the Deep','khshkkshkhshkkshckhshkkshkhshkksc123s123c',300],
+            ['🎤 Shake It Off','khshkhshkhshkhshckhshkhshkhshkhsc123s123c',320],
+            ['🎤 Bad Guy','khhhkhhhkhhhkhhhckhhhkhhhkhhhkhhkc123s123c',280],
+            ['🎤 Levitating','khshkhshkhshkhshckhshkhshkhshkhsc123s123c',300],
+            ['🎤 Havana','khshkkshkhshkkshckhshkkshkhshkksc123s123c',300],
+            ['🎤 Perfect','khshkhshkhshkhshckhshkhshkhshkhsc123s123c',340],
+            ['🎤 Thinking Out Loud','khshkhshkhshkhshckhshkhshkhshkhsc123s123c',340],
+            ['🎤 Photograph','khshkhshkhshkhshckhshkhshkhshkhsc123s123c',340],
+            ["🎤 Can't Stop the Feeling",'khshkhshkhshkhshckhshkhshkhshkhsc123s123c',320],
+            ['🎤 Watermelon Sugar','khshkhshkhshkhshckhshkhshkhshkhsc123s123c',300],
+            ['🎤 As It Was','khshkhshkhshkhshckhshkhshkhshkhsc123s123c',320],
+            ['🎤 Stay','khshkhshkhshkhshckhshkhshkhshkhsc123s123c',320],
+            ['🎤 Peaches','khshkhshkhshkhshckhshkhshkhshkhsc123s123c',320],
+            ['🎤 Drivers License','khshkhshkhshkhshckhshkhshkhshkhsc123s123c',340],
+            ['🎤 Good 4 U','khshkhshkhshkhshckhshkhshkhshkhsc123s123c',320],
+            ['🎤 Happier Than Ever','khshkhshkhshkhshckhshkhshkhshkhsc123s123c',340],
+            ['🎤 Anti-Hero','khshkhshkhshkhshckhshkhshkhshkhsc123s123c',320],
+            // Anime (20)
+            ['🌸 Gurenge','kkskkkskkskkksckkskkskkskksc123s123c',260],
+            ['🌸 Homura','khshkhshkhshkhshckhshkhshkhshkhsc123s123c',280],
+            ['🌸 Unravel','khshkhshkhshkkshckhshkhshkhshkksc123s123c',280],
+            ['🌸 Silhouette','khshkhshkhshkhshckhshkhshkhshkhsc123s123c',280],
+            ['🌸 Blue Bird','khshkhshkhshkhshckhshkhshkhshkhsc123s123c',300],
+            ['🌸 Peace Sign','khshkhshkhshkhshckhshkhshkhshkhsc123s123c',300],
+            ['🌸 Sincerely','khshkhshkhshkhshckhshkhshkhshkhsc123s123c',300],
+            ['🌸 Kaikai Kitan','kkskkkskkskkksckkskkskkskksc123s123c',260],
+            ['🌸 Zankyosanka','kkskkkskkskkksckkskkskkskksc123s123c',260],
+            ['🌸 Idol','khshkhshkhshkhshckhshkhshkhshkhsc123s123c',300],
+            ['🌸 Kick Back','khshkhshkhshkhshckhshkhshkhshkhsc123s123c',280],
+            ['🌸 Kizuna no Kiseki','khshkhshkhshkhshckhshkhshkhshkhsc123s123c',290],
+            ['🌸 Akuma no Ko','khshkhshkhshkhshckhshkhshkhshkhsc123s123c',290],
+            ['🌸 Yoru ni Kakeru','khshkhshkhshkhshckhshkhshkhshkhsc123s123c',300],
+            ['🌸 Pretender','khshkhshkhshkhshckhshkhshkhshkhsc123s123c',300],
+            ['🌸 Lemon','khshkhshkhshkhshckhshkhshkhshkhsc123s123c',300],
+            ['🌸 Marigold','khshkhshkhshkhshckhshkhshkhshkhsc123s123c',300],
+            ['🌸 Niji','khshkhshkhshkhshckhshkhshkhshkhsc123s123c',300],
+            ['🌸 Sakura','khshkhshkhshkhshckhshkhshkhshkhsc123s123c',320],
+            ['🌸 Hanabi','khshkhshkhshkhshckhshkhshkhshkhsc123s123c',300],
+            // K-Pop (10)
+            ['🇰🇷 Dynamite','khshkhshkhshkhshckhshkhshkhshkhsc123s123c',320],
+            ['🇰🇷 Butter','khshkhshkhshkhshckhshkhshkhshkhsc123s123c',320],
+            ['🇰🇷 Gangnam Style','kkskkskkskksckkskkskkskksc123s123c',300],
+            ['🇰🇷 How You Like That','khshkhshkhshkhshckhshkhshkhshkhsc123s123c',300],
+            ['🇰🇷 Kill This Love','khshkhshkhshkhshckhshkhshkhshkhsc123s123c',300],
+            ['🇰🇷 DDU-DU DDU-DU','khshkhshkhshkhshckhshkhshkhshkhsc123s123c',300],
+            ['🇰🇷 Fancy','khshkhshkhshkhshckhshkhshkhshkhsc123s123c',320],
+            ['🇰🇷 TT','khshkhshkhshkhshckhshkhshkhshkhsc123s123c',320],
+            ['🇰🇷 Cheer Up','khshkhshkhshkhshckhshkhshkhshkhsc123s123c',320],
+            ['🇰🇷 Next Level','khshkhshkhshkhshckhshkhshkhshkhsc123s123c',300],
+            // Jazz (10)
+            ['🎼 Take Five','rrshrrshrrshrrshcrrshrrshrrshrrshc123s123c',340],
+            ['🎼 Sing Sing Sing','khshkhshkhshkhshckhshkhshkhshkhsc123s123c',300],
+            ['🎼 In the Mood','khshkhshkhshkhshckhshkhshkhshkhsc123s123c',300],
+            ['🎼 Blue Bossa','khshkhshkhshkhshckhshkhshkhshkhsc123s123c',340],
+            ['🎼 Autumn Leaves','rrshrrshrrshrrshcrrshrrshrrshrrshc123s123c',340],
+            ['🎼 Summertime','rrshrrshrrshrrshcrrshrrshrrshrrshc123s123c',340],
+            ['🎼 Fly Me to the Moon','khshkhshkhshkhshckhshkhshkhshkhsc123s123c',340],
+            ['🎼 Girl from Ipanema','khshkhshkhshkhshckhshkhshkhshkhsc123s123c',360],
+            ['🎼 Feeling Good','khshkhshkhshkhshckhshkhshkhshkhsc123s123c',340],
+            ['🎼 My Way','khshkhshkhshkhshckhshkhshkhshkhsc123s123c',340],
+            // Japanese Classic (10)
+            ['🎌 上を向いて歩こう','kskskskskhshkskskskskskskhshcscs',340],
+            ['🎌 川の流れのように','kskskskskhshkskskskskskskhshcscs',340],
+            ['🎌 少年時代','kskskskskhshkskskskskskskhshcscs',340],
+            ['🎌 なごり雪','kskskskskhshkskskskskskskhshcscs',340],
+            ['🎌 乾杯','kskskskskhshkskskskskskskhshcscs',340],
+            ['🎌 赤とんぼ','kskskskskhshkskskskskskskhshcscs',340],
+            ['🎌 ふるさと','kskskskskhshkskskskskskskhshcscs',340],
+            ['🎌 花','kskskskskhshkskskskskskskhshcscs',340],
+            ['🎌 桜坂','kskskskskhshkskskskskskskhshcscs',340],
+            ['🎌 世界に一つだけの花','kskskskskhshkskskskskskskhshcscs',340],
+            // Misc (10)
+            ['⭐ Sandstorm','hhhhhhhhhhhhhhhcshhhhhhhhhhhhhhhc123s123c',260],
+            ['⭐ Darude','khshkhshkhshkhshckhshkhshkhshkhsc123s123c',280],
+            ['⭐ Axel F','khshkhshkhshkhshckhshkhshkhshkhsc123s123c',280],
+            ['⭐ Mortal Kombat','kkskkskkskksckkskkskkskksc123s123c',260],
+            ['⭐ Pirates of Caribbean','kksskksskksskksckksskksskksskksc123s123c',280],
+            ['⭐ Mission Impossible','kskskskskhshkhshkhshkhshcksss123c',340],
+            ['⭐ Pink Panther','rrshrrshrrshrrshcrrshrrshrrshrrshc123s123c',340],
+            ['⭐ James Bond','khshkhshkhshkhshckhshkhshkhshkhsc123s123c',300],
+            ['⭐ Star Wars','kksskksskksskksckksskksskksskksc123s123c',280],
+            ['⭐ Indiana Jones','kkskkskkskksckkskkskkskksc123s123c',300]
+        ];
+
+        const fullSongsExtended = extendedRaw.map(([name, str, tempo]) => ({
+            name: name,
+            notes: parse(str.replace(/\s/g,'')),
+            tempo: tempo
+        }));
+
+        // ============ DOM ============
+        const drumKit = document.getElementById('drumKit');
+        const songPanel = document.getElementById('songPanel');
+        const sheetDisplay = document.getElementById('sheetDisplay');
+        const modeBtn = document.getElementById('modeBtn');
+        const backBtn = document.getElementById('backBtn');
+        const closePanel = document.getElementById('closePanel');
+        const autoBtn = document.getElementById('autoBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const patternTitle = document.getElementById('patternTitle');
+        const tabBar = document.getElementById('tabBar');
+
+        let audioCtx = null;
+        const padElements = {};
+        const drumMap = {};
+        drums.forEach(d => drumMap[d.id] = d);
+
+        // Thứ tự: fullExtended, hiphop, fullShort, patterns
+        const allTracks = [
+            ...fullSongsExtended,
+            ...hiphopPatterns,
+            ...fullSongs,
+            ...patterns.map(p => ({ ...p, tempo: 350 }))
+        ];
+        const tabOffsets = { fullExtended: 0, hiphop: 100, fullShort: 200, patterns: 215 };
+
+        let isPracticeMode = false;
+        let currentTrackIndex = -1;
+        let currentNoteIndex = 0;
+        let isAutoPlaying = false;
+        let autoPlayTimeouts = [];
+
+        // ============ AUDIO ============
+        function initAudio() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
+
+        function getNoise(duration) {
+            const bufferSize = audioCtx.sampleRate * duration;
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+            return buffer;
+        }
+
+        function playDrumSound(id) {
+            if (!audioCtx) return;
+            const now = audioCtx.currentTime;
+            if (id === 'kick') {
+                const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+                osc.frequency.setValueAtTime(160, now);
+                osc.frequency.exponentialRampToValueAtTime(35, now + 0.15);
+                gain.gain.setValueAtTime(0.9, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(now); osc.stop(now + 0.5);
+            } else if (id === 'snare') {
+                const noise = audioCtx.createBufferSource();
+                noise.buffer = getNoise(0.25);
+                const filter = audioCtx.createBiquadFilter();
+                filter.type = 'highpass'; filter.frequency.value = 1000;
+                const nGain = audioCtx.createGain();
+                nGain.gain.setValueAtTime(0.4, now);
+                nGain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+                noise.connect(filter); filter.connect(nGain); nGain.connect(audioCtx.destination);
+                noise.start(now);
+                const osc = audioCtx.createOscillator(); const oGain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(200, now);
+                osc.frequency.exponentialRampToValueAtTime(100, now + 0.1);
+                oGain.gain.setValueAtTime(0.25, now);
+                oGain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+                osc.connect(oGain); oGain.connect(audioCtx.destination);
+                osc.start(now); osc.stop(now + 0.1);
+            } else if (id === 'hiHatClose' || id === 'hiHatOpen') {
+                const dur = id === 'hiHatOpen' ? 0.4 : 0.06;
+                const noise = audioCtx.createBufferSource();
+                noise.buffer = getNoise(dur);
+                const filter = audioCtx.createBiquadFilter();
+                filter.type = 'highpass'; filter.frequency.value = 7000;
+                const gain = audioCtx.createGain();
+                gain.gain.setValueAtTime(0.25, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + dur);
+                noise.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination);
+                noise.start(now);
+            } else if (id === 'crash') {
+                const noise = audioCtx.createBufferSource();
+                noise.buffer = getNoise(1.5);
+                const filter = audioCtx.createBiquadFilter();
+                filter.type = 'highpass'; filter.frequency.value = 5000;
+                const gain = audioCtx.createGain();
+                gain.gain.setValueAtTime(0.35, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 1.5);
+                noise.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination);
+                noise.start(now);
+            } else if (id === 'ride') {
+                const noise = audioCtx.createBufferSource();
+                noise.buffer = getNoise(0.9);
+                const filter = audioCtx.createBiquadFilter();
+                filter.type = 'highpass'; filter.frequency.value = 4500;
+                const gain = audioCtx.createGain();
+                gain.gain.setValueAtTime(0.22, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.9);
+                noise.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination);
+                noise.start(now);
+            } else if (id === 'hiTom' || id === 'midTom' || id === 'floorTom') {
+                const baseFreq = id === 'hiTom' ? 240 : id === 'midTom' ? 180 : 120;
+                const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+                osc.frequency.setValueAtTime(baseFreq, now);
+                osc.frequency.exponentialRampToValueAtTime(baseFreq * 0.5, now + 0.25);
+                gain.gain.setValueAtTime(0.55, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(now); osc.stop(now + 0.35);
+            }
+        }
+
+        function playBuzzSound() {
+            initAudio();
+            const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(120, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(60, audioCtx.currentTime + 0.3);
+            gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+        }
+
+        function playSuccessSound() {
+            initAudio();
+            const playAt = (freq, startTime, dur = 0.3) => {
+                const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, startTime);
+                gain.gain.setValueAtTime(0, startTime);
+                gain.gain.linearRampToValueAtTime(0.2, startTime + 0.02);
+                gain.gain.exponentialRampToValueAtTime(0.001, startTime + dur);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(startTime); osc.stop(startTime + dur);
+            };
+            const t = audioCtx.currentTime;
+            playAt(523.25, t, 0.2);
+            playAt(659.25, t + 0.15, 0.2);
+            playAt(783.99, t + 0.3, 0.2);
+            playAt(1046.50, t + 0.45, 0.6);
+        }
+
+        // ============ BUILD DRUM KIT ============
+        function initDrumKit() {
+            drums.forEach(drum => {
+                const pad = document.createElement('div');
+                pad.classList.add('pad', drum.type);
+                pad.style.left = drum.pos[0] + '%';
+                pad.style.top = drum.pos[1] + '%';
+                pad.style.width = drum.size + '%';
+                pad.style.setProperty('--pad-color-1', drum.colors[0]);
+                pad.style.setProperty('--pad-color-2', drum.colors[1]);
+                pad.style.setProperty('--pad-color-3', drum.colors[2]);
+                pad.style.setProperty('--pad-rim', drum.rim);
+                const jpLabel = document.createElement('div');
+                jpLabel.classList.add('jp-label');
+                jpLabel.textContent = drum.jp;
+                pad.appendChild(jpLabel);
+                const keyLabel = document.createElement('div');
+                keyLabel.classList.add('key-label');
+                keyLabel.textContent = drum.key;
+                pad.appendChild(keyLabel);
+                drumKit.appendChild(pad);
+                padElements[drum.id] = pad;
+                const onPress = (e) => {
+                    e.preventDefault();
+                    if (isAutoPlaying) return;
+                    initAudio();
+                    handlePadInput(drum.id, pad);
+                };
+                const onRelease = (e) => {
+                    e.preventDefault();
+                    if (!isPracticeMode) pad.classList.remove('active');
+                };
+                pad.addEventListener('mousedown', onPress);
+                pad.addEventListener('touchstart', onPress, { passive: false });
+                pad.addEventListener('mouseup', onRelease);
+                pad.addEventListener('mouseleave', onRelease);
+                pad.addEventListener('touchend', onRelease);
+                pad.addEventListener('touchcancel', onRelease);
+            });
+        }
+
+        // ============ HANDLE INPUT ============
+        function handlePadInput(drumId, padEl) {
+            playDrumSound(drumId);
+            padEl.classList.add('active');
+            setTimeout(() => padEl.classList.remove('active'), 180);
+            if (isPracticeMode && currentTrackIndex >= 0) {
+                const track = allTracks[currentTrackIndex];
+                const expected = track.notes[currentNoteIndex];
+                if (drumId === expected) {
+                    currentNoteIndex++;
+                    updateSheet();
+                    highlightTargetPad();
+                    if (currentNoteIndex >= track.notes.length) {
+                        playSuccessSound();
+                        clearTargetHighlights();
+                        setTimeout(() => {
+                            if (isPracticeMode && currentTrackIndex >= 0) {
+                                currentNoteIndex = 0;
+                                updateSheet();
+                                highlightTargetPad();
+                            }
+                        }, 1500);
+                    }
+                } else {
+                    playBuzzSound();
+                    padEl.classList.add('wrong');
+                    setTimeout(() => padEl.classList.remove('wrong'), 350);
+                }
+            }
+        }
+
+        // ============ SHEET ============
+        function buildSheet(track) {
+            sheetDisplay.innerHTML = '';
+            track.notes.forEach((drumId, i) => {
+                const drum = drumMap[drumId];
+                if (!drum) return;
+                const box = document.createElement('div');
+                box.classList.add('sheet-note');
+                box.style.background = `linear-gradient(135deg, ${drum.colors[1]}, ${drum.colors[2]})`;
+                box.style.position = 'relative';
+                const nameEl = document.createElement('div');
+                nameEl.classList.add('note-name');
+                nameEl.textContent = drum.shortJp;
+                box.appendChild(nameEl);
+                const keyEl = document.createElement('div');
+                keyEl.classList.add('note-key');
+                keyEl.textContent = drum.key;
+                box.appendChild(keyEl);
+                box.dataset.index = i;
+                sheetDisplay.appendChild(box);
+            });
+        }
+
+        function updateSheet() {
+            const boxes = sheetDisplay.querySelectorAll('.sheet-note');
+            boxes.forEach((box, i) => {
+                box.classList.remove('current', 'done');
+                if (i < currentNoteIndex) box.classList.add('done');
+                if (i === currentNoteIndex) box.classList.add('current');
+            });
+            const currentBox = sheetDisplay.querySelector('.sheet-note.current');
+            if (currentBox) {
+                const boxLeft = currentBox.offsetLeft;
+                const boxWidth = currentBox.offsetWidth;
+                const containerWidth = sheetDisplay.clientWidth;
+                sheetDisplay.scrollTo({
+                    left: boxLeft - containerWidth / 2 + boxWidth / 2,
+                    behavior: 'smooth'
+                });
+            }
+        }
+
+        function highlightTargetPad() {
+            clearTargetHighlights();
+            if (!isPracticeMode || currentTrackIndex < 0 || isAutoPlaying) return;
+            const track = allTracks[currentTrackIndex];
+            const expected = track.notes[currentNoteIndex];
+            const el = padElements[expected];
+            if (el) el.classList.add('target');
+        }
+
+        function clearTargetHighlights() {
+            document.querySelectorAll('.pad.target').forEach(el => el.classList.remove('target'));
+        }
+
+        // ============ AUTO PLAY ============
+        function startAutoPlay() {
+            if (!isPracticeMode || currentTrackIndex < 0) return;
+            if (isAutoPlaying) return;
+            initAudio();
+            isAutoPlaying = true;
+            currentNoteIndex = 0;
+            clearTargetHighlights();
+            updateSheet();
+            autoBtn.classList.remove('show');
+            stopBtn.classList.add('show');
+            const track = allTracks[currentTrackIndex];
+            const tempo = track.tempo || 350;
+            track.notes.forEach((drumId, i) => {
+                const tid = setTimeout(() => {
+                    if (!isAutoPlaying) return;
+                    currentNoteIndex = i;
+                    updateSheet();
+                    playDrumSound(drumId);
+                    const padEl = padElements[drumId];
+                    if (padEl) {
+                        padEl.classList.add('active');
+                        setTimeout(() => padEl.classList.remove('active'), 150);
+                    }
+                    if (i === track.notes.length - 1) {
+                        setTimeout(() => {
+                            if (isAutoPlaying) {
+                                playSuccessSound();
+                                currentNoteIndex = track.notes.length;
+                                updateSheet();
+                                setTimeout(() => {
+                                    stopAutoPlay();
+                                    currentNoteIndex = 0;
+                                    updateSheet();
+                                    highlightTargetPad();
+                                }, 1500);
+                            }
+                        }, tempo);
+                    }
+                }, i * tempo);
+                autoPlayTimeouts.push(tid);
+            });
+        }
+
+        function stopAutoPlay() {
+            isAutoPlaying = false;
+            autoPlayTimeouts.forEach(t => clearTimeout(t));
+            autoPlayTimeouts = [];
+            autoBtn.classList.add('show');
+            stopBtn.classList.remove('show');
+            clearTargetHighlights();
+            document.querySelectorAll('.pad.active').forEach(el => el.classList.remove('active'));
+            if (isPracticeMode && currentTrackIndex >= 0) {
+                setTimeout(() => highlightTargetPad(), 100);
+            }
+        }
+
+        // ============ MODE SWITCHING ============
+        function enterPracticeMode(idx) {
+            stopAutoPlay();
+            isPracticeMode = true;
+            currentTrackIndex = idx;
+            currentNoteIndex = 0;
+            const track = allTracks[idx];
+            buildSheet(track);
+            sheetDisplay.classList.add('show');
+            updateSheet();
+            highlightTargetPad();
+            modeBtn.textContent = '🥁 自由演奏';
+            backBtn.classList.add('show');
+            autoBtn.classList.add('show');
+            patternTitle.textContent = '♪ ' + track.name;
+            patternTitle.classList.add('show');
+        }
+
+        function exitPracticeMode() {
+            stopAutoPlay();
+            isPracticeMode = false;
+            currentTrackIndex = -1;
+            currentNoteIndex = 0;
+            sheetDisplay.classList.remove('show');
+            sheetDisplay.innerHTML = '';
+            clearTargetHighlights();
+            modeBtn.textContent = '🥁 練習';
+            backBtn.classList.remove('show');
+            autoBtn.classList.remove('show');
+            patternTitle.classList.remove('show');
+        }
+
+        // ============ UI EVENTS ============
+        modeBtn.addEventListener('click', () => {
+            initAudio();
+            if (isPracticeMode) exitPracticeMode();
+            else songPanel.classList.add('show');
+        });
+        backBtn.addEventListener('click', () => {
+            stopAutoPlay();
+            exitPracticeMode();
+            songPanel.classList.add('show');
+        });
+        closePanel.addEventListener('click', () => songPanel.classList.remove('show'));
+        songPanel.addEventListener('click', (e) => {
+            if (e.target === songPanel) songPanel.classList.remove('show');
+        });
+        autoBtn.addEventListener('click', () => { initAudio(); startAutoPlay(); });
+        stopBtn.addEventListener('click', stopAutoPlay);
+
+        // ============ BUILD LISTS ============
+        function buildGrid(container, list, offset, className) {
+            const grid = document.createElement('div');
+            grid.classList.add('song-grid');
+            list.forEach((item, i) => {
+                const el = document.createElement('div');
+                el.classList.add('song-item');
+                if (className) el.classList.add(className);
+                el.textContent = item.name;
+                el.addEventListener('click', () => {
+                    songPanel.classList.remove('show');
+                    enterPracticeMode(offset + i);
+                });
+                grid.appendChild(el);
+            });
+            container.appendChild(grid);
+        }
+
+        function buildAllLists() {
+            const tabFullExt = document.getElementById('tab-fullExtended');
+            const tabHiphop = document.getElementById('tab-hiphop');
+            const tabFullShort = document.getElementById('tab-fullShort');
+            const tabPatterns = document.getElementById('tab-patterns');
+
+            const t1 = document.createElement('div');
+            t1.classList.add('section-title');
+            t1.textContent = '🎼 100 bài Full mở rộng';
+            tabFullExt.appendChild(t1);
+            buildGrid(tabFullExt, fullSongsExtended, tabOffsets.fullExtended, 'full-song');
+
+            const t2 = document.createElement('div');
+            t2.classList.add('section-title');
+            t2.textContent = '🎤 100 bài Hip-Hop FULL (~104 nhịp, có Intro-Verse-Chorus-Fill)';
+            tabHiphop.appendChild(t2);
+            buildGrid(tabHiphop, hiphopPatterns, tabOffsets.hiphop, 'hiphop');
+
+            const t3 = document.createElement('div');
+            t3.classList.add('section-title');
+            t3.textContent = '🎵 15 bài Full ngắn';
+            tabFullShort.appendChild(t3);
+            buildGrid(tabFullShort, fullSongs, tabOffsets.fullShort, 'full-song');
+
+            const t4 = document.createElement('div');
+            t4.classList.add('section-title');
+            t4.textContent = '🥁 25 mẫu nhịp cơ bản';
+            tabPatterns.appendChild(t4);
+            buildGrid(tabPatterns, patterns, tabOffsets.patterns);
+        }
+
+        tabBar.addEventListener('click', (e) => {
+            const btn = e.target.closest('.tab-btn');
+            if (!btn) return;
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+        });
+
+        // ============ KEYBOARD ============
+        const keyboardMap = {};
+        drums.forEach(d => { if (d.key) keyboardMap[d.key.toUpperCase()] = d.id; });
+        window.addEventListener('keydown', (e) => {
+            if (e.repeat || isAutoPlaying) return;
+            const drumId = keyboardMap[e.key.toUpperCase()];
+            if (drumId) {
+                e.preventDefault();
+                initAudio();
+                const padEl = padElements[drumId];
+                if (padEl) handlePadInput(drumId, padEl);
+            }
+        });
+
+        // ============ START ============
+        window.onload = () => {
+            initDrumKit();
+            buildAllLists();
+            document.body.addEventListener('touchstart', initAudio, { once: true });
+            document.body.addEventListener('mousedown', initAudio, { once: true });
+        };
+        window.addEventListener('orientationchange', () => {
+            setTimeout(() => { if (isPracticeMode) updateSheet(); }, 300);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,3400 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Kanji 160 · Tập viết">
+    <title>Kanji 160 · Tập viết</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js">
+    </script>
+    <style>
+        :root {
+            --danger: #d63031;
+            --bg: #ffffff;
+            --header-bg: #f8f9fa;
+            --info-bg: #fafbfd;
+            --border: #e2e8f0;
+            --search-bg: #f1f3f5;
+            --search-text: #1a1a2e;
+            --saved-border: #2d7d46;
+            --saved-bg: #f0fff0;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: var(--bg);
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* ─── HOME SCREEN ─── */
+        #home-screen {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: env(safe-area-inset-top) 15px env(safe-area-inset-bottom) 15px;
+            overflow-y: auto;
+        }
+
+        .home-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0 6px 0;
+            flex-wrap: wrap;
+            gap: 10px;
+            flex-shrink: 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .home-header h2 {
+            font-size: 20px;
+            font-weight: 700;
+            white-space: nowrap;
+            margin: 0;
+        }
+
+        .search-wrap {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex: 0 1 auto;
+            min-width: 140px;
+            max-width: 260px;
+        }
+        .search-wrap input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1.5px solid #d0d7de;
+            border-radius: 24px;
+            font-size: 15px;
+            background: var(--search-bg);
+            color: var(--search-text);
+            outline: none;
+            transition: border 0.2s, box-shadow 0.2s;
+            font-family: inherit;
+        }
+        .search-wrap input::placeholder {
+            color: #9aa0a8;
+            font-size: 14px;
+            opacity: 0.8;
+        }
+        .search-wrap input:focus {
+            border-color: #4a6cf7;
+            box-shadow: 0 0 0 3px rgba(74, 108, 247, 0.15);
+            background: #fff;
+        }
+        .search-wrap .clear-search {
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            color: #8b95a5;
+            padding: 4px 6px;
+            border-radius: 50%;
+            display: none;
+            transition: background 0.15s;
+            line-height: 1;
+        }
+        .search-wrap .clear-search:hover {
+            background: #e9ecef;
+        }
+        .search-wrap .clear-search.visible {
+            display: block;
+        }
+
+        .grid-kanji {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+            gap: 12px;
+            padding: 16px 0 50px 0;
+        }
+        .card-kanji {
+            aspect-ratio: 1/1;
+            border: 1.5px solid #333;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 7vw;
+            font-weight: 600;
+            cursor: pointer;
+            background: white;
+            transition: 0.2s;
+        }
+        .card-kanji.hidden {
+            display: none;
+        }
+        .card-kanji.saved {
+            border-color: var(--saved-border);
+            border-width: 3px;
+            background-color: var(--saved-bg);
+        }
+        @media (min-width: 400px) {
+            .card-kanji {
+                font-size: 28px;
+            }
+        }
+        @media (max-width: 300px) {
+            .card-kanji {
+                font-size: 20px;
+            }
+        }
+        .card-kanji:active {
+            background: #f0f0f0;
+        }
+
+        .no-results {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 40px 0;
+            color: #8b95a5;
+            font-size: 16px;
+            display: none;
+        }
+        .no-results.visible {
+            display: block;
+        }
+
+        /* ─── LEARN SCREEN ─── */
+        #learn-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: white;
+            display: none;
+            flex-direction: column;
+            z-index: 100;
+        }
+
+        .nav-top {
+            padding: 10px 15px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 5px;
+            flex-wrap: wrap;
+            background: var(--header-bg);
+            padding-top: max(10px, env(safe-area-inset-top));
+            padding-left: max(15px, env(safe-area-inset-left));
+            padding-right: max(15px, env(safe-area-inset-right));
+            flex-shrink: 0;
+        }
+        .nav-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .btn-nav {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            background: #eee;
+            color: #333;
+            transition: opacity 0.2s;
+            white-space: nowrap;
+        }
+        .btn-nav:active {
+            opacity: 0.7;
+        }
+        .btn-back {
+            background: #e0e0e0;
+        }
+        .btn-clear {
+            background: var(--danger);
+            color: white;
+        }
+        .btn-prev-next {
+            background: #ffffff;
+            border: 1px solid #aaa;
+        }
+        .btn-save {
+            background: #2980b9;
+            color: white;
+        }
+        .btn-pdf {
+            background: #2d7d46;
+            color: white;
+        }
+        .btn-clear-collection {
+            background: #e67e22;
+            color: white;
+        }
+        #current-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin: 0 5px;
+            text-align: center;
+            flex: 0 1 auto;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 40%;
+        }
+
+        .nav-search {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex: 0 1 auto;
+            min-width: 100px;
+            max-width: 180px;
+        }
+        .nav-search input {
+            width: 100%;
+            padding: 6px 10px;
+            border: 1.5px solid #d0d7de;
+            border-radius: 20px;
+            font-size: 14px;
+            background: #fff;
+            color: var(--search-text);
+            outline: none;
+            transition: border 0.2s, box-shadow 0.2s;
+            font-family: inherit;
+        }
+        .nav-search input::placeholder {
+            color: #9aa0a8;
+            font-size: 13px;
+            opacity: 0.8;
+        }
+        .nav-search input:focus {
+            border-color: #4a6cf7;
+            box-shadow: 0 0 0 3px rgba(74, 108, 247, 0.12);
+        }
+        .nav-search .goto-btn {
+            background: #4a6cf7;
+            border: none;
+            color: #fff;
+            border-radius: 20px;
+            padding: 6px 12px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: opacity 0.2s;
+        }
+        .nav-search .goto-btn:active {
+            opacity: 0.7;
+        }
+        .nav-search .goto-btn:disabled {
+            opacity: 0.4;
+            cursor: default;
+        }
+
+        /* ─── MAIN VIEW (60/40) ─── */
+        .main-view {
+            flex: 1;
+            display: flex;
+            flex-direction: row;
+            overflow: hidden;
+            padding-left: env(safe-area-inset-left);
+            padding-right: env(safe-area-inset-right);
+            min-height: 0;
+        }
+
+        .left-panel {
+            flex: 0 0 30%;
+            display: flex;
+            flex-direction: column;
+            background: var(--info-bg);
+            border-right: 1px solid var(--border);
+            height: 100%;
+        }
+        .right-panel {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            background: white;
+            height: 100%;
+        }
+
+        .left-top {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            border-bottom: 1px solid var(--border);
+            min-height: 80px;
+            overflow: hidden;
+            padding: 0;
+        }
+        .left-top .gif-wrap {
+            flex: 1;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .left-top .gif-wrap img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+
+        .left-bottom {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
+            background: #fafbfd;
+            overflow: hidden;
+            gap: 6px;
+        }
+
+        .reading-area {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: 4px 0 6px 0;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+        .reading-line {
+            display: flex;
+            align-items: baseline;
+            font-size: 15px;
+            font-weight: 500;
+            color: #2d3748;
+        }
+        .reading-line .label {
+            font-weight: 600;
+            color: #4a5568;
+            margin-right: 6px;
+        }
+        .reading-line .value {
+            background: #f1f5f9;
+            padding: 2px 12px;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+        .reading-line .stroke-display {
+            background: #e9edf4;
+            color: #2d3748;
+        }
+
+        .vocab-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+        .vocab-area .vocab-title {
+            font-weight: 600;
+            font-size: 14px;
+            color: #4a5568;
+            margin-bottom: 4px;
+            letter-spacing: 0.3px;
+        }
+        .vocab-area .vocab-table-wrap {
+            flex: 1;
+            overflow-y: auto;
+        }
+        .vocab-area .vocab-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        .vocab-area .vocab-table th {
+            text-align: left;
+            font-weight: 600;
+            color: #4a5568;
+            border-bottom: 1px solid var(--border);
+            padding: 6px 4px 6px 0;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .vocab-area .vocab-table td {
+            padding: 8px 4px 8px 0;
+            border-bottom: 1px solid #f0f4f8;
+            vertical-align: middle;
+        }
+        .vocab-area .vocab-table tr:last-child td {
+            border-bottom: none;
+        }
+        .vocab-area .vocab-table .kanji-col {
+            font-weight: 600;
+        }
+        .vocab-area .vocab-table .reading-col {
+            color: #2d3748;
+            font-family: "SF Mono", monospace;
+        }
+        .vocab-area .vocab-table .meaning-col {
+            color: #4a5568;
+        }
+
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background: white;
+            container-type: size;
+        }
+        canvas {
+            width: 100%;
+            height: 100%;
+            touch-action: none;
+            display: block;
+            background-image: linear-gradient(#f0f0f0 1px, transparent 1px),
+                linear-gradient(90deg, #f0f0f0 1px, transparent 1px);
+            background-size: 20% 20%;
+        }
+        #trace-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: rgba(0, 0, 0, 0.05);
+            pointer-events: none;
+            white-space: nowrap;
+            line-height: 1;
+            font-size: 40vw;
+        }
+        @container (min-width: 1px) {
+            #trace-text {
+                font-size: min(70cqi, 70cqh);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .main-view {
+                flex-direction: column;
+            }
+            .left-panel {
+                flex: none;
+                width: 100%;
+                height: 50vh;
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+            }
+            .right-panel {
+                height: 50vh;
+                width: 100%;
+                flex: none;
+            }
+            .left-top {
+                flex: 1;
+                min-height: 80px;
+                border-bottom: 1px solid var(--border);
+            }
+            .left-bottom {
+                flex: 1;
+                min-height: 100px;
+            }
+            .reading-line {
+                font-size: 14px;
+            }
+            .nav-search {
+                min-width: 80px;
+                max-width: 140px;
+            }
+            .nav-search input {
+                font-size: 13px;
+                padding: 5px 8px;
+            }
+            .nav-search .goto-btn {
+                font-size: 12px;
+                padding: 5px 8px;
+            }
+            .home-header {
+                flex-wrap: wrap;
+            }
+            .home-header h2 {
+                font-size: 17px;
+            }
+            .search-wrap {
+                min-width: 100px;
+                max-width: 200px;
+            }
+            .search-wrap input {
+                font-size: 14px;
+                padding: 6px 10px;
+            }
+        }
+        @media (max-width: 400px) {
+            .left-panel {
+                height: 45vh;
+            }
+            .right-panel {
+                height: 55vh;
+            }
+            .nav-search {
+                min-width: 60px;
+                max-width: 110px;
+            }
+            .nav-search input {
+                font-size: 12px;
+                padding: 4px 6px;
+            }
+            .nav-search .goto-btn {
+                font-size: 11px;
+                padding: 4px 6px;
+            }
+            .search-wrap {
+                min-width: 80px;
+                max-width: 160px;
+            }
+            .search-wrap input {
+                font-size: 13px;
+                padding: 5px 8px;
+            }
+            .btn-nav {
+                font-size: 13px;
+                padding: 6px 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ═══ HOME SCREEN ═══ -->
+    <div id="home-screen">
+        <div class="home-header">
+            <h2>160 Kanji</h2>
+            <div class="search-wrap">
+                <input type="text" id="homeSearch" placeholder="🔍 Kanji・Hiragana・Romaji" autocomplete="off">
+                <button class="clear-search" id="clearSearchBtn" aria-label="Xóa tìm kiếm">✕</button>
+            </div>
+        </div>
+        <div class="grid-kanji" id="kanjiGrid"></div>
+        <div class="no-results" id="noResults">⚠️ Không tìm thấy Kanji nào</div>
+    </div>
+
+    <!-- ═══ LEARN SCREEN ═══ -->
+    <div id="learn-screen">
+        <div class="nav-top">
+            <div class="nav-group">
+                <button class="btn-nav btn-back" onclick="goHome()">←戻る</button>
+                <button class="btn-nav btn-prev-next" onclick="prevKanji()">←前</button>
+            </div>
+            <h2 id="current-title">一</h2>
+            <div class="nav-group">
+                <button class="btn-nav btn-prev-next" onclick="nextKanji()">次→</button>
+                <div class="nav-search">
+                    <input type="text" id="learnSearch" placeholder="🔍 Tìm kanji..." autocomplete="off">
+                    <button class="goto-btn" id="gotoBtn" disabled>Đến</button>
+                </div>
+                <button class="btn-nav btn-clear" onclick="clearBoard()">消す</button>
+                <button class="btn-nav btn-save" onclick="saveCurrent()">📥 Lưu</button>
+                <button class="btn-nav btn-pdf" onclick="exportPDF()">📄 PDF</button>
+                <button class="btn-nav btn-clear-collection" onclick="clearCollection()">🗑️ Xóa</button>
+            </div>
+        </div>
+
+        <div class="main-view">
+            <div class="left-panel">
+                <div class="left-top">
+                    <div class="gif-wrap">
+                        <img id="kanji-gif" src="" alt="GIF" onerror="this.style.display='none'">
+                    </div>
+                </div>
+
+                <div class="left-bottom">
+                    <div class="reading-area" id="readingArea">
+                        <div class="reading-line">
+                            <span class="label">ON</span>
+                            <span class="value" id="onReading">ジョウ</span>
+                        </div>
+                        <div class="reading-line">
+                            <span class="label">KUN</span>
+                            <span class="value" id="kunReading">とお</span>
+                        </div>
+                        <div class="reading-line">
+                            <span class="label stroke-display">画</span>
+                            <span class="value stroke-display" id="strokeDisplay">2</span>
+                        </div>
+                    </div>
+
+                    <div class="vocab-area">
+                        <div class="vocab-table-wrap">
+                            <table class="vocab-table">
+                                <thead>
+                                    <tr><th>Kanji</th><th>Đọc</th><th>Nghĩa</th></tr>
+                                </thead>
+                                <tbody id="vocabBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="right-panel">
+                <div class="canvas-container">
+                    <div id="trace-text"></div>
+                    <canvas id="canvas"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            'use strict';
+
+            // ═══════════════════════════════════════════════════════════════
+            //  DỮ LIỆU KANJI (160 chữ)
+            // ═══════════════════════════════════════════════════════════════
+
+            var rawKanjiList = [
+                "刀", "丸", "弓", "工", "才", "万", "引", "牛", "今", "元",
+                "戸", "午", "公", "止", "少", "心", "切", "太", "内", "父",
+                "分", "方", "毛", "友", "外", "兄", "古", "広", "矢", "市",
+                "台", "冬", "半", "母", "北", "用", "羽", "会", "回", "交",
+                "光", "考", "行", "合", "寺", "自", "色", "西", "多", "池",
+                "地", "当", "同", "肉", "米", "毎", "何", "角", "汽", "近",
+                "形", "言", "谷", "作", "社", "図", "声", "走", "体", "弟",
+                "売", "麦", "来", "里", "画", "岩", "京", "国", "姉", "知",
+                "長", "直", "店", "東", "歩", "妹", "明", "門", "夜", "科",
+                "海", "活", "計", "後", "室", "首", "秋", "春", "食", "星",
+                "前", "茶", "昼", "点", "南", "風", "思", "家", "夏", "記",
+                "帰", "原", "高", "紙", "時", "弱", "書", "通", "馬", "魚",
+                "教", "強", "黄", "黒", "細", "週", "雪", "船", "組", "鳥",
+                "野", "理", "雲", "絵", "間", "場", "晴", "朝", "答", "道",
+                "買", "番", "遠", "園", "楽", "新", "数", "電", "話", "歌",
+                "語", "算", "読", "聞", "鳴", "線", "親", "頭", "顔", "曜"
+            ];
+
+            var strokeCounts = {
+                "刀": 2,
+                "丸": 3,
+                "弓": 3,
+                "工": 3,
+                "才": 3,
+                "万": 3,
+                "引": 4,
+                "牛": 4,
+                "今": 4,
+                "元": 4,
+                "戸": 4,
+                "午": 4,
+                "公": 4,
+                "止": 4,
+                "少": 4,
+                "心": 4,
+                "切": 4,
+                "太": 4,
+                "内": 4,
+                "父": 4,
+                "分": 4,
+                "方": 4,
+                "毛": 4,
+                "友": 4,
+                "外": 5,
+                "兄": 5,
+                "古": 5,
+                "広": 5,
+                "矢": 5,
+                "市": 5,
+                "台": 5,
+                "冬": 5,
+                "半": 5,
+                "母": 5,
+                "北": 5,
+                "用": 5,
+                "羽": 6,
+                "会": 6,
+                "回": 6,
+                "交": 6,
+                "光": 6,
+                "考": 6,
+                "行": 6,
+                "合": 6,
+                "寺": 6,
+                "自": 6,
+                "色": 6,
+                "西": 6,
+                "多": 6,
+                "池": 6,
+                "地": 6,
+                "当": 6,
+                "同": 6,
+                "肉": 6,
+                "米": 6,
+                "毎": 6,
+                "何": 7,
+                "角": 7,
+                "汽": 7,
+                "近": 7,
+                "形": 7,
+                "言": 7,
+                "谷": 7,
+                "作": 7,
+                "社": 7,
+                "図": 7,
+                "声": 7,
+                "走": 7,
+                "体": 7,
+                "弟": 7,
+                "売": 7,
+                "麦": 7,
+                "来": 7,
+                "里": 7,
+                "画": 8,
+                "岩": 8,
+                "京": 8,
+                "国": 8,
+                "姉": 8,
+                "知": 8,
+                "長": 8,
+                "直": 8,
+                "店": 8,
+                "東": 8,
+                "歩": 8,
+                "妹": 8,
+                "明": 8,
+                "門": 8,
+                "夜": 8,
+                "科": 9,
+                "海": 9,
+                "活": 9,
+                "計": 9,
+                "後": 9,
+                "室": 9,
+                "首": 9,
+                "秋": 9,
+                "春": 9,
+                "食": 9,
+                "星": 9,
+                "前": 9,
+                "茶": 9,
+                "昼": 9,
+                "点": 9,
+                "南": 9,
+                "風": 9,
+                "思": 9,
+                "家": 10,
+                "夏": 10,
+                "記": 10,
+                "帰": 10,
+                "原": 10,
+                "高": 10,
+                "紙": 10,
+                "時": 10,
+                "弱": 10,
+                "書": 10,
+                "通": 10,
+                "馬": 10,
+                "魚": 11,
+                "教": 11,
+                "強": 11,
+                "黄": 11,
+                "黒": 11,
+                "細": 11,
+                "週": 11,
+                "雪": 11,
+                "船": 11,
+                "組": 11,
+                "鳥": 11,
+                "野": 11,
+                "理": 11,
+                "雲": 12,
+                "絵": 12,
+                "間": 12,
+                "場": 12,
+                "晴": 12,
+                "朝": 12,
+                "答": 12,
+                "道": 12,
+                "買": 12,
+                "番": 12,
+                "遠": 13,
+                "園": 13,
+                "楽": 13,
+                "新": 13,
+                "数": 13,
+                "電": 13,
+                "話": 13,
+                "歌": 14,
+                "語": 14,
+                "算": 14,
+                "読": 14,
+                "聞": 14,
+                "鳴": 14,
+                "線": 15,
+                "親": 16,
+                "頭": 16,
+                "顔": 18,
+                "曜": 18
+            };
+
+            // Dữ liệu chi tiết (On, Kun, Vocab) – lấy từ dữ liệu bạn cung cấp
+            var kanjiDetails = {};
+
+            var newData = [{
+                k: "刀",
+                on: "トウ",
+                kun: "かたな",
+                v: "thanh kiếm",
+                vocab: [
+                    ["刀", "かたな", "thanh kiếm"],
+                    ["日本刀", "にほんとう", "kiếm Nhật"],
+                    ["刀剣", "とうけん", "kiếm, gươm"],
+                    ["小刀", "しょうとう", "dao nhỏ"],
+                    ["刀身", "とうしん", "thân kiếm"]
+                ]
+            }, {
+                k: "丸",
+                on: "ガン",
+                kun: "まる",
+                v: "tròn, viên",
+                vocab: [
+                    ["丸い", "まるい", "tròn"],
+                    ["丸ごと", "まるごと", "toàn bộ"],
+                    ["丸薬", "がんやく", "viên thuốc"],
+                    ["一丸", "いちがん", "một khối"],
+                    ["丸子", "まるこ", "Maruko (tên)"]
+                ]
+            }, {
+                k: "弓",
+                on: "キュウ",
+                kun: "ゆみ",
+                v: "cung",
+                vocab: [
+                    ["弓", "ゆみ", "cây cung"],
+                    ["弓道", "きゅうどう", "cung đạo"],
+                    ["弓矢", "ゆみや", "cung tên"],
+                    ["弓形", "ゆみなり", "hình cánh cung"],
+                    ["弓手", "ゆんで", "tay cầm cung"]
+                ]
+            }, {
+                k: "工",
+                on: "コウ, ク",
+                kun: "たくみ",
+                v: "công, chế tác",
+                vocab: [
+                    ["工場", "こうじょう", "nhà máy"],
+                    ["工作", "こうさく", "chế tác"],
+                    ["工事", "こうじ", "công trình"],
+                    ["工業", "こうぎょう", "công nghiệp"],
+                    ["工員", "こういん", "công nhân"]
+                ]
+            }, {
+                k: "才",
+                on: "サイ",
+                kun: "ざえ",
+                v: "tài năng",
+                vocab: [
+                    ["才能", "さいのう", "tài năng"],
+                    ["天才", "てんさい", "thiên tài"],
+                    ["秀才", "しゅうさい", "tú tài"],
+                    ["才覚", "さいかく", "mưu trí"],
+                    ["才人", "さいじん", "người tài"]
+                ]
+            }, {
+                k: "万",
+                on: "マン, バン",
+                kun: "よろず",
+                v: "vạn, mười nghìn",
+                vocab: [
+                    ["一万", "いちまん", "một vạn"],
+                    ["万歳", "ばんざい", "banzai, muôn năm"],
+                    ["万一", "まんいち", "phòng khi"],
+                    ["万国", "ばんこく", "vạn quốc"],
+                    ["万全", "ばんぜん", "vạn toàn"]
+                ]
+            }, {
+                k: "引",
+                on: "イン",
+                kun: "ひく",
+                v: "kéo",
+                vocab: [
+                    ["引く", "ひく", "kéo"],
+                    ["引越し", "ひっこし", "chuyển nhà"],
+                    ["引力", "いんりょく", "lực hút"],
+                    ["引用", "いんよう", "trích dẫn"],
+                    ["引退", "いんたい", "nghỉ hưu"]
+                ]
+            }, {
+                k: "牛",
+                on: "ギュウ",
+                kun: "うし",
+                v: "bò",
+                vocab: [
+                    ["牛", "うし", "con bò"],
+                    ["牛肉", "ぎゅうにく", "thịt bò"],
+                    ["牛乳", "ぎゅうにゅう", "sữa bò"],
+                    ["牛丼", "ぎゅうどん", "cơm thịt bò"],
+                    ["闘牛", "とうぎゅう", "đấu bò"]
+                ]
+            }, {
+                k: "今",
+                on: "コン, キン",
+                kun: "いま",
+                v: "bây giờ",
+                vocab: [
+                    ["今", "いま", "bây giờ"],
+                    ["今日", "きょう", "hôm nay"],
+                    ["今年", "ことし", "năm nay"],
+                    ["今週", "こんしゅう", "tuần này"],
+                    ["今後", "こんご", "từ nay về sau"]
+                ]
+            }, {
+                k: "元",
+                on: "ゲン, ガン",
+                kun: "もと",
+                v: "nguyên, gốc",
+                vocab: [
+                    ["元気", "げんき", "khỏe mạnh"],
+                    ["元日", "がんじつ", "ngày đầu năm"],
+                    ["元祖", "がんそ", "tổ tiên"],
+                    ["元金", "がんきん", "tiền gốc"],
+                    ["元首", "げんしゅ", "nguyên thủ"]
+                ]
+            }, {
+                k: "戸",
+                on: "コ",
+                kun: "と",
+                v: "cửa",
+                vocab: [
+                    ["戸", "と", "cửa"],
+                    ["戸棚", "とだな", "tủ"],
+                    ["戸外", "こがい", "ngoài trời"],
+                    ["戸口", "とぐち", "cửa ra vào"],
+                    ["雨戸", "あまど", "cửa chớp"]
+                ]
+            }, {
+                k: "午",
+                on: "ゴ",
+                kun: "うま",
+                v: "ngọ (12-1 giờ trưa)",
+                vocab: [
+                    ["午前", "ごぜん", "buổi sáng"],
+                    ["午後", "ごご", "buổi chiều"],
+                    ["正午", "しょうご", "chính ngọ"],
+                    ["午前中", "ごぜんちゅう", "suốt buổi sáng"],
+                    ["午後から", "ごごから", "từ chiều"]
+                ]
+            }, {
+                k: "公",
+                on: "コウ",
+                kun: "おおやけ",
+                v: "công, chung",
+                vocab: [
+                    ["公園", "こうえん", "công viên"],
+                    ["公共", "こうきょう", "công cộng"],
+                    ["公務員", "こうむいん", "công chức"],
+                    ["公平", "こうへい", "công bằng"],
+                    ["公式", "こうしき", "chính thức"]
+                ]
+            }, {
+                k: "止",
+                on: "シ",
+                kun: "とまる",
+                v: "dừng",
+                vocab: [
+                    ["止まる", "とまる", "dừng lại"],
+                    ["中止", "ちゅうし", "hoãn, ngưng"],
+                    ["防止", "ぼうし", "phòng ngừa"],
+                    ["停止", "ていし", "dừng"],
+                    ["止血", "しけつ", "cầm máu"]
+                ]
+            }, {
+                k: "少",
+                on: "ショウ",
+                kun: "すくない",
+                v: "ít",
+                vocab: [
+                    ["少ない", "すくない", "ít"],
+                    ["少し", "すこし", "một chút"],
+                    ["少年", "しょうねん", "thiếu niên"],
+                    ["少女", "しょうじょ", "thiếu nữ"],
+                    ["少数", "しょうすう", "số ít"]
+                ]
+            }, {
+                k: "心",
+                on: "シン",
+                kun: "こころ",
+                v: "trái tim",
+                vocab: [
+                    ["心", "こころ", "trái tim"],
+                    ["安心", "あんしん", "yên tâm"],
+                    ["中心", "ちゅうしん", "trung tâm"],
+                    ["用心", "ようじん", "cẩn thận"],
+                    ["心配", "しんぱい", "lo lắng"]
+                ]
+            }, {
+                k: "切",
+                on: "セツ, サイ",
+                kun: "きる",
+                v: "cắt",
+                vocab: [
+                    ["切る", "きる", "cắt"],
+                    ["大切", "たいせつ", "quan trọng"],
+                    ["親切", "しんせつ", "tử tế"],
+                    ["一切", "いっさい", "tất cả"],
+                    ["切手", "きって", "tem"]
+                ]
+            }, {
+                k: "太",
+                on: "タイ, タ",
+                kun: "ふとい",
+                v: "to, béo",
+                vocab: [
+                    ["太い", "ふとい", "to, béo"],
+                    ["太鼓", "たいこ", "trống"],
+                    ["太陽", "たいよう", "mặt trời"],
+                    ["太り", "ふとり", "sự béo lên"],
+                    ["太字", "ふとじ", "chữ đậm"]
+                ]
+            }, {
+                k: "内",
+                on: "ナイ, ダイ",
+                kun: "うち",
+                v: "bên trong",
+                vocab: [
+                    ["内", "うち", "bên trong"],
+                    ["内部", "ないぶ", "nội bộ"],
+                    ["以内", "いない", "trong vòng"],
+                    ["内科", "ないか", "nội khoa"],
+                    ["内容", "ないよう", "nội dung"]
+                ]
+            }, {
+                k: "父",
+                on: "フ",
+                kun: "ちち",
+                v: "cha",
+                vocab: [
+                    ["父", "ちち", "cha"],
+                    ["お父さん", "おとうさん", "bố"],
+                    ["父母", "ふぼ", "cha mẹ"],
+                    ["父兄", "ふけい", "phụ huynh"],
+                    ["祖父", "そふ", "ông"]
+                ]
+            }, {
+                k: "分",
+                on: "ブン, フン",
+                kun: "わかる",
+                v: "phân, chia",
+                vocab: [
+                    ["分かる", "わかる", "hiểu"],
+                    ["半分", "はんぶん", "một nửa"],
+                    ["分ける", "わける", "chia"],
+                    ["自分", "じぶん", "bản thân"],
+                    ["時間", "じかん", "thời gian"]
+                ]
+            }, {
+                k: "方",
+                on: "ホウ",
+                kun: "かた",
+                v: "phương, hướng",
+                vocab: [
+                    ["方", "かた", "người (lịch sự)"],
+                    ["方法", "ほうほう", "phương pháp"],
+                    ["方向", "ほうこう", "phương hướng"],
+                    ["相手", "あいて", "đối phương"],
+                    ["地方", "ちほう", "địa phương"]
+                ]
+            }, {
+                k: "毛",
+                on: "モウ",
+                kun: "け",
+                v: "lông, tóc",
+                vocab: [
+                    ["毛", "け", "lông"],
+                    ["毛糸", "けいと", "len sợi"],
+                    ["毛皮", "けがわ", "lông thú"],
+                    ["毛布", "もうふ", "chăn"],
+                    ["髪の毛", "かみのけ", "tóc"]
+                ]
+            }, {
+                k: "友",
+                on: "ユウ",
+                kun: "とも",
+                v: "bạn",
+                vocab: [
+                    ["友達", "ともだち", "bạn bè"],
+                    ["友人", "ゆうじん", "bạn"],
+                    ["親友", "しんゆう", "bạn thân"],
+                    ["友情", "ゆうじょう", "tình bạn"],
+                    ["友達作り", "ともだちづくり", "kết bạn"]
+                ]
+            }, {
+                k: "外",
+                on: "ガイ, ゲ",
+                kun: "そと",
+                v: "ngoài",
+                vocab: [
+                    ["外", "そと", "bên ngoài"],
+                    ["外国", "がいこく", "nước ngoài"],
+                    ["外国人", "がいこくじん", "người nước ngoài"],
+                    ["外出", "がいしゅつ", "ra ngoài"],
+                    ["外食", "がいしょく", "ăn ngoài"]
+                ]
+            }, {
+                k: "兄",
+                on: "ケイ, キョウ",
+                kun: "あに",
+                v: "anh trai",
+                vocab: [
+                    ["兄", "あに", "anh trai"],
+                    ["お兄さん", "おにいさん", "anh"],
+                    ["兄弟", "きょうだい", "anh em"],
+                    ["兄貴", "あにき", "anh (thân mật)"],
+                    ["長兄", "ちょうけい", "anh cả"]
+                ]
+            }, {
+                k: "古",
+                on: "コ",
+                kun: "ふるい",
+                v: "cũ",
+                vocab: [
+                    ["古い", "ふるい", "cũ"],
+                    ["古本", "ふるほん", "sách cũ"],
+                    ["古代", "こだい", "cổ đại"],
+                    ["古着", "ふるぎ", "quần áo cũ"],
+                    ["中古", "ちゅうこ", "đã qua sử dụng"]
+                ]
+            }, {
+                k: "広",
+                on: "コウ",
+                kun: "ひろい",
+                v: "rộng",
+                vocab: [
+                    ["広い", "ひろい", "rộng"],
+                    ["広場", "ひろば", "quảng trường"],
+                    ["広告", "こうこく", "quảng cáo"],
+                    ["広がる", "ひろがる", "mở rộng"],
+                    ["広島", "ひろしま", "Hiroshima"]
+                ]
+            }, {
+                k: "矢",
+                on: "シ",
+                kun: "や",
+                v: "mũi tên",
+                vocab: [
+                    ["矢", "や", "mũi tên"],
+                    ["矢印", "やじるし", "mũi tên chỉ"],
+                    ["弓矢", "ゆみや", "cung tên"],
+                    ["矢先", "やさき", "đầu mũi tên"],
+                    ["一矢", "いっし", "một mũi tên"]
+                ]
+            }, {
+                k: "市",
+                on: "シ",
+                kun: "いち",
+                v: "thành phố, chợ",
+                vocab: [
+                    ["市", "いち", "chợ"],
+                    ["市民", "しみん", "thị dân"],
+                    ["市役所", "しやくしょ", "tòa thị chính"],
+                    ["市場", "いちば", "chợ"],
+                    ["都市", "とし", "đô thị"]
+                ]
+            }, {
+                k: "台",
+                on: "ダイ, タイ",
+                kun: "うてな",
+                v: "đài, bệ",
+                vocab: [
+                    ["台所", "だいどころ", "nhà bếp"],
+                    ["台風", "たいふう", "bão"],
+                    ["台車", "だいしゃ", "xe đẩy"],
+                    ["台本", "だいほん", "kịch bản"],
+                    ["台無し", "だいなし", "hỏng, tan tành"]
+                ]
+            }, {
+                k: "冬",
+                on: "トウ",
+                kun: "ふゆ",
+                v: "mùa đông",
+                vocab: [
+                    ["冬", "ふゆ", "mùa đông"],
+                    ["冬休み", "ふゆやすみ", "nghỉ đông"],
+                    ["冬季", "とうき", "mùa đông"],
+                    ["冬物", "ふゆもの", "đồ mùa đông"],
+                    ["真冬", "まふゆ", "giữa đông"]
+                ]
+            }, {
+                k: "半",
+                on: "ハン",
+                kun: "なかば",
+                v: "nửa",
+                vocab: [
+                    ["半分", "はんぶん", "một nửa"],
+                    ["半年", "はんとし", "nửa năm"],
+                    ["半日", "はんにち", "nửa ngày"],
+                    ["半ば", "なかば", "giữa"],
+                    ["大半", "たいはん", "phần lớn"]
+                ]
+            }, {
+                k: "母",
+                on: "ボ",
+                kun: "はは",
+                v: "mẹ",
+                vocab: [
+                    ["母", "はは", "mẹ"],
+                    ["お母さん", "おかあさん", "mẹ"],
+                    ["母親", "ははおや", "mẹ"],
+                    ["母国", "ぼこく", "tổ quốc"],
+                    ["祖母", "そぼ", "bà"]
+                ]
+            }, {
+                k: "北",
+                on: "ホク",
+                kun: "きた",
+                v: "bắc",
+                vocab: [
+                    ["北", "きた", "phía bắc"],
+                    ["北風", "きたかぜ", "gió bắc"],
+                    ["北国", "きたぐに", "xứ lạnh"],
+                    ["北海道", "ほっかいどう", "Hokkaido"],
+                    ["北極", "ほっきょく", "Bắc Cực"]
+                ]
+            }, {
+                k: "用",
+                on: "ヨウ",
+                kun: "もちいる",
+                v: "dùng",
+                vocab: [
+                    ["用", "よう", "việc cần"],
+                    ["用事", "ようじ", "việc"],
+                    ["利用", "りよう", "sử dụng"],
+                    ["用意", "ようい", "chuẩn bị"],
+                    ["用紙", "ようし", "giấy (mẫu)"]
+                ]
+            }, {
+                k: "羽",
+                on: "ウ",
+                kun: "はね",
+                v: "lông vũ",
+                vocab: [
+                    ["羽", "はね", "lông vũ"],
+                    ["羽根", "はね", "lông, cánh"],
+                    ["羽毛", "うもう", "lông vũ"],
+                    ["羽化", "うか", "hóa bướm"],
+                    ["羽織", "はおり", "áo choàng"]
+                ]
+            }, {
+                k: "会",
+                on: "カイ, エ",
+                kun: "あう",
+                v: "gặp",
+                vocab: [
+                    ["会う", "あう", "gặp"],
+                    ["会社", "かいしゃ", "công ty"],
+                    ["会話", "かいわ", "hội thoại"],
+                    ["会議", "かいぎ", "cuộc họp"],
+                    ["社会", "しゃかい", "xã hội"]
+                ]
+            }, {
+                k: "回",
+                on: "カイ, エ",
+                kun: "まわる",
+                v: "xoay, lần",
+                vocab: [
+                    ["回る", "まわる", "xoay"],
+                    ["一回", "いっかい", "một lần"],
+                    ["回数", "かいすう", "số lần"],
+                    ["回答", "かいとう", "trả lời"],
+                    ["回収", "かいしゅう", "thu hồi"]
+                ]
+            }, {
+                k: "交",
+                on: "コウ",
+                kun: "まじわる",
+                v: "giao",
+                vocab: [
+                    ["交通", "こうつう", "giao thông"],
+                    ["交流", "こうりゅう", "giao lưu"],
+                    ["交換", "こうかん", "trao đổi"],
+                    ["交差点", "こうさてん", "ngã tư"],
+                    ["交際", "こうさい", "giao tiếp"]
+                ]
+            }, {
+                k: "光",
+                on: "コウ",
+                kun: "ひかり",
+                v: "ánh sáng",
+                vocab: [
+                    ["光", "ひかり", "ánh sáng"],
+                    ["光る", "ひかる", "sáng"],
+                    ["日光", "にっこう", "ánh nắng"],
+                    ["光線", "こうせん", "tia sáng"],
+                    ["光景", "こうけい", "quang cảnh"]
+                ]
+            }, {
+                k: "考",
+                on: "コウ",
+                kun: "かんがえる",
+                v: "nghĩ",
+                vocab: [
+                    ["考える", "かんがえる", "suy nghĩ"],
+                    ["考え", "かんがえ", "ý nghĩ"],
+                    ["参考", "さんこう", "tham khảo"],
+                    ["思考", "しこう", "tư duy"],
+                    ["考案", "こうあん", "sáng kiến"]
+                ]
+            }, {
+                k: "行",
+                on: "コウ, ギョウ",
+                kun: "いく, ゆく",
+                v: "đi",
+                vocab: [
+                    ["行く", "いく", "đi"],
+                    ["銀行", "ぎんこう", "ngân hàng"],
+                    ["旅行", "りょこう", "du lịch"],
+                    ["行動", "こうどう", "hành động"],
+                    ["行進", "こうしん", "diễu hành"]
+                ]
+            }, {
+                k: "合",
+                on: "ゴウ, ガッ",
+                kun: "あう",
+                v: "hợp",
+                vocab: [
+                    ["合う", "あう", "hợp"],
+                    ["場合", "ばあい", "trường hợp"],
+                    ["集合", "しゅうごう", "tập hợp"],
+                    ["合格", "ごうかく", "đỗ"],
+                    ["合同", "ごうどう", "kết hợp"]
+                ]
+            }, {
+                k: "寺",
+                on: "ジ",
+                kun: "てら",
+                v: "chùa",
+                vocab: [
+                    ["寺", "てら", "chùa"],
+                    ["寺院", "じいん", "tự viện"],
+                    ["寺社", "じしゃ", "đền chùa"],
+                    ["山寺", "やまでら", "chùa trên núi"],
+                    ["寺町", "てらまち", "phố chùa"]
+                ]
+            }, {
+                k: "自",
+                on: "ジ, シ",
+                kun: "みずから",
+                v: "tự",
+                vocab: [
+                    ["自分", "じぶん", "bản thân"],
+                    ["自動", "じどう", "tự động"],
+                    ["自由", "じゆう", "tự do"],
+                    ["自然", "しぜん", "tự nhiên"],
+                    ["自転車", "じてんしゃ", "xe đạp"]
+                ]
+            }, {
+                k: "色",
+                on: "ショク, シキ",
+                kun: "いろ",
+                v: "màu sắc",
+                vocab: [
+                    ["色", "いろ", "màu sắc"],
+                    ["色々", "いろいろ", "nhiều loại"],
+                    ["特色", "とくしょく", "đặc sắc"],
+                    ["景色", "けしき", "phong cảnh"],
+                    ["色紙", "しきし", "giấy màu"]
+                ]
+            }, {
+                k: "西",
+                on: "セイ, サイ",
+                kun: "にし",
+                v: "tây",
+                vocab: [
+                    ["西", "にし", "phía tây"],
+                    ["西日", "にしび", "nắng chiều"],
+                    ["西洋", "せいよう", "phương Tây"],
+                    ["西部", "せいぶ", "miền tây"],
+                    ["関西", "かんさい", "Kansai"]
+                ]
+            }, {
+                k: "多",
+                on: "タ",
+                kun: "おおい",
+                v: "nhiều",
+                vocab: [
+                    ["多い", "おおい", "nhiều"],
+                    ["多分", "たぶん", "có lẽ"],
+                    ["多数", "たすう", "đa số"],
+                    ["多様", "たよう", "đa dạng"],
+                    ["多国籍", "たこくせき", "đa quốc gia"]
+                ]
+            }, {
+                k: "池",
+                on: "チ",
+                kun: "いけ",
+                v: "ao",
+                vocab: [
+                    ["池", "いけ", "ao"],
+                    ["電池", "でんち", "pin"],
+                    ["池袋", "いけぶくろ", "Ikebukuro"],
+                    ["貯水池", "ちょすいち", "hồ chứa nước"],
+                    ["池辺", "いけべ", "bờ ao"]
+                ]
+            }, {
+                k: "地",
+                on: "チ, ジ",
+                kun: "つち",
+                v: "đất",
+                vocab: [
+                    ["地図", "ちず", "bản đồ"],
+                    ["地下", "ちか", "tầng hầm"],
+                    ["地震", "じしん", "động đất"],
+                    ["地面", "じめん", "mặt đất"],
+                    ["土地", "とち", "đất đai"]
+                ]
+            }, {
+                k: "当",
+                on: "トウ",
+                kun: "あたる",
+                v: "đương, trúng",
+                vocab: [
+                    ["当たる", "あたる", "trúng"],
+                    ["本当", "ほんとう", "thật sự"],
+                    ["担当", "たんとう", "phụ trách"],
+                    ["当時", "とうじ", "lúc đó"],
+                    ["当然", "とうぜん", "đương nhiên"]
+                ]
+            }, {
+                k: "同",
+                on: "ドウ",
+                kun: "おなじ",
+                v: "cùng",
+                vocab: [
+                    ["同じ", "おなじ", "giống nhau"],
+                    ["同時", "どうじ", "cùng lúc"],
+                    ["同じく", "おなじく", "tương tự"],
+                    ["同級生", "どうきゅうせい", "bạn cùng lớp"],
+                    ["同意", "どうい", "đồng ý"]
+                ]
+            }, {
+                k: "肉",
+                on: "ニク",
+                kun: "しし",
+                v: "thịt",
+                vocab: [
+                    ["肉", "にく", "thịt"],
+                    ["牛肉", "ぎゅうにく", "thịt bò"],
+                    ["豚肉", "ぶたにく", "thịt lợn"],
+                    ["鶏肉", "とりにく", "thịt gà"],
+                    ["肉屋", "にくや", "hàng thịt"]
+                ]
+            }, {
+                k: "米",
+                on: "ベイ, マイ",
+                kun: "こめ",
+                v: "gạo",
+                vocab: [
+                    ["米", "こめ", "gạo"],
+                    ["米国", "べいこく", "nước Mỹ"],
+                    ["米飯", "べいはん", "cơm"],
+                    ["玄米", "げんまい", "gạo lứt"],
+                    ["米屋", "こめや", "cửa hàng gạo"]
+                ]
+            }, {
+                k: "毎",
+                on: "マイ",
+                kun: "ごと",
+                v: "mỗi",
+                vocab: [
+                    ["毎日", "まいにち", "mỗi ngày"],
+                    ["毎年", "まいとし", "mỗi năm"],
+                    ["毎週", "まいしゅう", "mỗi tuần"],
+                    ["毎月", "まいつき", "mỗi tháng"],
+                    ["毎朝", "まいあさ", "mỗi sáng"]
+                ]
+            }, {
+                k: "何",
+                on: "カ",
+                kun: "なに, なん",
+                v: "gì",
+                vocab: [
+                    ["何", "なに", "cái gì"],
+                    ["何時", "いつ", "khi nào"],
+                    ["何故", "なぜ", "tại sao"],
+                    ["何でも", "なんでも", "bất cứ gì"],
+                    ["何人", "なんにん", "bao nhiêu người"]
+                ]
+            }, {
+                k: "角",
+                on: "カク",
+                kun: "かど",
+                v: "góc",
+                vocab: [
+                    ["角", "かど", "góc"],
+                    ["角度", "かくど", "góc độ"],
+                    ["三角形", "さんかくけい", "tam giác"],
+                    ["四角", "しかく", "hình vuông"],
+                    ["角川", "かどかわ", "Kadokawa"]
+                ]
+            }, {
+                k: "汽",
+                on: "キ",
+                kun: "",
+                v: "hơi nước",
+                vocab: [
+                    ["汽車", "きしゃ", "tàu hơi nước"],
+                    ["汽船", "きせん", "tàu hơi nước"],
+                    ["汽水", "きすい", "nước lợ"],
+                    ["汽缶", "きかん", "nồi hơi"],
+                    ["汽笛", "きてき", "còi tàu"]
+                ]
+            }, {
+                k: "近",
+                on: "キン",
+                kun: "ちかい",
+                v: "gần",
+                vocab: [
+                    ["近い", "ちかい", "gần"],
+                    ["最近", "さいきん", "gần đây"],
+                    ["近所", "きんじょ", "hàng xóm"],
+                    ["近道", "ちかみち", "đường tắt"],
+                    ["近づく", "ちかづく", "đến gần"]
+                ]
+            }, {
+                k: "形",
+                on: "ケイ, ギョウ",
+                kun: "かたち",
+                v: "hình dạng",
+                vocab: [
+                    ["形", "かたち", "hình dạng"],
+                    ["形式", "けいしき", "hình thức"],
+                    ["形見", "かたみ", "vật kỷ niệm"],
+                    ["人形", "にんぎょう", "búp bê"],
+                    ["図形", "ずけい", "hình vẽ"]
+                ]
+            }, {
+                k: "言",
+                on: "ゲン, ゴン",
+                kun: "いう",
+                v: "nói",
+                vocab: [
+                    ["言う", "いう", "nói"],
+                    ["言葉", "ことば", "lời nói"],
+                    ["言語", "げんご", "ngôn ngữ"],
+                    ["名言", "めいげん", "danh ngôn"],
+                    ["言論", "げんろん", "ngôn luận"]
+                ]
+            }, {
+                k: "谷",
+                on: "コク",
+                kun: "たに",
+                v: "thung lũng",
+                vocab: [
+                    ["谷", "たに", "thung lũng"],
+                    ["谷川", "たにがわ", "suối"],
+                    ["谷底", "たにぞこ", "đáy thung lũng"],
+                    ["渓谷", "けいこく", "hẻm núi"],
+                    ["谷間", "たにま", "khe núi"]
+                ]
+            }, {
+                k: "作",
+                on: "サク, サ",
+                kun: "つくる",
+                v: "làm",
+                vocab: [
+                    ["作る", "つくる", "làm"],
+                    ["作品", "さくひん", "tác phẩm"],
+                    ["作文", "さくぶん", "bài luận"],
+                    ["操作", "そうさ", "thao tác"],
+                    ["動作", "どうさ", "động tác"]
+                ]
+            }, {
+                k: "社",
+                on: "シャ",
+                kun: "やしろ",
+                v: "xã, công ty",
+                vocab: [
+                    ["会社", "かいしゃ", "công ty"],
+                    ["社会", "しゃかい", "xã hội"],
+                    ["神社", "じんじゃ", "đền thờ"],
+                    ["社長", "しゃちょう", "giám đốc"],
+                    ["社員", "しゃいん", "nhân viên"]
+                ]
+            }, {
+                k: "図",
+                on: "ズ, ト",
+                kun: "はかる",
+                v: "hình vẽ",
+                vocab: [
+                    ["図", "ず", "hình vẽ"],
+                    ["地図", "ちず", "bản đồ"],
+                    ["図書館", "としょかん", "thư viện"],
+                    ["図形", "ずけい", "hình vẽ"],
+                    ["意図", "いと", "ý đồ"]
+                ]
+            }, {
+                k: "声",
+                on: "セイ, ショウ",
+                kun: "こえ",
+                v: "giọng nói",
+                vocab: [
+                    ["声", "こえ", "giọng nói"],
+                    ["大声", "おおごえ", "to tiếng"],
+                    ["声優", "せいゆう", "diễn viên lồng tiếng"],
+                    ["歌声", "うたごえ", "tiếng hát"],
+                    ["声援", "せいえん", "cổ vũ"]
+                ]
+            }, {
+                k: "走",
+                on: "ソウ",
+                kun: "はしる",
+                v: "chạy",
+                vocab: [
+                    ["走る", "はしる", "chạy"],
+                    ["競走", "きょうそう", "đua"],
+                    ["走行", "そうこう", "chạy (xe)"],
+                    ["走者", "そうしゃ", "vận động viên chạy"],
+                    ["暴走", "ぼうそう", "chạy quá tốc độ"]
+                ]
+            }, {
+                k: "体",
+                on: "タイ, テイ",
+                kun: "からだ",
+                v: "thân thể",
+                vocab: [
+                    ["体", "からだ", "cơ thể"],
+                    ["体力", "たいりょく", "thể lực"],
+                    ["体験", "たいけん", "trải nghiệm"],
+                    ["体温", "たいおん", "thân nhiệt"],
+                    ["全体", "ぜんたい", "toàn thể"]
+                ]
+            }, {
+                k: "弟",
+                on: "テイ, ダイ",
+                kun: "おとうと",
+                v: "em trai",
+                vocab: [
+                    ["弟", "おとうと", "em trai"],
+                    ["兄弟", "きょうだい", "anh em"],
+                    ["弟子", "でし", "đệ tử"],
+                    ["弟妹", "ていまい", "em trai em gái"],
+                    ["義弟", "ぎてい", "em rể"]
+                ]
+            }, {
+                k: "売",
+                on: "バイ",
+                kun: "うる",
+                v: "bán",
+                vocab: [
+                    ["売る", "うる", "bán"],
+                    ["売り場", "うりば", "quầy bán"],
+                    ["売店", "ばいてん", "quầy hàng"],
+                    ["販売", "はんばい", "bán hàng"],
+                    ["売買", "ばいばい", "mua bán"]
+                ]
+            }, {
+                k: "麦",
+                on: "バク",
+                kun: "むぎ",
+                v: "lúa mì",
+                vocab: [
+                    ["麦", "むぎ", "lúa mì"],
+                    ["麦茶", "むぎちゃ", "trà mạch"],
+                    ["麦畑", "むぎばたけ", "cánh đồng lúa mì"],
+                    ["麦飯", "むぎめし", "cơm lúa mì"],
+                    ["麦酒", "ばくしゅ", "bia"]
+                ]
+            }, {
+                k: "来",
+                on: "ライ",
+                kun: "くる",
+                v: "đến",
+                vocab: [
+                    ["来る", "くる", "đến"],
+                    ["来年", "らいねん", "năm sau"],
+                    ["来週", "らいしゅう", "tuần sau"],
+                    ["来月", "らいげつ", "tháng sau"],
+                    ["来日", "らいにち", "đến Nhật"]
+                ]
+            }, {
+                k: "里",
+                on: "リ",
+                kun: "さと",
+                v: "làng",
+                vocab: [
+                    ["里", "さと", "làng"],
+                    ["里帰り", "さとがえり", "về quê"],
+                    ["故里", "こり", "cố hương"],
+                    ["万里", "ばんり", "vạn dặm"],
+                    ["里山", "さとやま", "núi gần làng"]
+                ]
+            }, {
+                k: "画",
+                on: "ガ, カク",
+                kun: "えがく",
+                v: "vẽ",
+                vocab: [
+                    ["画家", "がか", "họa sĩ"],
+                    ["画面", "がめん", "màn hình"],
+                    ["計画", "けいかく", "kế hoạch"],
+                    ["映画", "えいが", "phim ảnh"],
+                    ["画用紙", "がようし", "giấy vẽ"]
+                ]
+            }, {
+                k: "岩",
+                on: "ガン",
+                kun: "いわ",
+                v: "đá tảng",
+                vocab: [
+                    ["岩", "いわ", "đá tảng"],
+                    ["岩石", "がんせき", "nham thạch"],
+                    ["岩山", "いわやま", "núi đá"],
+                    ["岩盤", "がんばん", "tảng đá lớn"],
+                    ["岩礁", "がんしょう", "đá ngầm"]
+                ]
+            }, {
+                k: "京",
+                on: "キョウ, ケイ",
+                kun: "みやこ",
+                v: "kinh đô",
+                vocab: [
+                    ["京都", "きょうと", "Kyoto"],
+                    ["東京", "とうきょう", "Tokyo"],
+                    ["京劇", "きょうげき", "Kinh kịch"],
+                    ["上京", "じょうきょう", "lên thủ đô"],
+                    ["京風", "きょうふう", "phong cách Kyoto"]
+                ]
+            }, {
+                k: "国",
+                on: "コク",
+                kun: "くに",
+                v: "nước",
+                vocab: [
+                    ["国", "くに", "đất nước"],
+                    ["外国", "がいこく", "nước ngoài"],
+                    ["国会", "こっかい", "quốc hội"],
+                    ["国民", "こくみん", "quốc dân"],
+                    ["国際", "こくさい", "quốc tế"]
+                ]
+            }, {
+                k: "姉",
+                on: "シ",
+                kun: "あね",
+                v: "chị gái",
+                vocab: [
+                    ["姉", "あね", "chị gái"],
+                    ["お姉さん", "おねえさん", "chị"],
+                    ["姉妹", "しまい", "chị em"],
+                    ["姉弟", "してい", "chị em"],
+                    ["義姉", "ぎし", "chị dâu"]
+                ]
+            }, {
+                k: "知",
+                on: "チ",
+                kun: "しる",
+                v: "biết",
+                vocab: [
+                    ["知る", "しる", "biết"],
+                    ["知らせ", "しらせ", "tin tức"],
+                    ["知識", "ちしき", "kiến thức"],
+                    ["知人", "ちじん", "người quen"],
+                    ["知能", "ちのう", "trí năng"]
+                ]
+            }, {
+                k: "長",
+                on: "チョウ",
+                kun: "ながい",
+                v: "dài, trưởng",
+                vocab: [
+                    ["長い", "ながい", "dài"],
+                    ["社長", "しゃちょう", "giám đốc"],
+                    ["校長", "こうちょう", "hiệu trưởng"],
+                    ["長所", "ちょうしょ", "ưu điểm"],
+                    ["成長", "せいちょう", "trưởng thành"]
+                ]
+            }, {
+                k: "直",
+                on: "チョク, ジキ",
+                kun: "ただちに",
+                v: "thẳng, trực tiếp",
+                vocab: [
+                    ["直す", "なおす", "sửa"],
+                    ["直接", "ちょくせつ", "trực tiếp"],
+                    ["正直", "しょうじき", "thật thà"],
+                    ["直感", "ちょっかん", "trực giác"],
+                    ["直線", "ちょくせん", "đường thẳng"]
+                ]
+            }, {
+                k: "店",
+                on: "テン",
+                kun: "みせ",
+                v: "cửa hàng",
+                vocab: [
+                    ["店", "みせ", "cửa hàng"],
+                    ["店員", "てんいん", "nhân viên"],
+                    ["書店", "しょてん", "hiệu sách"],
+                    ["本店", "ほんてん", "cửa hàng chính"],
+                    ["支店", "してん", "chi nhánh"]
+                ]
+            }, {
+                k: "東",
+                on: "トウ",
+                kun: "ひがし",
+                v: "đông",
+                vocab: [
+                    ["東", "ひがし", "phía đông"],
+                    ["東京", "とうきょう", "Tokyo"],
+                    ["東洋", "とうよう", "phương Đông"],
+                    ["関東", "かんとう", "Kanto"],
+                    ["東北", "とうほく", "Tohoku"]
+                ]
+            }, {
+                k: "歩",
+                on: "ホ, ブ",
+                kun: "あるく",
+                v: "bước, đi bộ",
+                vocab: [
+                    ["歩く", "あるく", "đi bộ"],
+                    ["歩道", "ほどう", "vỉa hè"],
+                    ["散歩", "さんぽ", "tản bộ"],
+                    ["歩行者", "ほこうしゃ", "người đi bộ"],
+                    ["一歩", "いっぽ", "một bước"]
+                ]
+            }, {
+                k: "妹",
+                on: "マイ",
+                kun: "いもうと",
+                v: "em gái",
+                vocab: [
+                    ["妹", "いもうと", "em gái"],
+                    ["姉妹", "しまい", "chị em"],
+                    ["妹さん", "いもうとさん", "em gái"],
+                    ["義妹", "ぎまい", "em dâu"],
+                    ["弟妹", "ていまい", "em trai em gái"]
+                ]
+            }, {
+                k: "明",
+                on: "メイ, ミョウ",
+                kun: "あかるい",
+                v: "sáng",
+                vocab: [
+                    ["明るい", "あかるい", "sáng sủa"],
+                    ["明日", "あした", "ngày mai"],
+                    ["説明", "せつめい", "giải thích"],
+                    ["明らか", "あきらか", "rõ ràng"],
+                    ["発明", "はつめい", "phát minh"]
+                ]
+            }, {
+                k: "門",
+                on: "モン",
+                kun: "かど",
+                v: "cổng",
+                vocab: [
+                    ["門", "もん", "cổng"],
+                    ["専門", "せんもん", "chuyên môn"],
+                    ["門前", "もんぜん", "trước cổng"],
+                    ["門下", "もんか", "môn hạ"],
+                    ["門番", "もんばん", "người gác cổng"]
+                ]
+            }, {
+                k: "夜",
+                on: "ヤ",
+                kun: "よる",
+                v: "đêm",
+                vocab: [
+                    ["夜", "よる", "đêm"],
+                    ["今夜", "こんや", "tối nay"],
+                    ["夜中", "よなか", "nửa đêm"],
+                    ["夜景", "やけい", "cảnh đêm"],
+                    ["夜明け", "よあけ", "bình minh"]
+                ]
+            }, {
+                k: "科",
+                on: "カ",
+                kun: "",
+                v: "khoa",
+                vocab: [
+                    ["科学", "かがく", "khoa học"],
+                    ["科目", "かもく", "môn học"],
+                    ["内科", "ないか", "nội khoa"],
+                    ["外科", "げか", "ngoại khoa"],
+                    ["科長", "かちょう", "trưởng khoa"]
+                ]
+            }, {
+                k: "海",
+                on: "カイ",
+                kun: "うみ",
+                v: "biển",
+                vocab: [
+                    ["海", "うみ", "biển"],
+                    ["海外", "かいがい", "nước ngoài"],
+                    ["海辺", "うみべ", "bờ biển"],
+                    ["海岸", "かいがん", "bờ biển"],
+                    ["海水", "かいすい", "nước biển"]
+                ]
+            }, {
+                k: "活",
+                on: "カツ",
+                kun: "いきる",
+                v: "hoạt động",
+                vocab: [
+                    ["生活", "せいかつ", "cuộc sống"],
+                    ["活動", "かつどう", "hoạt động"],
+                    ["活発", "かっぱつ", "năng động"],
+                    ["活力", "かつりょく", "sức sống"],
+                    ["活用", "かつよう", "ứng dụng"]
+                ]
+            }, {
+                k: "計",
+                on: "ケイ",
+                kun: "はかる",
+                v: "đo, kế hoạch",
+                vocab: [
+                    ["計画", "けいかく", "kế hoạch"],
+                    ["計算", "けいさん", "tính toán"],
+                    ["時計", "とけい", "đồng hồ"],
+                    ["計器", "けいき", "dụng cụ đo"],
+                    ["合計", "ごうけい", "tổng cộng"]
+                ]
+            }, {
+                k: "後",
+                on: "ゴ, コウ",
+                kun: "あと",
+                v: "sau",
+                vocab: [
+                    ["後", "あと", "sau"],
+                    ["後ろ", "うしろ", "đằng sau"],
+                    ["午後", "ごご", "buổi chiều"],
+                    ["最後", "さいご", "cuối cùng"],
+                    ["後輩", "こうはい", "đàn em"]
+                ]
+            }, {
+                k: "室",
+                on: "シツ",
+                kun: "むろ",
+                v: "phòng",
+                vocab: [
+                    ["教室", "きょうしつ", "phòng học"],
+                    ["室内", "しつない", "trong phòng"],
+                    ["寝室", "しんしつ", "phòng ngủ"],
+                    ["会議室", "かいぎしつ", "phòng họp"],
+                    ["室長", "しつちょう", "trưởng phòng"]
+                ]
+            }, {
+                k: "首",
+                on: "シュ",
+                kun: "くび",
+                v: "cổ, đầu",
+                vocab: [
+                    ["首", "くび", "cổ"],
+                    ["首相", "しゅしょう", "thủ tướng"],
+                    ["首都", "しゅと", "thủ đô"],
+                    ["首飾り", "くびかざり", "vòng cổ"],
+                    ["首位", "しゅい", "vị trí đầu"]
+                ]
+            }, {
+                k: "秋",
+                on: "シュウ",
+                kun: "あき",
+                v: "mùa thu",
+                vocab: [
+                    ["秋", "あき", "mùa thu"],
+                    ["秋休み", "あきやすみ", "nghỉ thu"],
+                    ["秋季", "しゅうき", "mùa thu"],
+                    ["秋風", "あきかぜ", "gió thu"],
+                    ["秋葉原", "あきはばら", "Akihabara"]
+                ]
+            }, {
+                k: "春",
+                on: "シュン",
+                kun: "はる",
+                v: "mùa xuân",
+                vocab: [
+                    ["春", "はる", "mùa xuân"],
+                    ["春休み", "はるやすみ", "nghỉ xuân"],
+                    ["春季", "しゅんき", "mùa xuân"],
+                    ["春風", "はるかぜ", "gió xuân"],
+                    ["春巻き", "はるまき", "nem rán"]
+                ]
+            }, {
+                k: "食",
+                on: "ショク, ジキ",
+                kun: "たべる",
+                v: "ăn",
+                vocab: [
+                    ["食べる", "たべる", "ăn"],
+                    ["食事", "しょくじ", "bữa ăn"],
+                    ["食品", "しょくひん", "thực phẩm"],
+                    ["食堂", "しょくどう", "nhà ăn"],
+                    ["食欲", "しょくよく", "cảm giác thèm ăn"]
+                ]
+            }, {
+                k: "星",
+                on: "セイ, ショウ",
+                kun: "ほし",
+                v: "ngôi sao",
+                vocab: [
+                    ["星", "ほし", "ngôi sao"],
+                    ["星座", "せいざ", "chòm sao"],
+                    ["星占い", "ほしうらない", "chiêm tinh"],
+                    ["星形", "ほしがた", "hình sao"],
+                    ["星雲", "せいうん", "tinh vân"]
+                ]
+            }, {
+                k: "前",
+                on: "ゼン",
+                kun: "まえ",
+                v: "trước",
+                vocab: [
+                    ["前", "まえ", "trước"],
+                    ["名前", "なまえ", "tên"],
+                    ["以前", "いぜん", "trước đây"],
+                    ["直前", "ちょくぜん", "ngay trước"],
+                    ["前面", "ぜんめん", "mặt trước"]
+                ]
+            }, {
+                k: "茶",
+                on: "チャ, サ",
+                kun: "",
+                v: "trà",
+                vocab: [
+                    ["お茶", "おちゃ", "trà"],
+                    ["茶色", "ちゃいろ", "màu nâu"],
+                    ["茶碗", "ちゃわん", "chén trà"],
+                    ["茶道", "さどう", "trà đạo"],
+                    ["喫茶店", "きっさてん", "quán cà phê"]
+                ]
+            }, {
+                k: "昼",
+                on: "チュウ",
+                kun: "ひる",
+                v: "ban ngày",
+                vocab: [
+                    ["昼", "ひる", "ban ngày"],
+                    ["昼間", "ひるま", "ban ngày"],
+                    ["昼休み", "ひるやすみ", "nghỉ trưa"],
+                    ["昼食", "ちゅうしょく", "bữa trưa"],
+                    ["昼寝", "ひるね", "ngủ trưa"]
+                ]
+            }, {
+                k: "点",
+                on: "テン",
+                kun: "つく",
+                v: "điểm, chấm",
+                vocab: [
+                    ["点", "てん", "điểm"],
+                    ["点数", "てんすう", "số điểm"],
+                    ["点ける", "つける", "bật lên"],
+                    ["点検", "てんけん", "kiểm tra"],
+                    ["焦点", "しょうてん", "tiêu điểm"]
+                ]
+            }, {
+                k: "南",
+                on: "ナン",
+                kun: "みなみ",
+                v: "nam",
+                vocab: [
+                    ["南", "みなみ", "phía nam"],
+                    ["南国", "なんごく", "xứ ấm"],
+                    ["南風", "みなみかぜ", "gió nam"],
+                    ["東南", "とうなん", "đông nam"],
+                    ["南極", "なんきょく", "Nam Cực"]
+                ]
+            }, {
+                k: "風",
+                on: "フウ",
+                kun: "かぜ",
+                v: "gió",
+                vocab: [
+                    ["風", "かぜ", "gió"],
+                    ["風邪", "かぜ", "cảm cúm"],
+                    ["風呂", "ふろ", "bồn tắm"],
+                    ["風景", "ふうけい", "phong cảnh"],
+                    ["風船", "ふうせん", "bóng bay"]
+                ]
+            }, {
+                k: "思",
+                on: "シ",
+                kun: "おもう",
+                v: "nghĩ",
+                vocab: [
+                    ["思う", "おもう", "nghĩ"],
+                    ["思い", "おもい", "ý nghĩ"],
+                    ["思考", "しこう", "tư duy"],
+                    ["意思", "いし", "ý chí"],
+                    ["思い出", "おもいで", "kỷ niệm"]
+                ]
+            }, {
+                k: "家",
+                on: "カ, ケ",
+                kun: "いえ",
+                v: "nhà",
+                vocab: [
+                    ["家", "いえ", "nhà"],
+                    ["家族", "かぞく", "gia đình"],
+                    ["家具", "かぐ", "đồ nội thất"],
+                    ["家賃", "やちん", "tiền thuê nhà"],
+                    ["家庭", "かてい", "gia đình"]
+                ]
+            }, {
+                k: "夏",
+                on: "カ, ゲ",
+                kun: "なつ",
+                v: "mùa hè",
+                vocab: [
+                    ["夏", "なつ", "mùa hè"],
+                    ["夏休み", "なつやすみ", "nghỉ hè"],
+                    ["夏季", "かき", "mùa hè"],
+                    ["夏物", "なつもの", "đồ mùa hè"],
+                    ["真夏", "まなつ", "giữa hè"]
+                ]
+            }, {
+                k: "記",
+                on: "キ",
+                kun: "しるす",
+                v: "ghi",
+                vocab: [
+                    ["記す", "しるす", "ghi lại"],
+                    ["日記", "にっき", "nhật ký"],
+                    ["記者", "きしゃ", "phóng viên"],
+                    ["記念", "きねん", "kỷ niệm"],
+                    ["記録", "きろく", "kỷ lục"]
+                ]
+            }, {
+                k: "帰",
+                on: "キ",
+                kun: "かえる",
+                v: "về",
+                vocab: [
+                    ["帰る", "かえる", "về nhà"],
+                    ["帰国", "きこく", "về nước"],
+                    ["帰宅", "きたく", "về nhà"],
+                    ["帰省", "きせい", "về quê"],
+                    ["帰り道", "かえりみち", "đường về"]
+                ]
+            }, {
+                k: "原",
+                on: "ゲン",
+                kun: "はら",
+                v: "nguyên, cánh đồng",
+                vocab: [
+                    ["原", "はら", "cánh đồng"],
+                    ["原因", "げんいん", "nguyên nhân"],
+                    ["原稿", "げんこう", "bản thảo"],
+                    ["原料", "げんりょう", "nguyên liệu"],
+                    ["原子力", "げんしりょく", "năng lượng nguyên tử"]
+                ]
+            }, {
+                k: "高",
+                on: "コウ",
+                kun: "たかい",
+                v: "cao",
+                vocab: [
+                    ["高い", "たかい", "cao"],
+                    ["高校", "こうこう", "trường cấp 3"],
+                    ["高級", "こうきゅう", "cao cấp"],
+                    ["高速", "こうそく", "cao tốc"],
+                    ["最高", "さいこう", "tốt nhất"]
+                ]
+            }, {
+                k: "紙",
+                on: "シ",
+                kun: "かみ",
+                v: "giấy",
+                vocab: [
+                    ["紙", "かみ", "giấy"],
+                    ["手紙", "てがみ", "thư"],
+                    ["紙幣", "しへい", "tiền giấy"],
+                    ["新聞紙", "しんぶんし", "báo"],
+                    ["紙屑", "かみくず", "giấy vụn"]
+                ]
+            }, {
+                k: "時",
+                on: "ジ",
+                kun: "とき",
+                v: "thời gian",
+                vocab: [
+                    ["時間", "じかん", "thời gian"],
+                    ["時計", "とけい", "đồng hồ"],
+                    ["時々", "ときどき", "thỉnh thoảng"],
+                    ["時代", "じだい", "thời đại"],
+                    ["当時", "とうじ", "lúc đó"]
+                ]
+            }, {
+                k: "弱",
+                on: "ジャク",
+                kun: "よわい",
+                v: "yếu",
+                vocab: [
+                    ["弱い", "よわい", "yếu"],
+                    ["弱点", "じゃくてん", "điểm yếu"],
+                    ["弱気", "よわき", "nhu nhược"],
+                    ["弱者", "じゃくしゃ", "người yếu thế"],
+                    ["衰弱", "すいじゃく", "suy nhược"]
+                ]
+            }, {
+                k: "書",
+                on: "ショ",
+                kun: "かく",
+                v: "viết",
+                vocab: [
+                    ["書く", "かく", "viết"],
+                    ["図書館", "としょかん", "thư viện"],
+                    ["書道", "しょどう", "thư pháp"],
+                    ["書類", "しょるい", "tài liệu"],
+                    ["書籍", "しょせき", "sách vở"]
+                ]
+            }, {
+                k: "通",
+                on: "ツウ",
+                kun: "とおる",
+                v: "thông qua",
+                vocab: [
+                    ["通る", "とおる", "đi qua"],
+                    ["交通", "こうつう", "giao thông"],
+                    ["通学", "つうがく", "đi học"],
+                    ["通訳", "つうやく", "phiên dịch"],
+                    ["普通", "ふつう", "bình thường"]
+                ]
+            }, {
+                k: "馬",
+                on: "バ",
+                kun: "うま",
+                v: "ngựa",
+                vocab: [
+                    ["馬", "うま", "con ngựa"],
+                    ["馬車", "ばしゃ", "xe ngựa"],
+                    ["馬上", "ばじょう", "trên lưng ngựa"],
+                    ["馬力", "ばりき", "mã lực"],
+                    ["競馬", "けいば", "đua ngựa"]
+                ]
+            }, {
+                k: "魚",
+                on: "ギョ",
+                kun: "さかな",
+                v: "cá",
+                vocab: [
+                    ["魚", "さかな", "con cá"],
+                    ["魚介", "ぎょかい", "hải sản"],
+                    ["魚屋", "さかなや", "hàng cá"],
+                    ["魚市場", "うおいちば", "chợ cá"],
+                    ["金魚", "きんぎょ", "cá vàng"]
+                ]
+            }, {
+                k: "教",
+                on: "キョウ",
+                kun: "おしえる",
+                v: "dạy",
+                vocab: [
+                    ["教える", "おしえる", "dạy"],
+                    ["教室", "きょうしつ", "phòng học"],
+                    ["教会", "きょうかい", "nhà thờ"],
+                    ["教師", "きょうし", "giáo viên"],
+                    ["教育", "きょういく", "giáo dục"]
+                ]
+            }, {
+                k: "強",
+                on: "キョウ, ゴウ",
+                kun: "つよい",
+                v: "mạnh",
+                vocab: [
+                    ["強い", "つよい", "mạnh"],
+                    ["強さ", "つよさ", "sức mạnh"],
+                    ["強化", "きょうか", "tăng cường"],
+                    ["強制", "きょうせい", "cưỡng chế"],
+                    ["勉強", "べんきょう", "học tập"]
+                ]
+            }, {
+                k: "黄",
+                on: "コウ, オウ",
+                kun: "き",
+                v: "vàng",
+                vocab: [
+                    ["黄色", "きいろ", "màu vàng"],
+                    ["黄緑", "きみどり", "xanh vàng"],
+                    ["黄身", "きみ", "lòng đỏ trứng"],
+                    ["黄金", "おうごん", "vàng"],
+                    ["黄砂", "こうさ", "cát vàng"]
+                ]
+            }, {
+                k: "黒",
+                on: "コク",
+                kun: "くろ",
+                v: "đen",
+                vocab: [
+                    ["黒", "くろ", "màu đen"],
+                    ["黒い", "くろい", "đen"],
+                    ["黒板", "こくばん", "bảng đen"],
+                    ["黒人", "こくじん", "người da đen"],
+                    ["暗黒", "あんこく", "bóng tối"]
+                ]
+            }, {
+                k: "細",
+                on: "サイ",
+                kun: "ほそい",
+                v: "nhỏ, mảnh",
+                vocab: [
+                    ["細い", "ほそい", "mảnh"],
+                    ["細かい", "こまかい", "chi tiết"],
+                    ["細長い", "ほそながい", "thon dài"],
+                    ["細胞", "さいぼう", "tế bào"],
+                    ["細菌", "さいきん", "vi khuẩn"]
+                ]
+            }, {
+                k: "週",
+                on: "シュウ",
+                kun: "",
+                v: "tuần",
+                vocab: [
+                    ["週間", "しゅうかん", "tuần"],
+                    ["今週", "こんしゅう", "tuần này"],
+                    ["来週", "らいしゅう", "tuần sau"],
+                    ["先週", "せんしゅう", "tuần trước"],
+                    ["毎週", "まいしゅう", "hàng tuần"]
+                ]
+            }, {
+                k: "雪",
+                on: "セツ",
+                kun: "ゆき",
+                v: "tuyết",
+                vocab: [
+                    ["雪", "ゆき", "tuyết"],
+                    ["雪国", "ゆきぐに", "xứ tuyết"],
+                    ["雪だるま", "ゆきだるま", "người tuyết"],
+                    ["吹雪", "ふぶき", "bão tuyết"],
+                    ["大雪", "おおゆき", "tuyết lớn"]
+                ]
+            }, {
+                k: "船",
+                on: "セン",
+                kun: "ふね",
+                v: "thuyền",
+                vocab: [
+                    ["船", "ふね", "thuyền"],
+                    ["船便", "ふなびん", "đường biển"],
+                    ["船長", "せんちょう", "thuyền trưởng"],
+                    ["船員", "せんいん", "thủy thủ"],
+                    ["宇宙船", "うちゅうせん", "tàu vũ trụ"]
+                ]
+            }, {
+                k: "組",
+                on: "ソ",
+                kun: "くむ",
+                v: "tổ, nhóm",
+                vocab: [
+                    ["組", "くみ", "nhóm"],
+                    ["組む", "くむ", "hợp tác"],
+                    ["組織", "そしき", "tổ chức"],
+                    ["組合", "くみあい", "hiệp hội"],
+                    ["組長", "くみちょう", "trưởng nhóm"]
+                ]
+            }, {
+                k: "鳥",
+                on: "チョウ",
+                kun: "とり",
+                v: "chim",
+                vocab: [
+                    ["鳥", "とり", "con chim"],
+                    ["鳥肉", "とりにく", "thịt gà"],
+                    ["小鳥", "ことり", "chim nhỏ"],
+                    ["鳥居", "とりい", "cổng torii"],
+                    ["白鳥", "はくちょう", "thiên nga"]
+                ]
+            }, {
+                k: "野",
+                on: "ヤ",
+                kun: "の",
+                v: "cánh đồng",
+                vocab: [
+                    ["野", "の", "cánh đồng"],
+                    ["野菜", "やさい", "rau củ"],
+                    ["野球", "やきゅう", "bóng chày"],
+                    ["野生", "やせい", "hoang dã"],
+                    ["分野", "ぶんや", "lĩnh vực"]
+                ]
+            }, {
+                k: "理",
+                on: "リ",
+                kun: "ことわり",
+                v: "lý",
+                vocab: [
+                    ["理由", "りゆう", "lý do"],
+                    ["理科", "りか", "khoa học tự nhiên"],
+                    ["料理", "りょうり", "nấu ăn"],
+                    ["理解", "りかい", "hiểu"],
+                    ["心理学", "しんりがく", "tâm lý học"]
+                ]
+            }, {
+                k: "雲",
+                on: "ウン",
+                kun: "くも",
+                v: "mây",
+                vocab: [
+                    ["雲", "くも", "mây"],
+                    ["雲行き", "くもゆき", "tình hình"],
+                    ["雲海", "うんかい", "biển mây"],
+                    ["雲雀", "ひばり", "chim sơn ca"],
+                    ["雲仙", "うんぜん", "Unzen (núi)"]
+                ]
+            }, {
+                k: "絵",
+                on: "カイ, エ",
+                kun: "",
+                v: "tranh",
+                vocab: [
+                    ["絵", "え", "tranh"],
+                    ["絵本", "えほん", "sách tranh"],
+                    ["絵画", "かいが", "hội họa"],
+                    ["絵の具", "えのぐ", "màu vẽ"],
+                    ["絵文字", "えもじ", "emoji"]
+                ]
+            }, {
+                k: "間",
+                on: "カン, ケン",
+                kun: "あいだ",
+                v: "khoảng",
+                vocab: [
+                    ["間", "あいだ", "khoảng"],
+                    ["時間", "じかん", "thời gian"],
+                    ["人間", "にんげん", "con người"],
+                    ["間違う", "まちがう", "nhầm lẫn"],
+                    ["世間", "せけん", "xã hội"]
+                ]
+            }, {
+                k: "場",
+                on: "ジョウ",
+                kun: "ば",
+                v: "nơi",
+                vocab: [
+                    ["場所", "ばしょ", "địa điểm"],
+                    ["場合", "ばあい", "trường hợp"],
+                    ["市場", "いちば", "chợ"],
+                    ["工場", "こうじょう", "nhà máy"],
+                    ["広場", "ひろば", "quảng trường"]
+                ]
+            }, {
+                k: "晴",
+                on: "セイ",
+                kun: "はれる",
+                v: "nắng",
+                vocab: [
+                    ["晴れ", "はれ", "nắng"],
+                    ["晴れる", "はれる", "nắng lên"],
+                    ["晴天", "せいてん", "trời nắng"],
+                    ["晴雨", "せいう", "nắng mưa"],
+                    ["晴れ着", "はれぎ", "trang phục đẹp"]
+                ]
+            }, {
+                k: "朝",
+                on: "チョウ",
+                kun: "あさ",
+                v: "sáng",
+                vocab: [
+                    ["朝", "あさ", "buổi sáng"],
+                    ["朝ご飯", "あさごはん", "bữa sáng"],
+                    ["朝日", "あさひ", "mặt trời mọc"],
+                    ["毎朝", "まいあさ", "mỗi sáng"],
+                    ["今朝", "けさ", "sáng nay"]
+                ]
+            }, {
+                k: "答",
+                on: "トウ",
+                kun: "こたえる",
+                v: "trả lời",
+                vocab: [
+                    ["答える", "こたえる", "trả lời"],
+                    ["答え", "こたえ", "câu trả lời"],
+                    ["回答", "かいとう", "trả lời"],
+                    ["解答", "かいとう", "lời giải"],
+                    ["答申", "とうしん", "báo cáo"]
+                ]
+            }, {
+                k: "道",
+                on: "ドウ",
+                kun: "みち",
+                v: "đường",
+                vocab: [
+                    ["道", "みち", "đường"],
+                    ["道具", "どうぐ", "dụng cụ"],
+                    ["道路", "どうろ", "đường bộ"],
+                    ["北海道", "ほっかいどう", "Hokkaido"],
+                    ["水道", "すいどう", "vòi nước"]
+                ]
+            }, {
+                k: "買",
+                on: "バイ",
+                kun: "かう",
+                v: "mua",
+                vocab: [
+                    ["買う", "かう", "mua"],
+                    ["買い物", "かいもの", "mua sắm"],
+                    ["購買", "こうばい", "mua"],
+                    ["売買", "ばいばい", "mua bán"],
+                    ["買収", "ばいしゅう", "mua lại"]
+                ]
+            }, {
+                k: "番",
+                on: "バン",
+                kun: "つがい",
+                v: "số thứ tự",
+                vocab: [
+                    ["番号", "ばんごう", "số hiệu"],
+                    ["番組", "ばんぐみ", "chương trình"],
+                    ["一番", "いちばん", "số một"],
+                    ["交番", "こうばん", "đồn cảnh sát"],
+                    ["番目", "ばんめ", "thứ tự"]
+                ]
+            }, {
+                k: "遠",
+                on: "エン",
+                kun: "とおい",
+                v: "xa",
+                vocab: [
+                    ["遠い", "とおい", "xa"],
+                    ["遠く", "とおく", "xa xa"],
+                    ["遠足", "えんそく", "dã ngoại"],
+                    ["遠慮", "えんりょ", "miễn cưỡng"],
+                    ["永遠", "えいえん", "vĩnh viễn"]
+                ]
+            }, {
+                k: "園",
+                on: "エン",
+                kun: "その",
+                v: "vườn",
+                vocab: [
+                    ["公園", "こうえん", "công viên"],
+                    ["園芸", "えんげい", "làm vườn"],
+                    ["幼稚園", "ようちえん", "mẫu giáo"],
+                    ["動物園", "どうぶつえん", "vườn thú"],
+                    ["植物園", "しょくぶつえん", "vườn thực vật"]
+                ]
+            }, {
+                k: "楽",
+                on: "ガク, ラク",
+                kun: "たのしい",
+                v: "vui",
+                vocab: [
+                    ["楽しい", "たのしい", "vui vẻ"],
+                    ["音楽", "おんがく", "âm nhạc"],
+                    ["楽器", "がっき", "nhạc cụ"],
+                    ["気楽", "きらく", "thoải mái"],
+                    ["楽しみ", "たのしみ", "niềm vui"]
+                ]
+            }, {
+                k: "新",
+                on: "シン",
+                kun: "あたらしい",
+                v: "mới",
+                vocab: [
+                    ["新しい", "あたらしい", "mới"],
+                    ["新聞", "しんぶん", "báo"],
+                    ["新幹線", "しんかんせん", "tàu cao tốc"],
+                    ["新入生", "しんにゅうせい", "tân sinh viên"],
+                    ["新年", "しんねん", "năm mới"]
+                ]
+            }, {
+                k: "数",
+                on: "スウ, ス",
+                kun: "かず",
+                v: "số",
+                vocab: [
+                    ["数", "かず", "số"],
+                    ["数字", "すうじ", "chữ số"],
+                    ["数える", "かぞえる", "đếm"],
+                    ["数学", "すうがく", "toán học"],
+                    ["人数", "にんずう", "số người"]
+                ]
+            }, {
+                k: "電",
+                on: "デン",
+                kun: "",
+                v: "điện",
+                vocab: [
+                    ["電気", "でんき", "điện"],
+                    ["電話", "でんわ", "điện thoại"],
+                    ["電車", "でんしゃ", "tàu điện"],
+                    ["電池", "でんち", "pin"],
+                    ["電子", "でんし", "điện tử"]
+                ]
+            }, {
+                k: "話",
+                on: "ワ",
+                kun: "はなす",
+                v: "nói chuyện",
+                vocab: [
+                    ["話す", "はなす", "nói"],
+                    ["電話", "でんわ", "điện thoại"],
+                    ["会話", "かいわ", "hội thoại"],
+                    ["話題", "わだい", "chủ đề"],
+                    ["話し合う", "はなしあう", "thảo luận"]
+                ]
+            }, {
+                k: "歌",
+                on: "カ",
+                kun: "うた",
+                v: "bài hát",
+                vocab: [
+                    ["歌", "うた", "bài hát"],
+                    ["歌う", "うたう", "hát"],
+                    ["歌手", "かしゅ", "ca sĩ"],
+                    ["歌謡", "かよう", "ca khúc"],
+                    ["歌声", "うたごえ", "tiếng hát"]
+                ]
+            }, {
+                k: "語",
+                on: "ゴ",
+                kun: "かたる",
+                v: "ngôn ngữ",
+                vocab: [
+                    ["語る", "かたる", "kể"],
+                    ["日本語", "にほんご", "tiếng Nhật"],
+                    ["英語", "えいご", "tiếng Anh"],
+                    ["単語", "たんご", "từ vựng"],
+                    ["語学", "ごがく", "ngôn ngữ học"]
+                ]
+            }, {
+                k: "算",
+                on: "サン",
+                kun: "そろ",
+                v: "tính toán",
+                vocab: [
+                    ["算数", "さんすう", "toán học"],
+                    ["計算", "けいさん", "tính toán"],
+                    ["算盤", "そろばん", "bàn tính"],
+                    ["予算", "よさん", "dự toán"],
+                    ["算定", "さんてい", "tính định"]
+                ]
+            }, {
+                k: "読",
+                on: "ドク",
+                kun: "よむ",
+                v: "đọc",
+                vocab: [
+                    ["読む", "よむ", "đọc"],
+                    ["読者", "どくしゃ", "độc giả"],
+                    ["読書", "どくしょ", "đọc sách"],
+                    ["音読", "おんどく", "đọc to"],
+                    ["読解", "どっかい", "đọc hiểu"]
+                ]
+            }, {
+                k: "聞",
+                on: "ブン, モン",
+                kun: "きく",
+                v: "nghe",
+                vocab: [
+                    ["聞く", "きく", "nghe"],
+                    ["新聞", "しんぶん", "báo"],
+                    ["聞こえる", "きこえる", "nghe thấy"],
+                    ["見聞", "けんぶん", "kiến văn"],
+                    ["聞き手", "ききて", "người nghe"]
+                ]
+            }, {
+                k: "鳴",
+                on: "メイ",
+                kun: "なく",
+                v: "kêu",
+                vocab: [
+                    ["鳴く", "なく", "kêu (động vật)"],
+                    ["鳴る", "なる", "reo"],
+                    ["鳴き声", "なきごえ", "tiếng kêu"],
+                    ["悲鳴", "ひめい", "tiếng thét"],
+                    ["雷鳴", "らいめい", "sấm"]
+                ]
+            }, {
+                k: "線",
+                on: "セン",
+                kun: "すじ",
+                v: "đường kẻ",
+                vocab: [
+                    ["線", "せん", "đường thẳng"],
+                    ["新幹線", "しんかんせん", "tàu cao tốc"],
+                    ["曲線", "きょくせん", "đường cong"],
+                    ["線路", "せんろ", "đường ray"],
+                    ["電線", "でんせん", "dây điện"]
+                ]
+            }, {
+                k: "親",
+                on: "シン",
+                kun: "おや",
+                v: "cha mẹ",
+                vocab: [
+                    ["親", "おや", "cha mẹ"],
+                    ["親切", "しんせつ", "tử tế"],
+                    ["親友", "しんゆう", "bạn thân"],
+                    ["両親", "りょうしん", "cha mẹ"],
+                    ["親子", "おやこ", "cha mẹ và con"]
+                ]
+            }, {
+                k: "頭",
+                on: "トウ",
+                kun: "あたま",
+                v: "đầu",
+                vocab: [
+                    ["頭", "あたま", "cái đầu"],
+                    ["頭痛", "ずつう", "đau đầu"],
+                    ["先頭", "せんとう", "dẫn đầu"],
+                    ["頭文字", "かしらもじ", "chữ cái đầu"],
+                    ["頭脳", "ずのう", "trí óc"]
+                ]
+            }, {
+                k: "顔",
+                on: "ガン",
+                kun: "かお",
+                v: "mặt",
+                vocab: [
+                    ["顔", "かお", "khuôn mặt"],
+                    ["笑顔", "えがお", "nụ cười"],
+                    ["顔色", "かおいろ", "sắc mặt"],
+                    ["顔文字", "かおもじ", "emoji"],
+                    ["顔面", "がんめん", "khuôn mặt"]
+                ]
+            }, {
+                k: "曜",
+                on: "ヨウ",
+                kun: "",
+                v: "thứ (trong tuần)",
+                vocab: [
+                    ["月曜日", "げつようび", "thứ hai"],
+                    ["火曜日", "かようび", "thứ ba"],
+                    ["水曜日", "すいようび", "thứ tư"],
+                    ["木曜日", "もくようび", "thứ năm"],
+                    ["金曜日", "きんようび", "thứ sáu"]
+                ]
+            }];
+
+            // Xây dựng kanjiDetails
+            newData.forEach(function(item) {
+                kanjiDetails[item.k] = {
+                    on: item.on,
+                    kun: item.kun,
+                    vocab: item.vocab
+                };
+            });
+
+            // ═══════════════════════════════════════════════════════════════
+            //  THÊM BẢNG CHUYỂN HIRAGANA → ROMAJI
+            // ═══════════════════════════════════════════════════════════════
+
+            var hiraToRomaji = {
+                'あ': 'a',
+                'い': 'i',
+                'う': 'u',
+                'え': 'e',
+                'お': 'o',
+                'か': 'ka',
+                'き': 'ki',
+                'く': 'ku',
+                'け': 'ke',
+                'こ': 'ko',
+                'さ': 'sa',
+                'し': 'shi',
+                'す': 'su',
+                'せ': 'se',
+                'そ': 'so',
+                'た': 'ta',
+                'ち': 'chi',
+                'つ': 'tsu',
+                'て': 'te',
+                'と': 'to',
+                'な': 'na',
+                'に': 'ni',
+                'ぬ': 'nu',
+                'ね': 'ne',
+                'の': 'no',
+                'は': 'ha',
+                'ひ': 'hi',
+                'ふ': 'fu',
+                'へ': 'he',
+                'ほ': 'ho',
+                'ま': 'ma',
+                'み': 'mi',
+                'む': 'mu',
+                'め': 'me',
+                'も': 'mo',
+                'や': 'ya',
+                'ゆ': 'yu',
+                'よ': 'yo',
+                'ら': 'ra',
+                'り': 'ri',
+                'る': 'ru',
+                'れ': 're',
+                'ろ': 'ro',
+                'わ': 'wa',
+                'を': 'wo',
+                'ん': 'n',
+                'が': 'ga',
+                'ぎ': 'gi',
+                'ぐ': 'gu',
+                'げ': 'ge',
+                'ご': 'go',
+                'ざ': 'za',
+                'じ': 'ji',
+                'ず': 'zu',
+                'ぜ': 'ze',
+                'ぞ': 'zo',
+                'だ': 'da',
+                'ぢ': 'ji',
+                'づ': 'zu',
+                'で': 'de',
+                'ど': 'do',
+                'ば': 'ba',
+                'び': 'bi',
+                'ぶ': 'bu',
+                'べ': 'be',
+                'ぼ': 'bo',
+                'ぱ': 'pa',
+                'ぴ': 'pi',
+                'ぷ': 'pu',
+                'ぺ': 'pe',
+                'ぽ': 'po',
+                'きゃ': 'kya',
+                'きゅ': 'kyu',
+                'きょ': 'kyo',
+                'しゃ': 'sha',
+                'しゅ': 'shu',
+                'しょ': 'sho',
+                'ちゃ': 'cha',
+                'ちゅ': 'chu',
+                'ちょ': 'cho',
+                'にゃ': 'nya',
+                'にゅ': 'nyu',
+                'にょ': 'nyo',
+                'ひゃ': 'hya',
+                'ひゅ': 'hyu',
+                'ひょ': 'hyo',
+                'みゃ': 'mya',
+                'みゅ': 'myu',
+                'みょ': 'myo',
+                'りゃ': 'rya',
+                'りゅ': 'ryu',
+                'りょ': 'ryo',
+                'ぎゃ': 'gya',
+                'ぎゅ': 'gyu',
+                'ぎょ': 'gyo',
+                'じゃ': 'ja',
+                'じゅ': 'ju',
+                'じょ': 'jo',
+                'びゃ': 'bya',
+                'びゅ': 'byu',
+                'びょ': 'byo',
+                'ぴゃ': 'pya',
+                'ぴゅ': 'pyu',
+                'ぴょ': 'pyo'
+            };
+
+            function toRomaji(hira) {
+                if (!hira) return '';
+                var result = '';
+                var i = 0;
+                while (i < hira.length) {
+                    var two = hira.substr(i, 2);
+                    if (hiraToRomaji[two]) {
+                        result += hiraToRomaji[two];
+                        i += 2;
+                    } else {
+                        var one = hira[i];
+                        if (hiraToRomaji[one]) {
+                            result += hiraToRomaji[one];
+                        } else {
+                            result += one;
+                        }
+                        i++;
+                    }
+                }
+                return result;
+            }
+
+            // ═══════════════════════════════════════════════════════════════
+            //  PHẦN CÒN LẠI CỦA SCRIPT (có tích hợp Lưu, PDF, Xóa)
+            // ═══════════════════════════════════════════════════════════════
+
+            // Sắp xếp danh sách theo số nét
+            var kanjiData = rawKanjiList.slice();
+            kanjiData.sort(function(a, b) {
+                return strokeCounts[a] - strokeCounts[b];
+            });
+
+            // ─── BIẾN TOÀN CỤC ──────────────────────────────────────────
+            var canvas, ctx, trace, title, home, learn;
+            var onReading, kunReading, strokeDisplay, vocabBody;
+            var gifImg;
+            var drawing = false;
+            var currentIndex = 0;
+            var currentKanji = '';
+            var savedMap = {};
+
+            // ─── DOM REFS SEARCH ──────────────────────────────────────
+            var homeSearch = document.getElementById('homeSearch');
+            var clearSearchBtn = document.getElementById('clearSearchBtn');
+            var noResults = document.getElementById('noResults');
+            var learnSearch = document.getElementById('learnSearch');
+            var gotoBtn = document.getElementById('gotoBtn');
+
+            // ─── LƯU / TẢI ──────────────────────────────────────────────
+            function saveSaved() {
+                try {
+                    var data = JSON.stringify(savedMap);
+                    localStorage.setItem('kanji160_saved', data);
+                } catch (e) {}
+            }
+
+            function loadSaved() {
+                try {
+                    var data = localStorage.getItem('kanji160_saved');
+                    if (data) {
+                        savedMap = JSON.parse(data);
+                        for (var key in savedMap) {
+                            if (kanjiData.indexOf(key) === -1) {
+                                delete savedMap[key];
+                            }
+                        }
+                    }
+                } catch (e) {}
+            }
+
+            // ─── KHỞI TẠO ──────────────────────────────────────────────
+            function init() {
+                home = document.getElementById('home-screen');
+                learn = document.getElementById('learn-screen');
+                canvas = document.getElementById('canvas');
+                ctx = canvas.getContext('2d');
+                trace = document.getElementById('trace-text');
+                title = document.getElementById('current-title');
+                gifImg = document.getElementById('kanji-gif');
+
+                onReading = document.getElementById('onReading');
+                kunReading = document.getElementById('kunReading');
+                strokeDisplay = document.getElementById('strokeDisplay');
+                vocabBody = document.getElementById('vocabBody');
+
+                loadSaved();
+                renderGrid(kanjiData);
+
+                homeSearch.addEventListener('input', function() {
+                    filterGrid(this.value.trim());
+                });
+
+                clearSearchBtn.addEventListener('click', function() {
+                    homeSearch.value = '';
+                    filterGrid('');
+                    homeSearch.focus();
+                });
+
+                learnSearch.addEventListener('input', function() {
+                    var val = this.value.trim();
+                    if (val.length === 0) {
+                        gotoBtn.disabled = true;
+                        gotoBtn.textContent = 'Đến';
+                        return;
+                    }
+                    var match = findKanjiByTerm(val);
+                    if (match) {
+                        gotoBtn.disabled = false;
+                        gotoBtn.textContent = '🔍 ' + match;
+                    } else {
+                        gotoBtn.disabled = true;
+                        gotoBtn.textContent = 'Đến';
+                    }
+                });
+
+                learnSearch.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' && !gotoBtn.disabled) {
+                        gotoBtn.click();
+                    }
+                });
+
+                gotoBtn.addEventListener('click', function() {
+                    if (this.disabled) return;
+                    var target = this.textContent.replace('🔍 ', '').trim();
+                    if (target && kanjiData.includes(target)) {
+                        var idx = kanjiData.indexOf(target);
+                        if (idx !== -1) {
+                            saveCurrent(); // lưu trước khi chuyển
+                            currentIndex = idx;
+                            updateLearnScreen(kanjiData[currentIndex]);
+                            learnSearch.value = '';
+                            gotoBtn.disabled = true;
+                            gotoBtn.textContent = 'Đến';
+                        }
+                    }
+                });
+
+                canvas.addEventListener('mousedown', startDrawing);
+                canvas.addEventListener('mousemove', draw);
+                canvas.addEventListener('mouseup', stopDrawing);
+                canvas.addEventListener('mouseleave', stopDrawing);
+                canvas.addEventListener('touchstart', startDrawing, { passive: false });
+                canvas.addEventListener('touchmove', draw, { passive: false });
+                canvas.addEventListener('touchend', stopDrawing);
+                canvas.addEventListener('touchcancel', stopDrawing);
+
+                window.addEventListener('resize', function() {
+                    requestAnimationFrame(resizeCanvas);
+                });
+                window.addEventListener('orientationchange', function() {
+                    setTimeout(function() { requestAnimationFrame(resizeCanvas); }, 100);
+                });
+            }
+
+            // ─── RENDER GRID (có highlight saved) ──────────────────────
+            function renderGrid(list) {
+                var grid = document.getElementById('kanjiGrid');
+                grid.innerHTML = '';
+                var fragment = document.createDocumentFragment();
+                for (var i = 0; i < list.length; i++) {
+                    var k = list[i];
+                    var div = document.createElement('div');
+                    div.className = 'card-kanji';
+                    if (savedMap[k]) {
+                        div.classList.add('saved');
+                    }
+                    div.innerText = k;
+                    div.dataset.kanji = k;
+                    div.onclick = (function(kanji) {
+                        return function() { startLearn(kanji); };
+                    })(k);
+                    fragment.appendChild(div);
+                }
+                grid.appendChild(fragment);
+                noResults.classList.remove('visible');
+            }
+
+            // ─── FILTER GRID ────────────────────────────────────────────
+            function filterGrid(term) {
+                if (!term) {
+                    var allCards = document.querySelectorAll('.card-kanji');
+                    allCards.forEach(function(c) { c.classList.remove('hidden'); });
+                    noResults.classList.remove('visible');
+                    clearSearchBtn.classList.remove('visible');
+                    return;
+                }
+
+                clearSearchBtn.classList.add('visible');
+                var lower = term.toLowerCase().trim();
+                var matched = [];
+                var cards = document.querySelectorAll('.card-kanji');
+
+                cards.forEach(function(card) {
+                    var k = card.dataset.kanji;
+                    var detail = kanjiDetails[k];
+                    var on = (detail && detail.on) ? detail.on : '';
+                    var kun = (detail && detail.kun) ? detail.kun : '';
+                    var onRomaji = toRomaji(on).toLowerCase();
+                    var kunRomaji = toRomaji(kun).toLowerCase();
+                    var match = false;
+
+                    if (k.includes(term)) match = true;
+                    if (on.toLowerCase().includes(lower)) match = true;
+                    if (kun.toLowerCase().includes(lower)) match = true;
+                    if (onRomaji.includes(lower)) match = true;
+                    if (kunRomaji.includes(lower)) match = true;
+
+                    if (match) {
+                        card.classList.remove('hidden');
+                        matched.push(k);
+                    } else {
+                        card.classList.add('hidden');
+                    }
+                });
+
+                if (matched.length === 0) {
+                    noResults.classList.add('visible');
+                } else {
+                    noResults.classList.remove('visible');
+                }
+            }
+
+            // ─── TÌM KANJI ──────────────────────────────────────────────
+            function findKanjiByTerm(term) {
+                if (!term) return null;
+                var lower = term.toLowerCase().trim();
+                var candidates = [];
+
+                for (var i = 0; i < kanjiData.length; i++) {
+                    var k = kanjiData[i];
+                    var detail = kanjiDetails[k];
+                    var on = (detail && detail.on) ? detail.on : '';
+                    var kun = (detail && detail.kun) ? detail.kun : '';
+                    var onRomaji = toRomaji(on).toLowerCase();
+                    var kunRomaji = toRomaji(kun).toLowerCase();
+                    var score = 0;
+
+                    if (k === term) return k;
+                    if (k.includes(term)) score += 100;
+                    if (on.toLowerCase().includes(lower)) score += 50;
+                    if (kun.toLowerCase().includes(lower)) score += 50;
+                    if (onRomaji.includes(lower)) score += 50;
+                    if (kunRomaji.includes(lower)) score += 50;
+
+                    if (score > 0) {
+                        candidates.push({ kanji: k, score: score });
+                    }
+                }
+
+                if (candidates.length === 0) return null;
+                candidates.sort(function(a, b) { return b.score - a.score; });
+                return candidates[0].kanji;
+            }
+
+            // ─── UPDATE LEARN SCREEN ──────────────────────────────────
+            function updateLearnScreen(k) {
+                currentKanji = k;
+                var detail = kanjiDetails[k];
+                if (!detail) {
+                    detail = { on: '—', kun: '—', vocab: [] };
+                }
+                var strokes = strokeCounts[k] || '?';
+
+                title.innerText = k + '（' + (detail.kun || '') + '）';
+                onReading.textContent = detail.on || '—';
+                kunReading.textContent = detail.kun || '—';
+                strokeDisplay.textContent = strokes;
+
+                gifImg.src = k + '-order.gif';
+                gifImg.style.display = '';
+
+                trace.textContent = k;
+
+                var vocab = detail.vocab || [];
+                vocabBody.innerHTML = '';
+                if (vocab.length === 0) {
+                    var row = document.createElement('tr');
+                    var cell = document.createElement('td');
+                    cell.colSpan = 3;
+                    cell.style.textAlign = 'center';
+                    cell.style.color = '#a0aec0';
+                    cell.style.padding = '16px 0';
+                    cell.textContent = 'Chưa có dữ liệu từ vựng';
+                    row.appendChild(cell);
+                    vocabBody.appendChild(row);
+                } else {
+                    vocab.forEach(function(item) {
+                        var tr = document.createElement('tr');
+                        tr.innerHTML = '<td class="kanji-col">' + item[0] + '</td>' +
+                            '<td class="reading-col">' + item[1] + '</td>' +
+                            '<td class="meaning-col">' + item[2] + '</td>';
+                        vocabBody.appendChild(tr);
+                    });
+                }
+
+                clearBoard();
+                requestAnimationFrame(function() {
+                    setTimeout(resizeCanvas, 50);
+                });
+            }
+
+            // ─── NAVIGATION (có tự động lưu) ────────────────────────
+            function startLearn(k) {
+                if (currentKanji && currentKanji !== k) {
+                    saveCurrent();
+                }
+                home.style.display = 'none';
+                learn.style.display = 'flex';
+                currentIndex = kanjiData.indexOf(k);
+                if (currentIndex === -1) currentIndex = 0;
+                updateLearnScreen(k);
+                learnSearch.value = '';
+                gotoBtn.disabled = true;
+                gotoBtn.textContent = 'Đến';
+            }
+
+            window.prevKanji = function() {
+                if (currentIndex > 0) {
+                    saveCurrent();
+                    currentIndex--;
+                    updateLearnScreen(kanjiData[currentIndex]);
+                    learnSearch.value = '';
+                    gotoBtn.disabled = true;
+                    gotoBtn.textContent = 'Đến';
+                }
+            };
+
+            window.nextKanji = function() {
+                if (currentIndex < kanjiData.length - 1) {
+                    saveCurrent();
+                    currentIndex++;
+                    updateLearnScreen(kanjiData[currentIndex]);
+                    learnSearch.value = '';
+                    gotoBtn.disabled = true;
+                    gotoBtn.textContent = 'Đến';
+                }
+            };
+
+            window.goHome = function() {
+                if (currentKanji) {
+                    saveCurrent();
+                }
+                home.style.display = 'flex';
+                learn.style.display = 'none';
+                gifImg.src = '';
+                learnSearch.value = '';
+                gotoBtn.disabled = true;
+                gotoBtn.textContent = 'Đến';
+                renderGrid(kanjiData); // cập nhật trạng thái saved
+            };
+
+            // ─── LƯU ẢNH ──────────────────────────────────────────────────
+            window.saveCurrent = function() {
+                if (!currentKanji) return;
+                var imgData = canvas.toDataURL('image/png');
+                savedMap[currentKanji] = imgData;
+                saveSaved();
+                renderGrid(kanjiData);
+            };
+
+            // ─── XÓA TOÀN BỘ ────────────────────────────────────────────
+            window.clearCollection = function() {
+                if (Object.keys(savedMap).length === 0) return;
+                if (confirm('Bạn có chắc muốn xóa tất cả các chữ đã lưu?')) {
+                    savedMap = {};
+                    saveSaved();
+                    renderGrid(kanjiData);
+                }
+            };
+
+            // ─── XUẤT PDF ───────────────────────────────────────────────
+            window.exportPDF = function() {
+                var keys = Object.keys(savedMap);
+                if (keys.length === 0) {
+                    alert('Bạn chưa lưu chữ nào! Hãy vẽ và nhấn "Lưu" hoặc dùng nút "次" để tự động lưu.');
+                    return;
+                }
+                keys.sort(function(a, b) {
+                    return kanjiData.indexOf(a) - kanjiData.indexOf(b);
+                });
+
+                var { jsPDF } = window.jspdf;
+                var pdf = new jsPDF('l', 'mm', 'a4');
+                var pageWidth = pdf.internal.pageSize.getWidth();
+                var pageHeight = pdf.internal.pageSize.getHeight();
+
+                var margin = 10;
+                var cols = 5;
+                var rowsPerPage = 4;
+                var maxCellsPerPage = cols * rowsPerPage;
+                var totalPages = Math.ceil(keys.length / maxCellsPerPage);
+
+                var cellWidth = (pageWidth - 2 * margin) / cols;
+                var cellHeight = (pageHeight - 2 * margin - 15) / rowsPerPage;
+
+                for (var page = 0; page < totalPages; page++) {
+                    if (page > 0) pdf.addPage();
+
+                    pdf.setFontSize(0);
+                    pdf.text('Kanji 160 (Trang ' + (page + 1) + '/' + totalPages + ')', pageWidth / 2, 12, { align: 'center' });
+
+                    var startIdx = page * maxCellsPerPage;
+                    var endIdx = Math.min(startIdx + maxCellsPerPage, keys.length);
+
+                    for (var i = startIdx; i < endIdx; i++) {
+                        var ch = keys[i];
+                        var idx = i - startIdx;
+                        var row = Math.floor(idx / cols);
+                        var col = idx % cols;
+
+                        var x = margin + col * cellWidth;
+                        var y = margin + row * cellHeight + 14;
+
+                        pdf.setDrawColor(150);
+                        pdf.setLineWidth(0.5);
+                        pdf.rect(x, y, cellWidth, cellHeight, 'S');
+
+                        pdf.setFontSize(0);
+                        pdf.text(ch, x + 2, y + 4);
+
+                        var imgData = savedMap[ch];
+                        if (imgData) {
+                            var maxImgWidth = cellWidth - 6;
+                            var maxImgHeight = cellHeight - 16;
+                            var img = new Image();
+                            img.src = imgData;
+
+                            var imgW, imgH;
+                            if (img.complete) {
+                                var ratio = Math.min(maxImgWidth / img.width, maxImgHeight / img.height);
+                                imgW = img.width * ratio;
+                                imgH = img.height * ratio;
+                            } else {
+                                imgW = maxImgWidth * 0.8;
+                                imgH = maxImgHeight * 0.8;
+                            }
+
+                            var posX = x + (cellWidth - imgW) / 2;
+                            var posY = y + 12 + (cellHeight - 12 - imgH) / 2;
+
+                            try {
+                                pdf.addImage(imgData, 'PNG', posX, posY, imgW, imgH);
+                            } catch (e) {
+                                console.log('Lỗi chèn ảnh cho ' + ch);
+                            }
+                        }
+                    }
+                }
+
+                pdf.save('Kanji160_da_luu.pdf');
+            };
+
+            // ─── CANVAS ──────────────────────────────────────────────────
+            window.clearBoard = function() {
+                if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+            };
+
+            function resizeCanvas() {
+                if (!canvas || !canvas.parentElement) return;
+                var container = canvas.parentElement;
+                var w = container.clientWidth;
+                var h = container.clientHeight;
+                canvas.width = w;
+                canvas.height = h;
+                clearBoard();
+            }
+
+            function getPos(e) {
+                var rect = canvas.getBoundingClientRect();
+                var scaleX = canvas.width / rect.width;
+                var scaleY = canvas.height / rect.height;
+                var clientX, clientY;
+                if (e.touches) {
+                    clientX = e.touches[0].clientX;
+                    clientY = e.touches[0].clientY;
+                } else {
+                    clientX = e.clientX;
+                    clientY = e.clientY;
+                }
+                var x = (clientX - rect.left) * scaleX;
+                var y = (clientY - rect.top) * scaleY;
+                x = Math.min(Math.max(x, 0), canvas.width);
+                y = Math.min(Math.max(y, 0), canvas.height);
+                return { x: x, y: y };
+            }
+
+            function startDrawing(e) {
+                if (e.preventDefault) e.preventDefault();
+                drawing = true;
+                ctx.beginPath();
+                draw(e);
+            }
+
+            function stopDrawing() {
+                drawing = false;
+                ctx.beginPath();
+            }
+
+            function draw(e) {
+                if (!drawing) return;
+                if (e.preventDefault) e.preventDefault();
+                var p = getPos(e);
+                ctx.lineWidth = Math.max(8, canvas.width / 40);
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.strokeStyle = '#2d3436';
+                ctx.lineTo(p.x, p.y);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(p.x, p.y);
+            }
+
+            document.addEventListener('DOMContentLoaded', init);
+        })();
+    </script>
+</body>
+</html>

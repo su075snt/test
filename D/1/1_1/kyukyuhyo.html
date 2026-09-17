@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <!-- Tối ưu cho iPad/Mobile: Ẩn thanh địa chỉ khi thêm vào màn hình chính -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    
+    <title>Học Bảng Cửu Chương - 九九の練習</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #4A90E2;
+            --board-bg: #FFFFFF;
+            --bubble-color-1: #FF9A44;
+            --bubble-color-2: #FC6076;
+        }
+
+        /* Khóa cuộn trang và chống zoom trên iPad */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+            padding: 10px;
+        }
+
+        /* Khu vực chứa các Tab - Căn giữa màn hình */
+        .tabs-container {
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 8px;
+            margin-bottom: 15px;
+            width: 100%;
+            max-width: 100%;
+            overflow-x: auto;
+            padding-bottom: 5px;
+            justify-content: center; /* <--- Đã sửa thành căn giữa */
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+        
+        /* Ẩn thanh cuộn trên Chrome/Safari */
+        .tabs-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        .tab-btn {
+            flex-shrink: 0;
+            background-color: rgba(255, 255, 255, 0.8);
+            border: 2px solid transparent;
+            color: #555;
+            padding: 8px 16px;
+            font-size: 16px;
+            font-weight: 900;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .tab-btn.active {
+            background-color: var(--primary-color);
+            color: white;
+            box-shadow: 0 6px 15px rgba(74, 144, 226, 0.4);
+            transform: scale(1.05);
+        }
+
+        /* Bảng trò chơi - Dạng hình vuông */
+        .game-board {
+            position: relative;
+            width: 100%;
+            max-width: min(90vw, 70vh);
+            aspect-ratio: 1 / 1;
+            background-color: var(--board-bg);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+            overflow: hidden;
+            background-image: 
+                linear-gradient(to right, #f0f0f0 1px, transparent 1px),
+                linear-gradient(to bottom, #f0f0f0 1px, transparent 1px);
+            background-size: 8% 8%;
+        }
+
+        /* Phép toán ở giữa */
+        .problem-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: clamp(28px, 6vw, 45px);
+            color: var(--primary-color);
+            font-weight: 900;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            z-index: 10;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 10px 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 15px rgba(0,0,0,0.08);
+            letter-spacing: 1px;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        /* Quả bóng đáp án */
+        .bubble {
+            position: absolute;
+            width: clamp(55px, 11vw, 75px);
+            height: clamp(48px, 9vw, 65px);
+            background: radial-gradient(circle at 30% 30%, var(--bubble-color-1), var(--bubble-color-2));
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: clamp(18px, 4vw, 26px);
+            font-weight: 900;
+            cursor: pointer;
+            box-shadow: 0 8px 15px rgba(252, 96, 118, 0.4), inset 0 -4px 0 rgba(0,0,0,0.2);
+            transition: transform 0.1s, box-shadow 0.2s, background 0.2s;
+            z-index: 5;
+            
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            transform-origin: center;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0) translate(-50%, -50%); opacity: 0; }
+            100% { transform: scale(1) translate(-50%, -50%); opacity: 1; }
+        }
+
+        /* Trạng thái Đúng / Sai */
+        .bubble.correct {
+            background: radial-gradient(circle at 30% 30%, #2ecc71, #27ae60);
+            box-shadow: 0 8px 15px rgba(46, 204, 113, 0.4), inset 0 -4px 0 rgba(0,0,0,0.2);
+            animation: correctPulse 0.4s ease;
+        }
+
+        .bubble.wrong {
+            background: radial-gradient(circle at 30% 30%, #e74c3c, #c0392b);
+            box-shadow: 0 8px 15px rgba(231, 76, 60, 0.4), inset 0 -4px 0 rgba(0,0,0,0.2);
+            animation: shake 0.4s ease;
+        }
+
+        @keyframes correctPulse {
+            0% { transform: scale(1) translate(-50%, -50%); }
+            50% { transform: scale(1.15) translate(-50%, -50%); }
+            100% { transform: scale(1) translate(-50%, -50%); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translate(-50%, -50%) rotate(0deg); }
+            25% { transform: translate(-50%, -50%) rotate(-8deg); }
+            50% { transform: translate(-50%, -50%) rotate(8deg); }
+            75% { transform: translate(-50%, -50%) rotate(-8deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Thanh chọn bảng cửu chương -->
+    <div class="tabs-container" id="tabsContainer"></div>
+
+    <!-- Bảng trò chơi -->
+    <div class="game-board" id="gameBoard">
+        <div class="problem-text" id="problemText">2 × 3 = ?</div>
+        <div id="bubblesArea"></div>
+    </div>
+
+    <script>
+        const tables = [2, 3, 4, 5, 6, 7, 8, 9];
+        let currentTable = 2;
+        let correctAnswer = 0;
+        let audioCtx = null;
+        let isAnimating = false;
+        let isAudioReady = false;
+
+        const tabsContainer = document.getElementById('tabsContainer');
+        const problemText = document.getElementById('problemText');
+        const bubblesArea = document.getElementById('bubblesArea');
+
+        // Từ điển số tiếng Nhật (dùng cho TTS)
+        const jpNumbers = {
+            1: 'いち', 2: 'に', 3: 'さん', 4: 'よん', 5: 'ご',
+            6: 'ろく', 7: 'なな', 8: 'はち', 9: 'きゅう'
+        };
+
+        // Khởi tạo Audio Context và Speech Synthesis
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            isAudioReady = true;
+            
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.getVoices();
+            }
+        }
+
+        // Hàm đọc phép toán bằng tiếng Nhật
+        function speakProblem(num1, num2) {
+            if (!('speechSynthesis' in window) || !isAudioReady) return;
+            
+            const text = `${jpNumbers[num1]} かける ${jpNumbers[num2]} は？`;
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'ja-JP';
+            utterance.rate = 0.9;
+            utterance.pitch = 1.1;
+            
+            window.speechSynthesis.cancel();
+            window.speechSynthesis.speak(utterance);
+        }
+
+        // Âm thanh BUZZ (Sai)
+        function playBuzzSound() {
+            initAudio();
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(120, audioCtx.currentTime); 
+            osc.frequency.exponentialRampToValueAtTime(60, audioCtx.currentTime + 0.3);
+            
+            gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+            
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.3);
+        }
+
+        // Âm thanh DING (Đúng)
+        function playDingSound() {
+            initAudio();
+            const playNote = (freq, startTime) => {
+                const osc = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, startTime);
+                
+                gainNode.gain.setValueAtTime(0, startTime);
+                gainNode.gain.linearRampToValueAtTime(0.2, startTime + 0.02);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, startTime + 0.4);
+                
+                osc.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                
+                osc.start(startTime);
+                osc.stop(startTime + 0.4);
+            };
+
+            playNote(523.25, audioCtx.currentTime);       // C5
+            playNote(659.25, audioCtx.currentTime + 0.1); // E5
+        }
+
+        // Khởi tạo các Tab
+        function initTabs() {
+            tables.forEach(num => {
+                const btn = document.createElement('button');
+                btn.classList.add('tab-btn');
+                btn.textContent = `Bảng ${num}`;
+                if (num === currentTable) btn.classList.add('active');
+                
+                btn.addEventListener('click', () => {
+                    initAudio();
+                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentTable = num;
+                    generateProblem();
+                });
+                
+                tabsContainer.appendChild(btn);
+            });
+        }
+
+        // Thuật toán tính tọa độ vòng tròn cho 9 quả bóng
+        function getCircularPositions() {
+            const positions = [];
+            const numBubbles = 9;
+            const radius = 36;
+            const startAngle = Math.random() * 360; 
+
+            for (let i = 0; i < numBubbles; i++) {
+                const angleDeg = (i * (360 / numBubbles)) + startAngle;
+                const angleRad = angleDeg * (Math.PI / 180);
+                
+                const x = 50 + radius * Math.cos(angleRad);
+                const y = 50 + radius * Math.sin(angleRad);
+                
+                positions.push({ left: `${x}%`, top: `${y}%` });
+            }
+            return positions;
+        }
+
+        // Tạo câu hỏi mới
+        function generateProblem() {
+            isAnimating = false;
+            bubblesArea.innerHTML = ''; 
+
+            const multiplier = Math.floor(Math.random() * 9) + 1;
+            correctAnswer = currentTable * multiplier;
+            problemText.textContent = `${currentTable} × ${multiplier} = ?`;
+
+            // Đọc câu hỏi tiếng Nhật
+            speakProblem(currentTable, multiplier);
+
+            let allAnswers = [];
+            for (let i = 1; i <= 9; i++) {
+                allAnswers.push(currentTable * i);
+            }
+            allAnswers.sort(() => Math.random() - 0.5);
+
+            const positions = getCircularPositions();
+
+            allAnswers.forEach((choice, index) => {
+                const bubble = document.createElement('div');
+                bubble.classList.add('bubble');
+                bubble.textContent = choice;
+                
+                bubble.style.left = positions[index].left;
+                bubble.style.top = positions[index].top;
+                bubble.style.transform = 'translate(-50%, -50%)';
+                
+                bubble.addEventListener('click', () => handleAnswer(choice, bubble));
+                
+                bubblesArea.appendChild(bubble);
+            });
+        }
+
+        // Xử lý chọn đáp án
+        function handleAnswer(selectedNumber, bubbleElement) {
+            if (isAnimating) return;
+
+            if (selectedNumber === correctAnswer) {
+                isAnimating = true;
+                playDingSound();
+                bubbleElement.classList.add('correct');
+                bubbleElement.style.transform = 'translate(-50%, -50%) scale(1)';
+                
+                setTimeout(() => {
+                    generateProblem();
+                }, 600);
+            } else {
+                playBuzzSound();
+                bubbleElement.classList.add('wrong');
+                
+                isAnimating = true;
+                setTimeout(() => {
+                    bubbleElement.classList.remove('wrong');
+                    bubbleElement.style.transform = 'translate(-50%, -50%)';
+                    isAnimating = false;
+                }, 500);
+            }
+        }
+
+        // Khởi chạy
+        window.onload = () => {
+            initTabs();
+            generateProblem();
+            
+            document.body.addEventListener('touchstart', initAudio, { once: true });
+            document.body.addEventListener('mousedown', initAudio, { once: true });
+        };
+    </script>
+</body>
+</html>
