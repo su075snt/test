@@ -4,6 +4,21 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Trống Múa Lân</title>
+
+<!-- ===== iOS: lưu về màn hình chính → mở toàn màn hình, KHÔNG thanh địa chỉ/tìm kiếm ===== -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Trống Múa Lân">
+
+<script>
+  /* Đánh dấu khi app đang chạy ở chế độ đã lưu về màn hình chính (iOS) */
+  if (window.navigator.standalone === true ||
+      window.matchMedia('(display-mode: standalone)').matches) {
+    document.documentElement.classList.add('ios-standalone');
+  }
+</script>
+
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { height: 100%; }
@@ -145,6 +160,18 @@
     color: #ffe066;
     letter-spacing: .02em;
   }
+
+  /* ==========================================================
+     iOS — KHI ĐÃ LƯU VỀ MÀN HÌNH CHÍNH (standalone)
+     → Trống to hơn 50% so với kích thước gốc
+     (dùng transform để không phá vỡ bố cục 2 chèng hai bên)
+     ========================================================== */
+  @media (display-mode: standalone) {
+    .drum-wrap   { transform: scale(1.5); }
+    .cymbal-wrap { z-index: 2; }   /* 2 chèng luôn nằm trên mặt trống */
+  }
+  html.ios-standalone .drum-wrap   { transform: scale(1.5); }
+  html.ios-standalone .cymbal-wrap { z-index: 2; }
 </style>
 </head>
 <body>
