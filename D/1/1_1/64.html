@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Music Production Pads — 128</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+<style>
+    * { box-sizing: border-box; }
+    html, body {
+        height: 100%; margin: 0; overflow: hidden;
+        background: radial-gradient(ellipse at 50% 0%, #15152a 0%, #05050a 70%);
+        font-family: 'Orbitron', system-ui, sans-serif;
+        color: #fff; user-select: none; -webkit-user-select: none;
+        -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+    }
+    .stage {
+        width: 100%; height: 100%;
+        padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right))
+                 max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
+    }
+    .grid {
+        width: 100%; height: 100%;
+        display: grid;
+        grid-template-columns: repeat(8, 1fr);
+        grid-template-rows: repeat(16, 1fr);
+        gap: 3px;
+        touch-action: none;
+    }
+    @media (min-aspect-ratio: 1/1) {
+        .grid {
+            grid-template-columns: repeat(16, 1fr);
+            grid-template-rows: repeat(8, 1fr);
+        }
+    }
+    .pad {
+        position: relative;
+        border-radius: 5px;
+        cursor: pointer;
+        touch-action: none;
+        transition: transform 0.05s ease, filter 0.15s ease;
+        will-change: transform, filter;
+        display: flex; align-items: flex-end; justify-content: flex-start;
+        padding: 2px 3px;
+    }
+    .pad::after {
+        content: ''; position: absolute; inset: 0;
+        border-radius: inherit;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.28),
+                    inset 0 -2px 5px rgba(0,0,0,0.4);
+        pointer-events: none;
+    }
+    .pad.active {
+        transform: scale(0.80);
+        filter: brightness(2.2) saturate(1.5);
+    }
+    .pad .lbl {
+        font-size: clamp(6px, 1.2vw, 10px);
+        font-weight: 900;
+        color: rgba(255,255,255,0.9);
+        text-shadow: 0 1px 2px rgba(0,0,0,0.7);
+        letter-spacing: 0.3px;
+        pointer-events: none;
+        position: relative; z-index: 2;
+        line-height: 1;
+    }
+    .ripple {
+        position: fixed; border-radius: 50%; pointer-events: none;
+        border: 2px solid rgba(255,255,255,0.9);
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 1; z-index: 9999;
+    }
+    .loading {
+        position: fixed; inset: 0;
+        display: flex; align-items: center; justify-content: center;
+        background: rgba(5,5,10,0.85);
+        font-size: 14px; letter-spacing: 4px; font-weight: 900;
+        color: #00e6ff; z-index: 9999;
+        transition: opacity 0.3s;
+    }
+</style>
+</head>
+<body>
+
+<div class="stage">
+    <div class="grid" id="grid"></div>
+</div>
+<div class="loading" id="loading">LOADING SAMPLES…</div>
+
+<script>
+(function () {
+    'use strict';
+
+    const TOTAL = 128;
+
+    /* =========================================================
+       1. ĐỊNH NGHĨA 8 BANK × 16 PAD
+       ========================================================= */
+    const BANKS = [
+        { name: 'CHORD', hue: 280, sat: 70, lightBase: 40, labels: [
+            'Maj','Min','Dim','Aug','Sus2','Sus4','M7','m7',
+            '7','m7♭5','add9','6','m6','9','M9','m9'
+        ]},
+        { name: 'LEAD',  hue: 45,  sat: 88, lightBase: 45, labels: null },  // notes
+        { name: 'BASS',  hue: 210, sat: 78, lightBase: 38, labels: null },  // notes
+        { name: 'PERC',  hue: 170, sat: 72, lightBase: 42, labels: [
+            'TomL','TomM','TomH','CongL','CongH','Rim','Cow','Shk1',
+            'Shk2','Wod','WodH','Tri','Tmb','Cab','Clv','ClvH'
+        ]},
+        { name: 'CLAP',  hue: 320, sat: 78, lightBase: 44, labels: [
+            'CL1','CL2','CL3','CL4','CL5','CL6','CL7','CL8',
+            'SN1','SN2','SN3','SN4','SN5','SN6','SN7','SN8'
+        ]},
+        { name: 'HAT',   hue: 190, sat: 42, lightBase: 42, labels: [
+            'CH1','CH2','CH3','CH4','CH5','CH6','CH7','CH8',
+            'OH1','OH2','OH3','OH4','OH5','OH6','OH7','OH8'
+        ]},
+        { name: 'SNARE', hue: 0,   sat: 78, lightBase: 40, labels: [
+            'SN1','SN2','SN3','SN4','SN5','SN6','SN7','SN8',
+            'SN9','SN10','SN11','SN12','SN13','SN14','SN15','SN16'
+        ]},
+        { name: 'KICK',  hue: 20,  sat: 88, lightBase: 38, labels: [
+            'PCH','STD','Wrm','FAT','Sub','808','808L','DEEP',
+            'SNP','Hip','Tite','Boom','Rnd','Sft','Big','Mass'
+        ]}
+    ];
+
+    /* =========================================================
+       2. NHÃN + MÀU CHO TỪNG PAD
+       ========================================================= */
+    const NOTE_NAMES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+    function midiToName(m) { return NOTE_NAMES[m % 12] + (Math.floor(m / 12) - 1); }
+
+    function padLabel(bankIdx, subIdx) {
+        const bank = BANKS[bankIdx];
+        if (bank.labels) return bank.labels[subIdx];
+        if (bank.name === 'BASS') return midiToName(36 + subIdx);   // C2..D#3
+        if (bank.name === 'LEAD') return midiToName(72 + subIdx);   // C5..D#6
+        return '';
+    }
+
+    function padColor(bankIdx, subIdx) {
+        const b = BANKS[bankIdx];
+        const h = (b.hue + (subIdx - 7.5) * 1.2 + 360) % 360;
+        const s = b.sat + (subIdx % 3 - 1) * 6;
+        const l = b.lightBase + (subIdx % 5) * 3;
+        return { h, s, l };
+    }
+    function hsl(h, s, l, a) {
+        return a === undefined ? `hsl(${h},${s}%,${l}%)` : `hsla(${h},${s}%,${l}%,${a})`;
+    }
+
+    /* =========================================================
+       3. RENDER HELPER
+       ========================================================= */
+    let audioCtx = null;
+    let masterGain = null;
+    let samples = [];   // [128] AudioBuffer (null nếu là chord dùng osc)
+
+    function makeBuffer(sr, len, fill) {
+        const buf = audioCtx.createBuffer(1, len, sr);
+        const d = buf.getChannelData(0);
+        for (let i = 0; i < len; i++) {
+            let s = fill(i / sr, i);
+            if (s > 1) s = 1; else if (s < -1) s = -1;
+            d[i] = s;
+        }
+        return buf;
+    }
+
+    /* =========================================================
+       4. SYNTH CÁC LOẠI TRỐNG
+       ========================================================= */
+    function renderKick(sr, i) {
+        const opts = [
+            { high: 180, low: 52, dec: 0.22, click: 0.9 },   // punchy
+            { high: 165, low: 48, dec: 0.28, click: 0.7 },
+            { high: 150, low: 44, dec: 0.35, click: 0.55 },
+            { high: 135, low: 42, dec: 0.45, click: 0.45 },
+            { high: 115, low: 38, dec: 0.55, click: 0.35 },
+            { high:  95, low: 34, dec: 0.75, click: 0.25 },
+            { high:  80, low: 30, dec: 1.00, click: 0.18 },   // 808
+            { high:  65, low: 26, dec: 1.30, click: 0.12 },
+            { high: 200, low: 60, dec: 0.18, click: 1.0 },   // snap
+            { high: 170, low: 55, dec: 0.25, click: 0.75 },
+            { high: 140, low: 46, dec: 0.35, click: 0.6 },
+            { high: 120, low: 40, dec: 0.50, click: 0.45 },
+            { high: 100, low: 36, dec: 0.65, click: 0.35 },
+            { high:  85, low: 32, dec: 0.85, click: 0.25 },
+            { high:  72, low: 28, dec: 1.10, click: 0.18 },
+            { high:  55, low: 24, dec: 1.60, click: 0.12 }    // super 808
+        ][i];
+        const len = Math.floor(sr * (opts.dec + 0.02));
+        let ph = 0;
+        return makeBuffer(sr, len, (t) => {
+            const env = Math.exp(-t / opts.dec * 3.5);
+            const freq = opts.low + (opts.high - opts.low) * Math.exp(-t * 35);
+            ph += 2 * Math.PI * freq / sr;
+            let s = Math.sin(ph) * env;
+            if (t < 0.004) s += (Math.random() * 2 - 1) * opts.click * (1 - t / 0.004);
+            return s;
+        });
+    }
+
+    function renderSnare(sr, i) {
+        const opts = [
+            { tone: 180, toneAmt: 0.7, noiseAmt: 0.8, dec: 0.18, hp: 600 },
+            { tone: 200, toneAmt: 0.5, noiseAmt: 1.0, dec: 0.20, hp: 900 },
+            { tone: 220, toneAmt: 0.4, noiseAmt: 1.1, dec: 0.22, hp: 1200 },
+            { tone: 160, toneAmt: 0.8, noiseAmt: 0.7, dec: 0.25, hp: 500 },
+            { tone: 240, toneAmt: 0.3, noiseAmt: 1.2, dec: 0.15, hp: 1500 },
+            { tone: 190, toneAmt: 0.6, noiseAmt: 0.9, dec: 0.28, hp: 800 },
+            { tone: 210, toneAmt: 0.5, noiseAmt: 1.0, dec: 0.32, hp: 1000 },
+            { tone: 170, toneAmt: 0.7, noiseAmt: 0.8, dec: 0.30, hp: 700 },
+            { tone: 150, toneAmt: 0.9, noiseAmt: 0.6, dec: 0.20, hp: 400 },
+            { tone: 230, toneAmt: 0.4, noiseAmt: 1.1, dec: 0.16, hp: 1400 },
+            { tone: 195, toneAmt: 0.6, noiseAmt: 0.9, dec: 0.24, hp: 850 },
+            { tone: 205, toneAmt: 0.5, noiseAmt: 1.0, dec: 0.26, hp: 1050 },
+            { tone: 175, toneAmt: 0.7, noiseAmt: 0.8, dec: 0.34, hp: 650 },
+            { tone: 185, toneAmt: 0.6, noiseAmt: 0.95, dec: 0.22, hp: 950 },
+            { tone: 165, toneAmt: 0.75, noiseAmt: 0.85, dec: 0.40, hp: 550 },
+            { tone: 155, toneAmt: 0.8, noiseAmt: 0.75, dec: 0.50, hp: 450 }
+        ][i];
+        const len = Math.floor(sr * (opts.dec + 0.02));
+        let ph = 0, hpIn = 0, hpOut = 0;
+        const rc = 1 / (2 * Math.PI * opts.hp);
+        const alpha = rc / (rc + 1 / sr);
+        return makeBuffer(sr, len, (t) => {
+            const env = Math.exp(-t / opts.dec * 3);
+            ph += 2 * Math.PI * opts.tone / sr;
+            const tone = Math.sin(ph) * opts.toneAmt;
+            const n = (Math.random() * 2 - 1) * opts.noiseAmt;
+            const o = alpha * (hpOut + n - hpIn);
+            hpIn = n; hpOut = o;
+            return (tone + o) * env;
+        });
+    }
+
+    function renderHat(sr, i) {
+        const open = i >= 8;
+        const sub = i % 8;
+        const dec = open ? 0.18 + sub * 0.04 : 0.035 + sub * 0.008;
+        const hp = 5000 + sub * 500;
+        const len = Math.floor(sr * (dec + 0.01));
+        const ratios = [2.0, 3.0, 4.16, 5.43, 6.79, 8.21];
+        const phases = new Array(6).fill(0);
+        let hpIn = 0, hpOut = 0;
+        const rc = 1 / (2 * Math.PI * hp);
+        const alpha = rc / (rc + 1 / sr);
+        return makeBuffer(sr, len, (t) => {
+            const env = Math.exp(-t / dec * 4);
+            let m = 0;
+            for (let k = 0; k < 6; k++) {
+                phases[k] += 40 * ratios[k] / sr;
+                if (phases[k] > 1) phases[k] -= 1;
+                m += phases[k] < 0.5 ? 1 : -1;
+            }
+            m *= 0.18;
+            const n = Math.random() * 2 - 1;
+            const mix = m * 0.55 + n * 0.6;
+            const o = alpha * (hpOut + mix - hpIn);
+            hpIn = mix; hpOut = o;
+            return o * env * 1.6;
+        });
+    }
+
+    function renderClap(sr, i) {
+        const isSnap = i >= 8;
+        const sub = i % 8;
+        const bursts = isSnap ? 2 + (sub % 2) : 3 + (sub % 3);
+        const spacing = isSnap ? 0.004 : 0.008 + (sub % 3) * 0.003;
+        const dec = isSnap ? 0.08 + sub * 0.01 : 0.22 + sub * 0.02;
+        const hp = isSnap ? 1800 + sub * 200 : 800 + sub * 150;
+        const len = Math.floor(sr * (dec + 0.05));
+        let hpIn = 0, hpOut = 0;
+        const rc = 1 / (2 * Math.PI * hp);
+        const alpha = rc / (rc + 1 / sr);
+        return makeBuffer(sr, len, (t) => {
+            const mainEnv = Math.exp(-t / dec * 2.5);
+            let burst = 0;
+            for (let b = 0; b < bursts; b++) {
+                const bs = b * spacing;
+                if (t >= bs && t < bs + 0.012) {
+                    burst = Math.max(burst, Math.exp(-(t - bs) / 0.0035));
+                }
+            }
+            const n = Math.random() * 2 - 1;
+            const o = alpha * (hpOut + n - hpIn);
+            hpIn = n; hpOut = o;
+            const env = Math.max(mainEnv * 0.35, burst);
+            return o * env * (isSnap ? 1.4 : 1.1);
+        });
+    }
+
+    function renderPerc(sr, i) {
+        const types = ['tom','tom','tom','conga','conga','rim','cowbell','shaker',
+                       'shaker','wood','wood','triangle','tambourine','cabasa','clave','clave'];
+        const type = types[i];
+        const pitch = [110, 150, 200, 180, 240, 800, 540, 0, 0, 900, 1200, 1600, 0, 0, 2200, 2600][i];
+        const dec = type === 'cowbell' ? 0.35 : (type === 'tom' || type === 'conga' ? 0.30 : type === 'shaker' ? 0.08 : 0.10);
+        const len = Math.floor(sr * (dec + 0.03));
+        let ph = 0, ph2 = 0;
+        let hpIn = 0, hpOut = 0;
+        const hp = type === 'shaker' || type === 'cabasa' ? 3000 : 200;
+        const rc = 1 / (2 * Math.PI * hp);
+        const alpha = rc / (rc + 1 / sr);
+        return makeBuffer(sr, len, (t) => {
+            const env = Math.exp(-t / dec * 3);
+            let s = 0;
+            if (type === 'tom' || type === 'conga') {
+                const f = pitch + 40 * Math.exp(-t * 25);
+                ph += 2 * Math.PI * f / sr;
+                s = Math.sin(ph);
+                if (type === 'tom') s += Math.sin(ph * 0.5) * 0.25;
+            } else if (type === 'cowbell') {
+                ph += 2 * Math.PI * 540 / sr;
+                ph2 += 2 * Math.PI * 800 / sr;
+                s = ((Math.sin(ph) > 0 ? 1 : -1) + (Math.sin(ph2) > 0 ? 1 : -1)) * 0.5;
+            } else if (type === 'rim' || type === 'clave' || type === 'wood') {
+                ph += 2 * Math.PI * pitch / sr;
+                s = Math.sin(ph) * 0.6 + (Math.random() * 2 - 1) * 0.4;
+            } else if (type === 'shaker' || type === 'cabasa') {
+                s = (Math.random() * 2 - 1) * 0.9;
+                if (t > 0.03) s *= Math.exp(-(t - 0.03) / dec * 4);
+            } else if (type === 'triangle') {
+                ph += 2 * Math.PI * pitch / sr;
+                const wrap = ph / (2 * Math.PI);
+                s = 2 * Math.abs(2 * (wrap - Math.floor(wrap + 0.5))) - 1;
+            } else if (type === 'tambourine') {
+                s = (Math.random() * 2 - 1);
+            }
+            const o = alpha * (hpOut + s - hpIn);
+            hpIn = s; hpOut = o;
+            return o * env;
+        });
+    }
+
+    function renderBass(sr, i) {
+        const freq = 440 * Math.pow(2, (36 + i - 69) / 12);   // C2..D#3
+        const dec = 0.55;
+        const len = Math.floor(sr * (dec + 0.05));
+        let ph = 0, sub = 0, lp = 0;
+        const cutoff = 250 + freq * 3;
+        const rc = 1 / (2 * Math.PI * cutoff);
+        const alpha = (1/sr) / (rc + 1/sr);
+        return makeBuffer(sr, len, (t) => {
+            const env = Math.exp(-t / dec * 3.5) * Math.min(1, t * 300);
+            ph += freq / sr; if (ph > 1) ph -= 1;
+            const saw = 2 * ph - 1;
+            sub += (freq / 2) / sr; if (sub > 1) sub -= 1;
+            const subS = Math.sin(2 * Math.PI * sub);
+            const s = saw * 0.7 + subS * 0.55;
+            lp = lp + alpha * (s - lp);
+            return lp * env * 1.1;
+        });
+    }
+
+    function renderLead(sr, i) {
+        const freq = 440 * Math.pow(2, (72 + i - 69) / 12);   // C5..D#6
+        const dec = 0.65;
+        const len = Math.floor(sr * (dec + 0.05));
+        let p1 = 0, p2 = 0, lp = 0;
+        const cutoff = 1500 + freq * 2;
+        const rc = 1 / (2 * Math.PI * cutoff);
+        const alpha = (1/sr) / (rc + 1/sr);
+        return makeBuffer(sr, len, (t) => {
+            const env = Math.exp(-t / dec * 3) * Math.min(1, t * 250);
+            p1 += freq / sr; if (p1 > 1) p1 -= 1;
+            p2 += (freq * 1.007) / sr; if (p2 > 1) p2 -= 1;
+            const saw = (2 * p1 - 1) + (2 * p2 - 1);
+            const sq = Math.sin(2 * Math.PI * p1 * 2) > 0 ? 0.3 : -0.3;
+            const s = saw * 0.4 + sq;
+            lp = lp + alpha * (s - lp);
+            return lp * env * 0.9;
+        });
+    }
+
+    // Chord — thực ra render 1 lần 3-4 nốt chồng
+    const CHORD_INTERVALS = [
+        [0,4,7], [0,3,7], [0,3,6], [0,4,8], [0,2,7], [0,5,7],
+        [0,4,7,11], [0,3,7,10], [0,4,7,10], [0,3,6,10],
+        [0,4,7,14], [0,4,7,9], [0,3,7,9], [0,4,7,10,14], [0,4,7,11,14], [0,3,7,10,14]
+    ];
+    function renderChord(sr, i) {
+        const root = 261.63;   // C4
+        const ivs = CHORD_INTERVALS[i];
+        const freqs = ivs.map(s => root * Math.pow(2, s / 12));
+        const dec = 0.9;
+        const len = Math.floor(sr * (dec + 0.1));
+        const phases = new Array(freqs.length).fill(0);
+        return makeBuffer(sr, len, (t) => {
+            const env = Math.exp(-t / dec * 2.5) * Math.min(1, t * 200);
+            let s = 0;
+            for (let k = 0; k < freqs.length; k++) {
+                phases[k] += 2 * Math.PI * freqs[k] / sr;
+                s += Math.sin(phases[k]);
+            }
+            s /= freqs.length;
+            return s * env * 0.85;
+        });
+    }
+
+    /* =========================================================
+       5. RENDER TẤT CẢ 128 SAMPLES
+       ========================================================= */
+    function renderAllSamples() {
+        const sr = audioCtx.sampleRate;
+        samples = new Array(TOTAL);
+
+        // Bank 0: Chord
+        for (let i = 0; i < 16; i++) samples[0 * 16 + i] = renderChord(sr, i);
+        // Bank 1: Lead
+        for (let i = 0; i < 16; i++) samples[1 * 16 + i] = renderLead(sr, i);
+        // Bank 2: Bass
+        for (let i = 0; i < 16; i++) samples[2 * 16 + i] = renderBass(sr, i);
+        // Bank 3: Perc
+        for (let i = 0; i < 16; i++) samples[3 * 16 + i] = renderPerc(sr, i);
+        // Bank 4: Clap
+        for (let i = 0; i < 16; i++) samples[4 * 16 + i] = renderClap(sr, i);
+        // Bank 5: Hat
+        for (let i = 0; i < 16; i++) samples[5 * 16 + i] = renderHat(sr, i);
+        // Bank 6: Snare
+        for (let i = 0; i < 16; i++) samples[6 * 16 + i] = renderSnare(sr, i);
+        // Bank 7: Kick
+        for (let i = 0; i < 16; i++) samples[7 * 16 + i] = renderKick(sr, i);
+
+        // Chuẩn hoá tổng thể mỗi bank có cùng RMS tương đối
+        // (không cần thiết vì từng hàm đã tự cân)
+    }
+
+    /* =========================================================
+       6. PHÁT MẪU
+       ========================================================= */
+    let bufferVoices = 0;
+    const MAX_VOICES = 24;
+
+    function playSample(idx, gain) {
+        if (!audioCtx || !samples[idx]) return;
+        if (bufferVoices >= MAX_VOICES) return;
+
+        const buf = samples[idx];
+        const src = audioCtx.createBufferSource();
+        src.buffer = buf;
+
+        const g = audioCtx.createGain();
+        g.gain.value = gain;
+
+        src.connect(g);
+        g.connect(masterGain);
+        src.start();
+        bufferVoices++;
+        src.onended = () => {
+            bufferVoices--;
+            try { src.disconnect(); g.disconnect(); } catch (_) {}
+        };
+    }
+
+    /* =========================================================
+       7. KHỞI TẠO
+       ========================================================= */
+    function initAudio() {
+        if (audioCtx) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            return;
+        }
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        masterGain = audioCtx.createGain();
+        masterGain.gain.value = 0.7;
+
+        const comp = audioCtx.createDynamicsCompressor();
+        comp.threshold.value = -12;
+        comp.knee.value = 8;
+        comp.ratio.value = 6;
+        comp.attack.value = 0.003;
+        comp.release.value = 0.15;
+
+        masterGain.connect(comp);
+        comp.connect(audioCtx.destination);
+
+        // Render samples (blocking ~100ms)
+        renderAllSamples();
+    }
+
+    /* =========================================================
+       8. XÂY GRID
+       ========================================================= */
+    const gridEl = document.getElementById('grid');
+    const loadingEl = document.getElementById('loading');
+    const pads = [];
+    const elToPad = new Map();
+
+    for (let i = 0; i < TOTAL; i++) {
+        const bankIdx = Math.floor(i / 16);
+        const subIdx = i % 16;
+        const c = padColor(bankIdx, subIdx);
+
+        const pad = document.createElement('div');
+        pad.className = 'pad';
+        pad.style.background = `linear-gradient(145deg,
+            ${hsl(c.h, c.s, Math.min(78, c.l + 20))},
+            ${hsl(c.h, c.s, c.l)} 55%,
+            ${hsl(c.h, Math.max(20, c.s - 30), Math.max(20, c.l - 14))})`;
+        pad.style.boxShadow = `0 2px 6px ${hsl(c.h, c.s, c.l, 0.35)}`;
+
+        const lbl = document.createElement('div');
+        lbl.className = 'lbl';
+        lbl.textContent = padLabel(bankIdx, subIdx);
+        pad.appendChild(lbl);
+
+        gridEl.appendChild(pad);
+        const state = { el: pad, idx: i, color: c, bankIdx };
+        pads.push(state);
+        elToPad.set(pad, state);
+    }
+
+    /* =========================================================
+       9. RIPPLE
+       ========================================================= */
+    function spawnRipple(x, y, c) {
+        const r = document.createElement('div');
+        r.className = 'ripple';
+        const size = 44;
+        r.style.left = x + 'px';
+        r.style.top = y + 'px';
+        r.style.width = size + 'px';
+        r.style.height = size + 'px';
+        r.style.borderColor = hsl(c.h, 100, 78, 0.9);
+        r.style.transition = 'transform 0.35s ease-out, opacity 0.35s ease-out';
+        document.body.appendChild(r);
+        requestAnimationFrame(() => {
+            r.style.transform = 'translate(-50%,-50%) scale(1.4)';
+            r.style.opacity = '0';
+        });
+        setTimeout(() => r.remove(), 400);
+    }
+
+    /* =========================================================
+       10. PHÁT PAD (không quan tâm tới bank, chỉ theo index)
+       ========================================================= */
+    function triggerPad(padState, x, y, isSwipe) {
+        padState.el.classList.add('active');
+        const gain = isSwipe ? 0.55 : 0.9;
+        playSample(padState.idx, gain);
+        if (x !== undefined) spawnRipple(x, y, padState.color);
+        if (isSwipe) {
+            setTimeout(() => padState.el.classList.remove('active'), 90);
+        }
+    }
+
+    /* =========================================================
+       11. TAP + SWIPE
+       ========================================================= */
+    const pointerLastPad = new Map();
+
+    pads.forEach((state) => {
+        const pad = state.el;
+        pad.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            initAudio();
+            pointerLastPad.set(e.pointerId, state);
+            try { pad.setPointerCapture(e.pointerId); } catch (_) {}
+            triggerPad(state, e.clientX, e.clientY, false);
+        });
+    });
+
+    function padAt(x, y) {
+        const el = document.elementFromPoint(x, y);
+        if (!el) return null;
+        const padEl = el.closest ? el.closest('.pad') : null;
+        return padEl ? (elToPad.get(padEl) || null) : null;
+    }
+
+    document.addEventListener('pointermove', function (e) {
+        if (!pointerLastPad.has(e.pointerId)) return;
+        const current = padAt(e.clientX, e.clientY);
+        if (!current) return;
+        const last = pointerLastPad.get(e.pointerId);
+        if (current === last) return;
+        pointerLastPad.set(e.pointerId, current);
+        if (last) last.el.classList.remove('active');
+        initAudio();
+        triggerPad(current, e.clientX, e.clientY, true);
+    }, { passive: true });
+
+    function endPointer(e) {
+        const last = pointerLastPad.get(e.pointerId);
+        if (last) last.el.classList.remove('active');
+        pointerLastPad.delete(e.pointerId);
+    }
+    document.addEventListener('pointerup',     endPointer);
+    document.addEventListener('pointercancel', endPointer);
+
+    /* =========================================================
+       12. KÍCH HOẠT + LOADING ẨN
+       ========================================================= */
+    const kickStart = () => {
+        initAudio();
+        loadingEl.style.opacity = '0';
+        setTimeout(() => loadingEl.remove(), 400);
+        document.removeEventListener('pointerdown', kickStart);
+        document.removeEventListener('touchstart',  kickStart);
+    };
+    document.addEventListener('pointerdown', kickStart);
+    document.addEventListener('touchstart',  kickStart, { passive: true });
+
+    // Ẩn loading sau 1.5s kể cả chưa chạm (phòng trường hợp máy chậm)
+    setTimeout(() => {
+        if (loadingEl.parentNode) {
+            loadingEl.style.opacity = '0';
+            setTimeout(() => loadingEl.remove(), 400);
+        }
+    }, 1500);
+
+    console.log('%c[MusicPads] 128 samples sẵn sàng — 8 bank × 16 biến thể',
+        'color:#00e6ff;font-weight:900');
+    console.log('%cCHORD · LEAD · BASS · PERC · CLAP · HAT · SNARE · KICK',
+        'color:#ff3cc8;font-weight:900');
+})();
+</script>
+</body>
+</html>
