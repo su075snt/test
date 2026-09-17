@@ -5,495 +5,203 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    
     <title>ピアノ</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;900&display=swap" rel="stylesheet">
-    
     <style>
-        html, body {
-            height: 100%;
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-            position: fixed;
-            width: 100%;
-            touch-action: manipulation;
-            -webkit-tap-highlight-color: transparent;
-            user-select: none;
-            -webkit-user-select: none;
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-        }
-
-        body {
-            font-family: 'Nunito', 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+        html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; position: fixed; width: 100%;
+            touch-action: manipulation; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); }
+        body { font-family: 'Nunito', 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
             box-sizing: border-box;
-            padding: max(10px, env(safe-area-inset-top)) 
-                     max(10px, env(safe-area-inset-right)) 
-                     max(10px, env(safe-area-inset-bottom)) 
-                     max(10px, env(safe-area-inset-left));
-        }
-
-        /* ===== Thanh điều khiển trên cùng ===== */
-        .top-bar {
-            position: fixed;
-            top: max(15px, env(safe-area-inset-top));
-            right: max(15px, env(safe-area-inset-right));
-            display: flex;
-            gap: 10px;
-            z-index: 100;
-        }
-
-        .mode-btn, .auto-btn, .stop-btn {
-            background: rgba(255,255,255,0.15);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.3);
-            color: white;
-            padding: 10px 18px;
-            font-size: 14px;
-            font-weight: 900;
-            border-radius: 25px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            font-family: 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
-            white-space: nowrap;
-        }
+            padding: max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right))
+                     max(10px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left)); }
+        .top-bar { position: fixed; top: max(15px, env(safe-area-inset-top)); right: max(15px, env(safe-area-inset-right));
+            display: flex; gap: 10px; z-index: 100; }
+        .mode-btn, .auto-btn, .stop-btn { background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.3); color: white; padding: 10px 18px;
+            font-size: 14px; font-weight: 900; border-radius: 25px; cursor: pointer; transition: all 0.2s ease;
+            font-family: 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif; white-space: nowrap; }
         .mode-btn:hover, .auto-btn:hover, .stop-btn:hover { background: rgba(255,255,255,0.25); }
         .mode-btn:active, .auto-btn:active, .stop-btn:active { transform: scale(0.95); }
-
-        .auto-btn {
-            background: linear-gradient(135deg, #2ecc71, #27ae60);
-            border-color: #27ae60;
-            box-shadow: 0 4px 15px rgba(46, 204, 113, 0.4);
-        }
+        .auto-btn { background: linear-gradient(135deg, #2ecc71, #27ae60); border-color: #27ae60;
+            box-shadow: 0 4px 15px rgba(46, 204, 113, 0.4); display: none; }
+        .auto-btn.show { display: block; }
         .auto-btn:hover { background: linear-gradient(135deg, #27ae60, #1e8449); }
-
-        .stop-btn {
-            background: linear-gradient(135deg, #e74c3c, #c0392b);
-            border-color: #c0392b;
-            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
-            display: none;
-        }
+        .stop-btn { background: linear-gradient(135deg, #e74c3c, #c0392b); border-color: #c0392b;
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4); display: none; }
         .stop-btn.show { display: block; }
-
-        .back-btn {
-            position: fixed;
-            top: max(15px, env(safe-area-inset-top));
-            left: max(15px, env(safe-area-inset-left));
-            background: rgba(255,255,255,0.15);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.3);
-            color: white;
-            padding: 10px 18px;
-            font-size: 14px;
-            font-weight: 900;
-            border-radius: 25px;
-            cursor: pointer;
-            z-index: 100;
-            display: none;
-            transition: all 0.2s ease;
-            font-family: 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
-            white-space: nowrap;
-        }
+        .back-btn { position: fixed; top: max(15px, env(safe-area-inset-top)); left: max(15px, env(safe-area-inset-left));
+            background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.3); color: white; padding: 10px 18px;
+            font-size: 14px; font-weight: 900; border-radius: 25px; cursor: pointer; z-index: 100;
+            display: none; transition: all 0.2s ease;
+            font-family: 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif; white-space: nowrap; }
         .back-btn.show { display: block; }
 
-        .song-title {
-            position: fixed;
-            top: max(15px, env(safe-area-inset-top));
-            left: 50%;
-            transform: translateX(-50%);
-            color: white;
-            font-size: 16px;
-            font-weight: 900;
-            padding: 10px 20px;
-            background: rgba(0,0,0,0.3);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border-radius: 25px;
-            z-index: 100;
-            display: none;
+        /* Speed slider */
+        .speed-control { position: fixed; top: max(15px, env(safe-area-inset-top));
+            left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 10px;
+            background: rgba(0,0,0,0.35); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            padding: 8px 18px; border-radius: 25px; z-index: 100; color: white;
+            font-size: 13px; font-weight: 900; border: 1px solid rgba(255,255,255,0.2); }
+        .speed-control label { font-family: 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif; white-space: nowrap; }
+        .speed-control input[type="range"] { -webkit-appearance: none; width: 120px; height: 6px;
+            background: linear-gradient(to right, #2ecc71, #f39c12, #e74c3c);
+            border-radius: 3px; outline: none; cursor: pointer; }
+        .speed-control input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; width: 20px; height: 20px; background: white;
+            border-radius: 50%; cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.4), 0 0 0 2px #4A90E2; }
+        .speed-control input[type="range"]::-moz-range-thumb {
+            width: 20px; height: 20px; background: white; border: 2px solid #4A90E2;
+            border-radius: 50%; cursor: pointer; }
+        .speed-value { min-width: 45px; text-align: center; font-size: 12px;
+            background: rgba(255,255,255,0.15); padding: 2px 6px; border-radius: 8px; }
+
+        .song-title { position: fixed; top: max(65px, calc(env(safe-area-inset-top) + 50px));
+            left: 50%; transform: translateX(-50%); color: white; font-size: 14px; font-weight: 900;
+            padding: 8px 20px; background: rgba(0,0,0,0.3); backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px); border-radius: 25px; z-index: 100; display: none;
             font-family: 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
-            max-width: 40vw;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
+            max-width: 45vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .song-title.show { display: block; }
 
-        /* ===== Danh sách bài hát ===== */
-        .song-panel {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.75);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            z-index: 300;
-            display: none;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-            box-sizing: border-box;
-        }
+        .song-panel { position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.75); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            z-index: 300; display: none; justify-content: center; align-items: center;
+            padding: 20px; box-sizing: border-box; }
         .song-panel.show { display: flex; }
-
-        .song-panel-inner {
-            background: linear-gradient(135deg, #2c3e50, #1a252f);
-            border-radius: 20px;
-            padding: 25px;
-            max-width: 900px;
-            width: 100%;
-            max-height: 85vh;
-            overflow-y: auto;
-            box-shadow: 0 25px 60px rgba(0,0,0,0.6);
-            border: 1px solid rgba(255,255,255,0.1);
-            -webkit-overflow-scrolling: touch;
-        }
-
-        .panel-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: white;
-            margin-bottom: 20px;
-            font-size: 20px;
-            font-weight: 900;
-        }
-
-        .close-btn {
-            background: rgba(255,255,255,0.1);
-            border: none;
-            color: white;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            font-size: 24px;
-            cursor: pointer;
-            font-weight: 900;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-
-        .song-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 10px;
-        }
-
-        .song-item {
-            background: rgba(255,255,255,0.08);
-            border: 1px solid rgba(255,255,255,0.15);
-            color: white;
-            padding: 14px 10px;
-            border-radius: 12px;
-            cursor: pointer;
-            text-align: center;
-            font-weight: 700;
-            font-size: 13px;
-            transition: all 0.15s;
-            font-family: 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
-            line-height: 1.3;
-        }
-        .song-item:hover {
-            background: rgba(255,255,255,0.18);
-            transform: translateY(-2px);
-        }
+        .song-panel-inner { background: linear-gradient(135deg, #2c3e50, #1a252f); border-radius: 20px;
+            padding: 25px; max-width: 1000px; width: 100%; max-height: 88vh; overflow-y: auto;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.1);
+            -webkit-overflow-scrolling: touch; }
+        .panel-header { display: flex; justify-content: space-between; align-items: center; color: white;
+            margin-bottom: 15px; font-size: 20px; font-weight: 900; position: sticky; top: 0;
+            background: linear-gradient(135deg, #2c3e50, #1a252f); padding-bottom: 10px; z-index: 5; }
+        .close-btn { background: rgba(255,255,255,0.1); border: none; color: white; width: 40px; height: 40px;
+            border-radius: 50%; font-size: 24px; cursor: pointer; font-weight: 900;
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .tab-bar { display: flex; gap: 8px; margin-bottom: 15px; overflow-x: auto; scrollbar-width: none; padding-bottom: 5px; }
+        .tab-bar::-webkit-scrollbar { display: none; }
+        .tab-btn { flex-shrink: 0; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
+            color: rgba(255,255,255,0.7); padding: 8px 16px; font-size: 13px; font-weight: 900;
+            border-radius: 20px; cursor: pointer; transition: all 0.2s;
+            font-family: 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif; }
+        .tab-btn.active { background: linear-gradient(135deg, #4A90E2, #357ABD); color: white;
+            border-color: #4A90E2; box-shadow: 0 4px 12px rgba(74, 144, 226, 0.4); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .section-title { color: #4A90E2; font-size: 14px; font-weight: 900; margin: 18px 0 10px 0;
+            padding-bottom: 6px; border-bottom: 2px solid rgba(74, 144, 226, 0.3);
+            font-family: 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif; letter-spacing: 1px; }
+        .section-title:first-child { margin-top: 0; }
+        .song-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+        .song-item { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
+            color: white; padding: 12px 8px; border-radius: 10px; cursor: pointer; text-align: center;
+            font-weight: 700; font-size: 12px; transition: all 0.15s;
+            font-family: 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif; line-height: 1.3; }
+        .song-item:hover { background: rgba(255,255,255,0.18); transform: translateY(-2px); }
         .song-item:active { transform: scale(0.96); }
 
-        /* ===== Dải nốt nhạc ===== */
-        .sheet-display {
-            display: none;
-            width: 98%;
-            max-width: 1300px;
-            height: 85px;
-            margin-bottom: 8px;
-            background: rgba(255,255,255,0.95);
-            border-radius: 15px;
-            padding: 10px 15px;
-            overflow-x: auto;
-            overflow-y: hidden;
-            scroll-behavior: smooth;
-            scrollbar-width: none;
-            white-space: nowrap;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            align-items: center;
-            box-sizing: border-box;
-            flex-shrink: 0;
-        }
+        .sheet-display { display: none; width: 98%; max-width: 1300px; height: 85px; margin-bottom: 8px;
+            background: rgba(255,255,255,0.95); border-radius: 15px; padding: 10px 15px;
+            overflow-x: auto; overflow-y: hidden; scroll-behavior: smooth; scrollbar-width: none;
+            white-space: nowrap; box-shadow: 0 10px 30px rgba(0,0,0,0.3); align-items: center;
+            box-sizing: border-box; flex-shrink: 0; }
         .sheet-display.show { display: flex; }
         .sheet-display::-webkit-scrollbar { display: none; }
-
-        .sheet-note {
-            display: inline-flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            min-width: 45px;
-            height: 60px;
-            margin: 0 3px;
-            background: #ecf0f1;
-            border-radius: 10px;
-            font-size: 15px;
-            font-weight: 900;
-            color: #7f8c8d;
-            flex-shrink: 0;
-            transition: all 0.3s;
-            font-family: 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
-            padding: 0 6px;
-        }
-        
-        .sheet-note .note-kana {
-            font-size: 15px;
-            line-height: 1;
-        }
-        .sheet-note .note-key {
-            font-size: 10px;
-            color: #b0b0b0;
-            margin-top: 4px;
-            font-weight: 900;
-        }
-
-        .sheet-note.done {
-            background: #d5f4e6;
-            color: #27ae60;
-        }
+        .sheet-note { display: inline-flex; flex-direction: column; justify-content: center; align-items: center;
+            min-width: 45px; height: 60px; margin: 0 3px; background: #ecf0f1; border-radius: 10px;
+            font-size: 15px; font-weight: 900; color: #7f8c8d; flex-shrink: 0; transition: all 0.3s;
+            font-family: 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif; padding: 0 6px; }
+        .sheet-note .note-kana { font-size: 15px; line-height: 1; }
+        .sheet-note .note-key { font-size: 10px; color: #b0b0b0; margin-top: 4px; font-weight: 900; }
+        .sheet-note.done { background: #d5f4e6; color: #27ae60; }
         .sheet-note.done .note-key { color: #7fc8a3; }
-
-        .sheet-note.current {
-            background: linear-gradient(135deg, #FF9A44, #FC6076);
-            color: white;
-            transform: scale(1.12);
-            box-shadow: 0 8px 20px rgba(252, 96, 118, 0.5);
-            animation: sheetPulse 1s infinite;
-        }
+        .sheet-note.current { background: linear-gradient(135deg, #FF9A44, #FC6076); color: white;
+            transform: scale(1.12); box-shadow: 0 8px 20px rgba(252, 96, 118, 0.5);
+            animation: sheetPulse 1s infinite; }
         .sheet-note.current .note-key { color: rgba(255,255,255,0.9); }
+        @keyframes sheetPulse { 0%, 100% { transform: scale(1.12); } 50% { transform: scale(1.22); } }
 
-        @keyframes sheetPulse {
-            0%, 100% { transform: scale(1.12); }
-            50% { transform: scale(1.22); }
-        }
-
-        /* ===== Khung đàn ===== */
-        .piano-container {
-            position: relative;
-            width: 98%;
-            max-width: 1300px;
-            height: 55vh;
-            max-height: 400px;
-            min-height: 200px;
-            background: linear-gradient(to bottom, #3d566e, #2c3e50);
-            padding: 12px 8px 8px 8px;
-            border-radius: 12px;
+        .piano-container { position: relative; width: 98%; max-width: 1300px; height: 55vh;
+            max-height: 400px; min-height: 200px; background: linear-gradient(to bottom, #3d566e, #2c3e50);
+            padding: 12px 8px 8px 8px; border-radius: 12px;
             box-shadow: 0 25px 50px rgba(0,0,0,0.5), inset 0 2px 5px rgba(255,255,255,0.15);
-            display: flex;
-            flex-direction: column;
-            box-sizing: border-box;
-            flex-shrink: 0;
-        }
-
+            display: flex; flex-direction: column; box-sizing: border-box; flex-shrink: 0; }
         @media (orientation: landscape) and (min-width: 768px) {
-            .piano-container { height: 60vh; max-height: 450px; }
-        }
+            .piano-container { height: 60vh; max-height: 450px; } }
         @media (orientation: portrait) and (min-width: 768px) {
-            .piano-container { height: 40vh; max-height: 350px; }
-        }
-
-        .wood-bar {
-            height: 12px;
-            background: linear-gradient(to bottom, #8d6e63, #4e342e);
-            border-radius: 4px 4px 0 0;
-            margin-bottom: 6px;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.5), 0 2px 3px rgba(0,0,0,0.3);
-            flex-shrink: 0;
-        }
-
-        .keys-wrapper {
-            position: relative;
-            flex: 1;
-            display: flex;
-            width: 100%;
-            height: 100%;
-        }
-
-        /* Phím trắng */
-        .white-key {
-            flex: 1;
-            background: linear-gradient(to bottom, #ffffff 0%, #f8f8f8 85%, #e8e8e8 100%);
-            border: 1px solid #bbb;
-            border-top: none;
-            border-radius: 0 0 6px 6px;
-            box-shadow: 
-                0 5px 0 #cfcfcf,
-                0 6px 5px rgba(0,0,0,0.15),
-                inset 0 -6px 10px rgba(0,0,0,0.05);
-            cursor: pointer;
-            transition: all 0.05s ease;
-            position: relative;
-            z-index: 1;
-            margin: 0 1px;
-        }
-
-        .white-key:active, .white-key.active {
-            transform: translateY(5px);
-            box-shadow: 
-                0 0 0 #cfcfcf,
-                0 1px 3px rgba(0,0,0,0.2),
-                inset 0 -3px 6px rgba(0,0,0,0.1);
-            background: linear-gradient(to bottom, #f0f0f0 0%, #e0e0e0 100%);
-        }
-
-        .white-key.target {
-            background: linear-gradient(to bottom, #d5f4e6 0%, #a8e6cf 100%);
-            box-shadow: 
-                0 5px 0 #7fc8a3,
-                0 0 25px rgba(46, 204, 113, 0.7),
-                inset 0 -6px 10px rgba(0,0,0,0.05);
-            animation: targetGlow 1.2s infinite;
-        }
-
-        @keyframes targetGlow {
-            0%, 100% { box-shadow: 0 5px 0 #7fc8a3, 0 0 20px rgba(46, 204, 113, 0.5), inset 0 -6px 10px rgba(0,0,0,0.05); }
-            50% { box-shadow: 0 5px 0 #7fc8a3, 0 0 35px rgba(46, 204, 113, 0.9), inset 0 -6px 10px rgba(0,0,0,0.05); }
-        }
-
-        /* Phím đen */
-        .black-key {
-            position: absolute;
-            height: 60%;
-            background: linear-gradient(to bottom, #4a4a4a 0%, #1a1a1a 100%);
+            .piano-container { height: 40vh; max-height: 350px; } }
+        .wood-bar { height: 12px; background: linear-gradient(to bottom, #8d6e63, #4e342e);
+            border-radius: 4px 4px 0 0; margin-bottom: 6px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.5), 0 2px 3px rgba(0,0,0,0.3); flex-shrink: 0; }
+        .keys-wrapper { position: relative; flex: 1; display: flex; width: 100%; height: 100%; }
+        .white-key { flex: 1; background: linear-gradient(to bottom, #ffffff 0%, #f8f8f8 85%, #e8e8e8 100%);
+            border: 1px solid #bbb; border-top: none; border-radius: 0 0 6px 6px;
+            box-shadow: 0 5px 0 #cfcfcf, 0 6px 5px rgba(0,0,0,0.15), inset 0 -6px 10px rgba(0,0,0,0.05);
+            cursor: pointer; transition: all 0.05s ease; position: relative; z-index: 1; margin: 0 1px; }
+        .white-key:active, .white-key.active { transform: translateY(5px);
+            box-shadow: 0 0 0 #cfcfcf, 0 1px 3px rgba(0,0,0,0.2), inset 0 -3px 6px rgba(0,0,0,0.1);
+            background: linear-gradient(to bottom, #f0f0f0 0%, #e0e0e0 100%); }
+        .white-key.target { background: linear-gradient(to bottom, #d5f4e6 0%, #a8e6cf 100%);
+            box-shadow: 0 5px 0 #7fc8a3, 0 0 25px rgba(46, 204, 113, 0.7), inset 0 -6px 10px rgba(0,0,0,0.05);
+            animation: targetGlow 1.2s infinite; }
+        @keyframes targetGlow { 0%, 100% { box-shadow: 0 5px 0 #7fc8a3, 0 0 20px rgba(46, 204, 113, 0.5), inset 0 -6px 10px rgba(0,0,0,0.05); }
+            50% { box-shadow: 0 5px 0 #7fc8a3, 0 0 35px rgba(46, 204, 113, 0.9), inset 0 -6px 10px rgba(0,0,0,0.05); } }
+        .black-key { position: absolute; height: 60%; background: linear-gradient(to bottom, #4a4a4a 0%, #1a1a1a 100%);
             border-radius: 0 0 4px 4px;
-            box-shadow: 
-                0 5px 0 #000,
-                0 6px 6px rgba(0,0,0,0.4),
-                inset 0 -3px 5px rgba(255,255,255,0.15),
-                inset 0 3px 3px rgba(0,0,0,0.5);
-            cursor: pointer;
-            transition: all 0.05s ease;
-            z-index: 2;
-            transform: translateX(-50%);
-        }
-
-        .black-key:active, .black-key.active {
-            transform: translateX(-50%) translateY(5px);
-            box-shadow: 
-                0 0 0 #000,
-                0 1px 3px rgba(0,0,0,0.4),
-                inset 0 -2px 3px rgba(255,255,255,0.1);
-            background: linear-gradient(to bottom, #2a2a2a 0%, #000 100%);
-        }
-
-        .black-key.target {
-            background: linear-gradient(to bottom, #2ecc71 0%, #27ae60 100%);
-            box-shadow: 
-                0 5px 0 #1e8449,
-                0 0 25px rgba(46, 204, 113, 0.7),
-                inset 0 -3px 5px rgba(255,255,255,0.2);
-            animation: targetGlowBlack 1.2s infinite;
-        }
-
-        @keyframes targetGlowBlack {
-            0%, 100% { box-shadow: 0 5px 0 #1e8449, 0 0 20px rgba(46, 204, 113, 0.5); }
-            50% { box-shadow: 0 5px 0 #1e8449, 0 0 35px rgba(46, 204, 113, 0.9); }
-        }
-
-        .white-key.wrong, .black-key.wrong {
-            background: linear-gradient(to bottom, #ff8a8a 0%, #e74c3c 100%) !important;
-        }
+            box-shadow: 0 5px 0 #000, 0 6px 6px rgba(0,0,0,0.4), inset 0 -3px 5px rgba(255,255,255,0.15),
+                inset 0 3px 3px rgba(0,0,0,0.5); cursor: pointer; transition: all 0.05s ease;
+            z-index: 2; transform: translateX(-50%); }
+        .black-key:active, .black-key.active { transform: translateX(-50%) translateY(5px);
+            box-shadow: 0 0 0 #000, 0 1px 3px rgba(0,0,0,0.4), inset 0 -2px 3px rgba(255,255,255,0.1);
+            background: linear-gradient(to bottom, #2a2a2a 0%, #000 100%); }
+        .black-key.target { background: linear-gradient(to bottom, #2ecc71 0%, #27ae60 100%);
+            box-shadow: 0 5px 0 #1e8449, 0 0 25px rgba(46, 204, 113, 0.7), inset 0 -3px 5px rgba(255,255,255,0.2);
+            animation: targetGlowBlack 1.2s infinite; }
+        @keyframes targetGlowBlack { 0%, 100% { box-shadow: 0 5px 0 #1e8449, 0 0 20px rgba(46, 204, 113, 0.5); }
+            50% { box-shadow: 0 5px 0 #1e8449, 0 0 35px rgba(46, 204, 113, 0.9); } }
+        .white-key.wrong, .black-key.wrong { background: linear-gradient(to bottom, #ff8a8a 0%, #e74c3c 100%) !important; }
         .white-key.wrong { animation: wrongShake 0.3s ease; }
         .black-key.wrong { animation: wrongShakeBlack 0.3s ease; }
-
-        @keyframes wrongShake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-6px); }
-            50% { transform: translateX(6px); }
-            75% { transform: translateX(-6px); }
-        }
-        @keyframes wrongShakeBlack {
-            0%, 100% { transform: translateX(-50%); }
-            25% { transform: translateX(calc(-50% - 6px)); }
-            50% { transform: translateX(calc(-50% + 6px)); }
-            75% { transform: translateX(calc(-50% - 6px)); }
-        }
-
-        /* Nhãn nốt tiếng Nhật */
-        .jp-label {
-            position: absolute;
-            top: 30%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: clamp(12px, 1.8vw, 22px);
-            font-weight: 900;
-            color: #2c3e50;
-            pointer-events: none;
-            font-family: 'Hiragino Kaku Gothic Pro', 'Meiryo', 'Yu Gothic', sans-serif;
-        }
-
-        .black-key .jp-label {
-            color: rgba(255, 255, 255, 0.95);
-            font-size: clamp(8px, 1.1vw, 12px);
-            top: 32%;
-        }
-
-        /* Nhãn phím tắt bàn phím máy tính */
-        .key-label {
-            position: absolute;
-            bottom: 8px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: clamp(9px, 1.1vw, 12px);
-            color: #bdc3c7;
-            font-weight: 900;
-            pointer-events: none;
-            background: rgba(0,0,0,0.06);
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-family: 'Courier New', monospace;
-            text-transform: uppercase;
-            border: 1px solid rgba(0,0,0,0.08);
-        }
-
-        .black-key .key-label {
-            color: rgba(255,255,255,0.55);
-            bottom: 5px;
-            font-size: clamp(7px, 0.9vw, 10px);
-            background: rgba(255,255,255,0.08);
-            border-color: rgba(255,255,255,0.1);
-            padding: 1px 4px;
-        }
-
-        /* Nhãn phím mục tiêu (khi luyện tập) */
-        .white-key.target .key-label {
-            background: #27ae60;
-            color: white;
-            border-color: #1e8449;
-            animation: keyLabelPulse 1s infinite;
-        }
-        .black-key.target .key-label {
-            background: #27ae60;
-            color: white;
-            border-color: #1e8449;
-            animation: keyLabelPulse 1s infinite;
-        }
-
-        @keyframes keyLabelPulse {
-            0%, 100% { transform: translateX(-50%) scale(1); }
-            50% { transform: translateX(-50%) scale(1.15); }
-        }
+        @keyframes wrongShake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-6px); }
+            50% { transform: translateX(6px); } 75% { transform: translateX(-6px); } }
+        @keyframes wrongShakeBlack { 0%, 100% { transform: translateX(-50%); }
+            25% { transform: translateX(calc(-50% - 6px)); } 50% { transform: translateX(calc(-50% + 6px)); }
+            75% { transform: translateX(calc(-50% - 6px)); } }
+        .jp-label { position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%);
+            font-size: clamp(12px, 1.8vw, 22px); font-weight: 900; color: #2c3e50; pointer-events: none;
+            font-family: 'Hiragino Kaku Gothic Pro', 'Meiryo', 'Yu Gothic', sans-serif; }
+        .black-key .jp-label { color: rgba(255, 255, 255, 0.95); font-size: clamp(8px, 1.1vw, 12px); top: 32%; }
+        .key-label { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+            font-size: clamp(9px, 1.1vw, 12px); color: #bdc3c7; font-weight: 900; pointer-events: none;
+            background: rgba(0,0,0,0.06); padding: 2px 6px; border-radius: 4px;
+            font-family: 'Courier New', monospace; text-transform: uppercase;
+            border: 1px solid rgba(0,0,0,0.08); }
+        .black-key .key-label { color: rgba(255,255,255,0.55); bottom: 5px;
+            font-size: clamp(7px, 0.9vw, 10px); background: rgba(255,255,255,0.08);
+            border-color: rgba(255,255,255,0.1); padding: 1px 4px; }
+        .white-key.target .key-label { background: #27ae60; color: white; border-color: #1e8449;
+            animation: keyLabelPulse 1s infinite; }
+        .black-key.target .key-label { background: #27ae60; color: white; border-color: #1e8449;
+            animation: keyLabelPulse 1s infinite; }
+        @keyframes keyLabelPulse { 0%, 100% { transform: translateX(-50%) scale(1); }
+            50% { transform: translateX(-50%) scale(1.15); } }
     </style>
 </head>
 <body>
 
+    <div class="speed-control">
+        <label>⏱ 速さ</label>
+        <input type="range" id="speedSlider" min="200" max="800" value="450" step="50">
+        <span class="speed-value" id="speedValue">450ms</span>
+    </div>
+
     <div class="top-bar">
-        <button class="auto-btn" id="autoBtn" style="display:none;">▶ 自動演奏</button>
+        <button class="auto-btn" id="autoBtn">▶ 自動演奏</button>
         <button class="stop-btn" id="stopBtn">⏹ 停止</button>
         <button class="mode-btn" id="modeBtn">🎼 練習</button>
     </div>
@@ -504,10 +212,23 @@
     <div class="song-panel" id="songPanel">
         <div class="song-panel-inner">
             <div class="panel-header">
-                <span>🎵 曲を選んでください (Chọn bài hát)</span>
+                <span>🎵 曲を選んでください (80曲)</span>
                 <button class="close-btn" id="closePanel">×</button>
             </div>
-            <div class="song-grid" id="songGrid"></div>
+            <div class="tab-bar" id="tabBar">
+                <button class="tab-btn active" data-tab="kids">🎌 Nhật / Thiếu nhi (30)</button>
+                <button class="tab-btn" data-tab="naruto">🍥 Naruto (10)</button>
+                <button class="tab-btn" data-tab="anime">🌸 Anime / J-Pop (10)</button>
+                <button class="tab-btn" data-tab="classic">🎼 Cổ điển (10)</button>
+                <button class="tab-btn" data-tab="world">🌍 Quốc tế (10)</button>
+                <button class="tab-btn" data-tab="extra">🎄 Lễ hội (10)</button>
+            </div>
+            <div class="tab-content active" id="tab-kids"></div>
+            <div class="tab-content" id="tab-naruto"></div>
+            <div class="tab-content" id="tab-anime"></div>
+            <div class="tab-content" id="tab-classic"></div>
+            <div class="tab-content" id="tab-world"></div>
+            <div class="tab-content" id="tab-extra"></div>
         </div>
     </div>
 
@@ -519,9 +240,9 @@
     </div>
 
     <script>
-        // ============ 30 BÀI HÁT ============
+        // ============ 30 BÀI HÁT CŨ ============
         const songs = [
-            // ===== Bài thiếu nhi Nhật =====
+            // ===== Bài thiếu nhi Nhật (15) =====
             { name: 'かえるの歌', notes: ['C4','D4','E4','F4','E4','D4','C4','E4','F4','G4','A4','G4','F4','E4','C4'] },
             { name: 'きらきら星', notes: ['C4','C4','G4','G4','A4','A4','G4','F4','F4','E4','E4','D4','D4','C4','G4','G4','F4','F4','E4','E4','D4','G4','G4','F4','F4','E4','E4','D4','C4','C4','G4','G4','A4','A4','G4','F4','F4','E4','E4','D4','D4','C4'] },
             { name: 'チューリップ', notes: ['C4','D4','E4','C4','D4','E4','G4','E4','D4','C4','D4','E4','G4','E4','D4','C4','D4','E4','F4','G4','G4','A4','A4','G4','F4','F4','E4','E4','D4','D4','C4'] },
@@ -535,10 +256,10 @@
             { name: 'ふるさと', notes: ['C4','C4','C4','G4','A4','A4','A4','G4','F4','F4','E4','E4','D4','D4','C4','G4','G4','F4','F4','E4','E4','D4','C4','C4','C4','G4','A4','A4','A4','G4','F4','F4','E4','E4','D4','D4','C4'] },
             { name: '山の音楽家', notes: ['C4','E4','G4','C5','G4','E4','C4','D4','F4','A4','D5','A4','F4','D4','C4','E4','G4','C5','G4','E4','C4'] },
             { name: 'こいぬのマーチ', notes: ['C4','C4','G4','G4','A4','A4','G4','F4','F4','E4','E4','D4','D4','C4','G4','G4','F4','F4','E4','E4','D4','G4','G4','F4','F4','E4','E4','D4','C4','C4','G4','G4','A4','A4','G4','F4','F4','E4','E4','D4','D4','C4'] },
-            { name: 'さくら さくら', notes: ['A4','A4','B4','A4','A4','B4','A4','B4','C5','B4','A4','B4','A4','A4','B4','A4','A4','B4','A4','B4','C5','B4','A4','B4','A4','A4','B4','A4','A4','B4','A4','B4','C5','B4','A4','B4','A4','A4','B4','A4','A4','B4','A4','B4','C5','B4','A4','B4','A4','A4','B4','A4'] },
+            { name: 'さくら さくら', notes: ['A4','A4','B4','A4','A4','B4','A4','B4','C5','B4','A4','B4','A4','A4','B4','A4','A4','B4','A4','B4','C5','B4','A4','B4','A4','A4','B4','A4'] },
             { name: '大きな栗の木の下で', notes: ['G4','E4','C4','C4','D4','E4','E4','D4','C4','D4','E4','G4','E4','D4','C4','G4','E4','C4','C4','D4','E4','E4','D4','C4','D4','E4','G4','E4','D4','C4'] },
             
-            // ===== Sinh nhật & Lễ hội =====
+            // ===== Sinh nhật & Lễ hội (6) =====
             { name: '🎂 Happy Birthday', notes: ['G4','G4','A4','G4','C5','B4','G4','G4','A4','G4','D5','C5','G4','G4','G5','E5','C5','B4','A4','F5','F5','E5','C5','D5','C5'] },
             { name: '🎄 Jingle Bells', notes: ['E4','E4','E4','E4','E4','E4','E4','G4','C4','D4','E4','F4','F4','F4','F4','F4','E4','E4','E4','E4','E4','D4','D4','E4','D4','G4'] },
             { name: '🎄 We Wish You', notes: ['C4','F4','F4','G4','F4','E4','D4','C4','C4','F4','F4','G4','F4','E4','D4','C4','C4','F4','F4','G4','F4','E4','D4','C4','C4','F4','F4','G4','F4','E4','D4','C4'] },
@@ -546,17 +267,104 @@
             { name: '🎄 赤鼻のトナカイ', notes: ['G4','E4','E4','G4','A4','G4','E4','D4','C4','D4','E4','F4','G4','A4','G4','E4','G4','A4','G4','E4','D4','C4','D4','E4','F4','G4','A4','G4','C5','B4','A4','G4','F4','E4','D4','C4'] },
             { name: '🎃 ハロウィン', notes: ['E4','G4','E4','C4','D4','E4','F4','E4','D4','C4','E4','G4','E4','C4','D4','E4','F4','E4','D4','C4'] },
             
-            // ===== Nhạc cổ điển =====
+            // ===== Nhạc cổ điển (4) =====
             { name: '🎼 Ode to Joy', notes: ['E4','E4','F4','G4','G4','F4','E4','D4','C4','C4','D4','E4','E4','D4','D4','E4','E4','F4','G4','G4','F4','E4','D4','C4','C4','D4','E4','D4','C4','C4'] },
             { name: '🎼 Canon in D', notes: ['F#4','E4','D4','C#4','B4','A4','B4','C#4','D4','C#4','B4','A4','G4','F#4','G4','E4','D4','C#4','B4','A4','G4','F#4','E4','D4','C#4','B4','A4','G4','F#4','E4','D4'] },
             { name: '🎼 Für Elise', notes: ['E5','D#5','E5','D#5','E5','B4','D5','C5','A4','C4','E4','A4','B4','E4','G#4','B4','C5','E4','E5','D#5','E5','D#5','E5','B4','D5','C5','A4','C4','E4','A4','B4','E4','C5','B4','A4'] },
             { name: '🎼 Twinkle (Mozart)', notes: ['C4','C4','G4','G4','A4','A4','G4','F4','F4','E4','E4','D4','D4','C4','G4','G4','F4','F4','E4','E4','D4','G4','G4','F4','F4','E4','E4','D4','C4','C4','G4','G4','A4','A4','G4','F4','F4','E4','E4','D4','D4','C4'] },
             
-            // ===== Bài nước ngoài =====
+            // ===== Bài nước ngoài (5) =====
             { name: '🎵 Amazing Grace', notes: ['G4','C5','E5','C5','E5','D5','C5','A4','G4','G4','C5','E5','C5','E5','D5','G5','G4','C5','E5','C5','E5','D5','C5','A4','G4','G4','C5','E5','C5','E5','D5','C5'] },
             { name: '🎵 Old MacDonald', notes: ['G4','G4','G4','D4','E4','E4','D4','B4','B4','A4','A4','G4','D4','G4','G4','G4','D4','E4','E4','D4','B4','B4','A4','A4','G4'] },
             { name: '🎵 Mary Had a Little Lamb', notes: ['E4','D4','C4','D4','E4','E4','E4','D4','D4','D4','E4','G4','G4','E4','D4','C4','D4','E4','E4','E4','E4','D4','D4','E4','D4','C4'] },
             { name: '🎵 Row Row Row', notes: ['C4','C4','C4','D4','E4','E4','D4','E4','F4','G4','C5','C5','C5','G4','G4','G4','E4','E4','E4','C4','C4','C4','G4','F4','E4','D4','C4'] },
+            { name: '🎵 London Bridge', notes: ['G4','A4','G4','F4','E4','F4','G4','D4','E4','F4','E4','F4','G4','G4','A4','G4','F4','E4','F4','G4','D4','G4','E4','C4'] }
+        ];
+
+        // ============ 50 BÀI HÁT MỚI ============
+
+        // ===== 10 bài Naruto =====
+        const narutoSongs = [
+            { name: '🍥 哀と悲 (Sadness and Sorrow)', notes: ['A4','B4','C5','E5','D5','C5','B4','A4','B4','C5','D5','C5','B4','A4','G4','A4','B4','C5','D5','E5','D5','C5','B4','A4','B4','C5','E5','D5','C5','B4','A4'] },
+            { name: '🍥 ブルーバード (Blue Bird)', notes: ['F#5','E5','D5','B4','A4','B4','D5','E5','D5','B4','A4','B4','D5','E5','F#5','E5','D5','B4','A4','B4','D5','B4','A4','G4','A4','B4','D5','E5','D5','B4','A4','F#4'] },
+            { name: '🍥 遥か彼方 (Haruka Kanata)', notes: ['D5','D5','E5','D5','C5','A4','C5','D5','D5','E5','D5','C5','A4','C5','D5','E5','D5','C5','A4','G4','A4','C5','D5','C5','A4','G4','A4','C5','D5','E5','D5','A4'] },
+            { name: '🍥 シルエット (Silhouette)', notes: ['A4','B4','C5','B4','A4','G4','A4','C5','B4','A4','G4','E4','G4','A4','B4','A4','G4','A4','B4','C5','D5','C5','B4','A4','B4','C5','D5','E5','D5','C5','B4','A4'] },
+            { name: '🍥 GO!!! (OP4)', notes: ['E5','E5','D5','C5','D5','E5','G5','E5','D5','C5','D5','E5','D5','C5','B4','A4','E5','E5','D5','C5','D5','E5','G5','A5','G5','E5','D5','C5','D5','E5','D5','C5'] },
+            { name: '🍥 青春狂騒曲 (OP5)', notes: ['G4','A4','B4','C5','B4','A4','G4','E4','G4','A4','B4','C5','D5','C5','B4','A4','G4','A4','B4','C5','B4','A4','G4','A4','B4','C5','D5','E5','D5','C5','B4','G4'] },
+            { name: '🍥 Rocks (OP1)', notes: ['E5','D5','E5','G5','E5','D5','C5','D5','E5','D5','C5','A4','C5','D5','E5','D5','C5','A4','G4','A4','C5','D5','E5','D5','C5','D5','E5','D5','C5','A4','G4','A4'] },
+            { name: '🍥 悲しみをやさしさに (OP9)', notes: ['A4','C5','D5','E5','D5','C5','A4','G4','A4','C5','D5','C5','A4','G4','E4','G4','A4','C5','D5','E5','F5','E5','D5','C5','D5','E5','D5','C5','A4','G4','A4'] },
+            { name: '🍥 ディスタンス (Distance)', notes: ['G4','B4','D5','E5','D5','B4','G4','A4','B4','D5','E5','G5','E5','D5','B4','A4','G4','B4','D5','E5','D5','B4','A4','G4','A4','B4','D5','B4','A4','G4','F#4','G4'] },
+            { name: '🍥 ラヴァーズ (Lovers)', notes: ['D5','C5','B4','A4','B4','C5','D5','E5','D5','C5','B4','A4','G4','A4','B4','C5','D5','E5','F#5','E5','D5','C5','B4','A4','B4','C5','D5','C5','B4','A4','G4','A4'] }
+        ];
+
+        // ===== 10 bài Anime / J-Pop =====
+        const animeSongs = [
+            { name: '🌸 残酷な天使のテーゼ', notes: ['A4','A4','B4','C5','B4','A4','G4','A4','B4','C5','D5','E5','D5','C5','B4','A4','C5','D5','E5','F5','E5','D5','C5','B4','A4','B4','C5','D5','C5','B4','A4','G4'] },
+            { name: '🌸 千本桜', notes: ['D5','E5','F5','G5','F5','E5','D5','C5','D5','E5','F5','E5','D5','C5','A4','C5','D5','E5','F5','G5','A5','G5','F5','E5','D5','C5','D5','E5','D5','C5','A4','G4'] },
+            { name: '🌸 紅蓮の弓矢', notes: ['E5','E5','D5','C5','D5','E5','G5','A5','G5','E5','D5','C5','D5','E5','D5','C5','B4','C5','D5','E5','G5','A5','G5','E5','D5','E5','D5','C5','B4','A4','B4','C5'] },
+            { name: '🌸 紅蓮華 (Gurenge)', notes: ['E5','D5','C5','D5','E5','G5','A5','G5','E5','D5','C5','B4','C5','D5','E5','D5','C5','A4','G4','A4','C5','D5','E5','D5','C5','D5','E5','G5','E5','D5','C5','A4'] },
+            { name: '🌸 前前前世', notes: ['C5','C5','D5','E5','D5','C5','A4','G4','A4','C5','D5','E5','G5','E5','D5','C5','A4','C5','D5','E5','D5','C5','A4','G4','A4','G4','E4','G4','A4','C5','D5','C5'] },
+            { name: '🌸 君をのせて', notes: ['A4','B4','C5','D5','E5','D5','C5','B4','C5','D5','E5','G5','A5','G5','E5','D5','C5','D5','E5','D5','C5','B4','A4','G4','A4','B4','C5','D5','E5','D5','C5','A4'] },
+            { name: '🌸 ドラえもんのうた', notes: ['C5','C5','D5','E5','C5','A4','G4','A4','B4','C5','D5','E5','D5','C5','B4','A4','E5','E5','D5','C5','A4','C5','D5','E5','D5','C5','B4','A4','G4','A4','B4','C5'] },
+            { name: '🌸 となりのトトロ', notes: ['C5','C5','A4','C5','D5','E5','D5','C5','A4','G4','A4','C5','D5','C5','A4','G4','A4','B4','C5','D5','E5','G5','E5','D5','C5','D5','E5','C5','A4','G4','A4'] },
+            { name: '🎤 Lemon (米津玄師)', notes: ['C5','C5','B4','A4','G4','A4','B4','C5','D5','E5','D5','C5','B4','A4','G4','A4','B4','C5','B4','A4','G4','E4','G4','A4','B4','A4','G4','E4','D4','E4','G4'] },
+            { name: '🎤 夜に駆ける (YOASOBI)', notes: ['E5','D5','C5','D5','E5','G5','E5','D5','C5','A4','C5','D5','E5','D5','C5','A4','G4','A4','C5','D5','E5','D5','C5','A4','G4','E4','G4','A4','C5','D5','C5'] }
+        ];
+
+        // ===== 10 bài Nhật khác =====
+        const jpMoreSongs = [
+            { name: '🎌 上を向いて歩こう', notes: ['E4','G4','A4','A4','G4','E4','G4','A4','C5','A4','G4','E4','D4','E4','G4','A4','G4','E4','D4','C4','D4','E4','G4','E4','D4','C4'] },
+            { name: '🎌 川の流れのように', notes: ['G4','A4','B4','C5','B4','A4','G4','E4','G4','A4','B4','A4','G4','E4','D4','E4','G4','A4','B4','C5','D5','C5','B4','A4','G4'] },
+            { name: '🎌 少年時代', notes: ['C5','B4','A4','G4','A4','B4','C5','D5','E5','D5','C5','B4','A4','G4','E4','G4','A4','B4','C5','B4','A4','G4','A4'] },
+            { name: '🎌 なごり雪', notes: ['G4','A4','B4','A4','G4','E4','D4','E4','G4','A4','B4','C5','B4','A4','G4','E4','D4','E4','G4','A4','G4','E4','D4','C4'] },
+            { name: '🎌 乾杯', notes: ['C5','B4','A4','G4','E4','G4','A4','C5','B4','A4','G4','E4','D4','E4','G4','A4','B4','C5','D5','C5','B4','A4','G4'] },
+            { name: '🎌 赤とんぼ', notes: ['E4','G4','A4','G4','E4','D4','E4','G4','A4','C5','B4','A4','G4','E4','D4','E4','G4','A4','G4','E4','D4','C4'] },
+            { name: '🎌 花', notes: ['C5','B4','A4','G4','A4','B4','C5','A4','G4','E4','G4','A4','B4','A4','G4','E4','D4','E4','G4','A4','B4','C5','B4','A4','G4'] },
+            { name: '🎌 桜坂', notes: ['D5','C5','B4','A4','B4','C5','D5','B4','A4','G4','A4','B4','C5','B4','A4','G4','F#4','G4','A4','B4','A4','G4','F#4','E4'] },
+            { name: '🎌 世界に一つだけの花', notes: ['C5','D5','E5','D5','C5','A4','G4','A4','C5','D5','E5','G5','E5','D5','C5','A4','G4','A4','C5','D5','C5','A4','G4'] },
+            { name: '🎌 涙そうそう', notes: ['A4','B4','C5','B4','A4','G4','E4','G4','A4','B4','C5','D5','C5','B4','A4','G4','A4','B4','A4','G4','E4','D4','E4','G4','A4'] }
+        ];
+
+        // ===== 10 bài Cổ điển =====
+        const classicMoreSongs = [
+            { name: '🎼 Moonlight Sonata', notes: ['C#4','C#4','C#4','C#4','C#4','C#4','C#4','C#4','C#4','C#4','C#4','C#4','C#4','C#4','C#4','C#4'] },
+            { name: '🎼 Turkish March', notes: ['B4','A4','G#4','A4','C5','B4','A4','B4','D5','C5','B4','A4','G#4','A4','B4','A4','G#4','A4','B4','A4','G#4','A4','C5','B4','A4','B4','D5','C5','B4','A4'] },
+            { name: '🎼 Minuet in G', notes: ['D5','G4','A4','B4','C5','D5','G4','G4','E5','C5','D5','E5','F#5','G5','G4','G4','C5','D5','C5','B4','A4','B4','C5','B4','A4','G4','F#4','G4','A4','B4','G4'] },
+            { name: '🎼 Prelude in C', notes: ['C4','E4','G4','C5','E5','G4','C5','E5','C4','E4','G4','C5','E5','G4','C5','E5','C4','D4','A4','D5','F5','A4','D5','F5','C4','D4','A4','D5','F5','A4','D5','F5'] },
+            { name: '🎼 Nocturne Op.9 No.2', notes: ['B4','C5','D5','E5','F5','E5','D5','C5','B4','A4','G4','A4','B4','C5','D5','C5','B4','A4','G4','F#4','G4','A4','B4','A4','G4','F#4','E4','D4','E4','F#4','G4','A4'] },
+            { name: '🎼 Waltz of Flowers', notes: ['E5','D5','C5','B4','A4','G4','A4','B4','C5','D5','E5','F5','E5','D5','C5','B4','C5','D5','E5','G5','F5','E5','D5','C5','B4','A4','G4','F4','G4','A4','B4','C5'] },
+            { name: '🎼 Dance of Sugar Plum', notes: ['E5','E5','E5','E5','E5','E5','E5','E5','C5','C5','C5','C5','E5','E5','E5','E5','G4','G4','G4','G4','C5','C5','C5','C5'] },
+            { name: '🎼 Clair de Lune', notes: ['G4','A4','B4','C5','B4','A4','G4','F#4','G4','A4','B4','C5','D5','C5','B4','A4','G4','F#4','E4','F#4','G4','A4','B4','A4','G4','F#4','E4','D4','E4','F#4','G4','A4'] },
+            { name: '🎼 The Entertainer', notes: ['C5','E5','G5','E5','C5','D5','E5','D5','C5','A4','C5','D5','E5','D5','C5','E5','D5','C5','A4','G4','A4','C5','D5','E5','D5','C5','A4','G4','E4','G4','A4','C5'] },
+            { name: '🎼 Ave Maria', notes: ['B4','A4','B4','C5','E5','D5','C5','B4','A4','G4','A4','B4','C5','B4','A4','G4','F#4','G4','A4','B4','A4','G4','F#4','E4','F#4','G4','A4','G4','F#4','E4','D4'] }
+        ];
+
+        // ===== 10 bài Quốc tế =====
+        const worldSongs = [
+            { name: '🌍 Auld Lang Syne', notes: ['C4','F4','E4','F4','A4','G4','F4','G4','A4','F4','F4','A4','C5','D5','C5','A4','F4','F4','G4','A4','F4','G4'] },
+            { name: '🌍 Danny Boy', notes: ['C4','C4','D4','E4','F4','E4','D4','C4','D4','E4','F4','G4','A4','G4','F4','E4','D4','C4','D4','E4','F4','E4','D4','C4'] },
+            { name: '🌍 Greensleeves', notes: ['A4','C5','D5','E5','F5','E5','D5','B4','G4','A4','B4','C5','D5','C5','B4','A4','A4','C5','D5','E5','F5','E5','D5','B4','G4','A4','B4','C5','E5','A4','A4','G#4','A4'] },
+            { name: '🌍 When the Saints', notes: ['C4','E4','F4','G4','C4','E4','F4','G4','C4','E4','F4','G4','E4','C4','E4','D4','E4','E4','D4','C4','C4','E4','G4','G4','F4'] },
+            { name: '🌍 Yankee Doodle', notes: ['C4','C4','D4','E4','C4','E4','D4','G4','C4','C4','D4','E4','C4','B4','C4'] },
+            { name: '🌍 Oh Susanna', notes: ['C4','D4','E4','G4','G4','A4','G4','E4','C4','D4','E4','E4','D4','C4','D4','E4','G4','G4','A4','G4','E4','C4','D4','E4','E4','D4','D4','C4'] },
+            { name: '🌍 Home on the Range', notes: ['C4','D4','E4','G4','A4','G4','E4','G4','A4','C5','A4','G4','E4','D4','C4','D4','E4','G4','E4','D4','C4'] },
+            { name: '🌍 Skip to My Lou', notes: ['C4','C4','C4','G4','G4','G4','A4','A4','A4','G4','F4','F4','E4','E4','D4','D4','C4'] },
+            { name: '🌍 Camptown Races', notes: ['C4','E4','G4','E4','C4','E4','G4','E4','C4','E4','G4','A4','G4','E4','D4','C4'] },
+            { name: '🌍 Beautiful Dreamer', notes: ['C5','C5','B4','A4','G4','A4','B4','C5','D5','C5','B4','A4','G4','F4','E4','F4','G4','A4','B4','A4','G4','F4','E4','D4','E4','F4','G4','A4'] }
+        ];
+
+        // ===== 10 bài Lễ hội / Quà tặng =====
+        const extraSongs = [
+            { name: '🎄 ジングル・ベル・ロック', notes: ['E4','E4','E4','E4','E4','E4','E4','G4','C4','D4','E4','F4','F4','F4','F4','F4','E4','E4','E4','E4','G4','G4','F4','D4','C4'] },
+            { name: '🎄 サンタが街にやってくる', notes: ['C5','A4','G4','E4','C5','A4','G4','E4','C5','A4','G4','E4','D4','E4','F4','G4','A4','B4','C5','G4','E4','C4'] },
+            { name: '🎂 お誕生日の歌 (Japanese)', notes: ['G4','G4','A4','G4','C5','B4','G4','G4','A4','G4','D5','C5','G4','G4','G5','E5','C5','B4','A4','F5','F5','E5','C5','D5','C5'] },
+            { name: '🎄 ホワイトクリスマス', notes: ['C5','C5','B4','A4','G4','A4','B4','C5','B4','A4','G4','E4','D4','E4','G4','A4','G4','E4','D4','C4'] },
+            { name: '🎃 Trick or Treat', notes: ['E4','G4','E4','C4','D4','E4','F4','E4','D4','C4','G4','E4','C4','D4','E4','F4','E4','D4','C4'] },
+            { name: '🎉 For He is a Jolly Good Fellow', notes: ['C4','C4','C4','G4','A4','A4','G4','F4','F4','E4','E4','D4','G4','G4','F4','F4','E4','E4','D4','C4','C4','G4','A4','A4','G4','F4','F4','E4','E4','D4','C4'] },
+            { name: '🎉 Congratulations', notes: ['C5','C5','C5','G4','A4','A4','G4','F4','F4','E4','E4','D4','G4','G4','F4','F4','E4','E4','D4','C4'] },
+            { name: '🎉 Graduation March', notes: ['C5','B4','A4','G4','F4','E4','D4','C4','D4','E4','F4','G4','A4','B4','C5','C5','C5','G4','G4','C5','C5','C5','G4','G4','C5'] },
+            { name: '🎄 Silent Night (English)', notes: ['G4','A4','G4','E4','G4','A4','G4','E4','D4','D4','B4','C5','C5','G4','A4','A4','C5','B4','A4','G4','A4','G4','E4','G4','A4','G4','E4','D4','D4','B4','C5','C5','G4','A4','A4','C5','B4','A4','G4'] },
+            { name: '🎄 O Christmas Tree', notes: ['C4','C4','C4','G4','G4','G4','E4','E4','E4','C4','D4','D4','D4','E4','E4','E4','D4','C4','C4','C4','G4','G4','G4','E4','E4','E4','C4'] }
         ];
 
         // ============ CÁC NỐT ============
@@ -590,10 +398,24 @@
         const noteMap = {};
         notes.forEach(n => noteMap[n.note] = n);
 
-        // DOM
+        // ============ TABS STRUCTURE ============
+        const songCategories = {
+            kids: { songs: songs, title: '🎌 Nhạc Nhật & Thiếu nhi', offset: 0 },
+            naruto: { songs: narutoSongs, title: '🍥 Naruto & Naruto Shippuden', offset: songs.length },
+            anime: { songs: animeSongs, title: '🌸 Anime & J-Pop', offset: songs.length + narutoSongs.length },
+            classic: { songs: classicMoreSongs, title: '🎼 Nhạc cổ điển bổ sung', offset: songs.length + narutoSongs.length + animeSongs.length },
+            world: { songs: jpMoreSongs.concat(worldSongs), title: '🌍 Nhạc Nhật khác & Quốc tế', offset: songs.length + narutoSongs.length + animeSongs.length + classicMoreSongs.length },
+            extra: { songs: extraSongs, title: '🎄 Lễ hội & Quà tặng', offset: songs.length + narutoSongs.length + animeSongs.length + classicMoreSongs.length + jpMoreSongs.length + worldSongs.length }
+        };
+
+        const allSongs = [];
+        Object.keys(songCategories).forEach(k => {
+            allSongs.push(...songCategories[k].songs);
+        });
+
+        // ============ DOM ============
         const keysWrapper = document.getElementById('keysWrapper');
         const songPanel = document.getElementById('songPanel');
-        const songGrid = document.getElementById('songGrid');
         const sheetDisplay = document.getElementById('sheetDisplay');
         const modeBtn = document.getElementById('modeBtn');
         const backBtn = document.getElementById('backBtn');
@@ -601,15 +423,18 @@
         const autoBtn = document.getElementById('autoBtn');
         const stopBtn = document.getElementById('stopBtn');
         const songTitle = document.getElementById('songTitle');
+        const tabBar = document.getElementById('tabBar');
+        const speedSlider = document.getElementById('speedSlider');
+        const speedValue = document.getElementById('speedValue');
 
         let audioCtx = null;
         const keyElements = {};
-
         let isPracticeMode = false;
         let currentSongIndex = -1;
         let currentNoteIndex = 0;
         let isAutoPlaying = false;
         let autoPlayTimeouts = [];
+        let currentTempo = 450;
 
         // ============ AUDIO ============
         function initAudio() {
@@ -623,20 +448,15 @@
             const osc1 = audioCtx.createOscillator();
             const osc2 = audioCtx.createOscillator();
             const gainNode = audioCtx.createGain();
-            
             osc1.type = 'triangle';
             osc2.type = 'sine';
             osc1.frequency.setValueAtTime(freq, now);
             osc2.frequency.setValueAtTime(freq, now);
-            
             gainNode.gain.setValueAtTime(0, now);
             gainNode.gain.linearRampToValueAtTime(0.3, now + 0.02);
             gainNode.gain.exponentialRampToValueAtTime(0.001, now + duration);
-            
-            osc1.connect(gainNode);
-            osc2.connect(gainNode);
+            osc1.connect(gainNode); osc2.connect(gainNode);
             gainNode.connect(audioCtx.destination);
-            
             osc1.start(now); osc2.start(now);
             osc1.stop(now + duration); osc2.stop(now + duration);
         }
@@ -650,8 +470,7 @@
             osc.frequency.exponentialRampToValueAtTime(60, audioCtx.currentTime + 0.3);
             gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
             gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
-            osc.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
+            osc.connect(gainNode); gainNode.connect(audioCtx.destination);
             osc.start(); osc.stop(audioCtx.currentTime + 0.3);
         }
 
@@ -665,15 +484,12 @@
                 gainNode.gain.setValueAtTime(0, startTime);
                 gainNode.gain.linearRampToValueAtTime(0.2, startTime + 0.02);
                 gainNode.gain.exponentialRampToValueAtTime(0.001, startTime + dur);
-                osc.connect(gainNode);
-                gainNode.connect(audioCtx.destination);
+                osc.connect(gainNode); gainNode.connect(audioCtx.destination);
                 osc.start(startTime); osc.stop(startTime + dur);
             };
             const t = audioCtx.currentTime;
-            playAt(523.25, t, 0.2);
-            playAt(659.25, t + 0.15, 0.2);
-            playAt(783.99, t + 0.3, 0.2);
-            playAt(1046.50, t + 0.45, 0.6);
+            playAt(523.25, t, 0.2); playAt(659.25, t + 0.15, 0.2);
+            playAt(783.99, t + 0.3, 0.2); playAt(1046.50, t + 0.45, 0.6);
         }
 
         // ============ TẠO BÀN PHÍM ============
@@ -685,19 +501,14 @@
             notes.forEach((noteObj) => {
                 const keyEl = document.createElement('div');
                 keyEl.classList.add(noteObj.type === 'white' ? 'white-key' : 'black-key');
-                
-                // Nhãn nốt tiếng Nhật
                 const jpLabel = document.createElement('div');
                 jpLabel.classList.add('jp-label');
                 jpLabel.textContent = noteObj.jpNote;
                 keyEl.appendChild(jpLabel);
-
-                // Nhãn phím bàn phím máy tính
                 const keyLabel = document.createElement('div');
                 keyLabel.classList.add('key-label');
                 keyLabel.textContent = noteObj.key;
                 keyEl.appendChild(keyLabel);
-
                 if (noteObj.type === 'white') {
                     keysWrapper.appendChild(keyEl);
                     whiteCount++;
@@ -707,9 +518,7 @@
                     keyEl.style.width = `${whiteWidth * 0.62}%`;
                     keysWrapper.appendChild(keyEl);
                 }
-
                 keyElements[noteObj.note] = keyEl;
-
                 const onPress = (e) => {
                     e.preventDefault();
                     if (isAutoPlaying) return;
@@ -720,7 +529,6 @@
                     e.preventDefault();
                     if (!isPracticeMode) keyEl.classList.remove('active');
                 };
-
                 keyEl.addEventListener('mousedown', onPress);
                 keyEl.addEventListener('touchstart', onPress, { passive: false });
                 keyEl.addEventListener('mouseup', onRelease);
@@ -733,18 +541,15 @@
         // ============ XỬ LÝ NHẬP ============
         function handleNoteInput(noteObj, keyEl) {
             if (isPracticeMode && currentSongIndex >= 0) {
-                const song = songs[currentSongIndex];
+                const song = allSongs[currentSongIndex];
                 const expected = song.notes[currentNoteIndex];
-                
                 if (noteObj.note === expected) {
                     playNote(noteObj.freq);
                     keyEl.classList.add('active');
                     setTimeout(() => keyEl.classList.remove('active'), 200);
-                    
                     currentNoteIndex++;
                     updateSheet();
                     highlightTargetKey();
-                    
                     if (currentNoteIndex >= song.notes.length) {
                         playSuccessSound();
                         clearTargetHighlights();
@@ -775,19 +580,16 @@
                 const noteObj = noteMap[noteName];
                 const box = document.createElement('div');
                 box.classList.add('sheet-note');
-                
                 const kanaEl = document.createElement('div');
                 kanaEl.classList.add('note-kana');
                 kanaEl.textContent = noteObj ? noteObj.jpNote : noteName;
                 box.appendChild(kanaEl);
-                
                 if (noteObj && noteObj.key) {
                     const keyEl = document.createElement('div');
                     keyEl.classList.add('note-key');
                     keyEl.textContent = noteObj.key;
                     box.appendChild(keyEl);
                 }
-                
                 box.dataset.index = i;
                 sheetDisplay.appendChild(box);
             });
@@ -800,7 +602,6 @@
                 if (i < currentNoteIndex) box.classList.add('done');
                 if (i === currentNoteIndex) box.classList.add('current');
             });
-
             const currentBox = sheetDisplay.querySelector('.sheet-note.current');
             if (currentBox) {
                 const boxLeft = currentBox.offsetLeft;
@@ -816,7 +617,7 @@
         function highlightTargetKey() {
             clearTargetHighlights();
             if (!isPracticeMode || currentSongIndex < 0 || isAutoPlaying) return;
-            const song = songs[currentSongIndex];
+            const song = allSongs[currentSongIndex];
             const expectedNote = song.notes[currentNoteIndex];
             const el = keyElements[expectedNote];
             if (el) el.classList.add('target');
@@ -830,55 +631,44 @@
         function startAutoPlay() {
             if (!isPracticeMode || currentSongIndex < 0) return;
             if (isAutoPlaying) return;
-            
             initAudio();
             isAutoPlaying = true;
             currentNoteIndex = 0;
             clearTargetHighlights();
             updateSheet();
-            
-            autoBtn.style.display = 'none';
+            autoBtn.classList.remove('show');
             stopBtn.classList.add('show');
-            
-            const song = songs[currentSongIndex];
-            const tempo = 450;
-            
+            const song = allSongs[currentSongIndex];
+            const tempo = currentTempo;
             song.notes.forEach((noteName, i) => {
                 const timeoutId = setTimeout(() => {
                     if (!isAutoPlaying) return;
-                    
                     const noteObj = noteMap[noteName];
                     if (!noteObj) return;
-                    
                     currentNoteIndex = i;
                     updateSheet();
-                    
-                    playNote(noteObj.freq, 0.6);
-                    
+                    playNote(noteObj.freq, tempo / 1000);
                     const keyEl = keyElements[noteName];
                     if (keyEl) {
                         keyEl.classList.add('active');
-                        setTimeout(() => keyEl.classList.remove('active'), 250);
+                        setTimeout(() => keyEl.classList.remove('active'), Math.min(tempo * 0.7, 250));
                     }
-                    
                     if (i === song.notes.length - 1) {
                         setTimeout(() => {
                             if (isAutoPlaying) {
                                 playSuccessSound();
                                 currentNoteIndex = song.notes.length;
                                 updateSheet();
-                                
                                 setTimeout(() => {
                                     stopAutoPlay();
                                     currentNoteIndex = 0;
                                     updateSheet();
                                     highlightTargetKey();
-                                }, 2000);
+                                }, 1500);
                             }
                         }, tempo);
                     }
                 }, i * tempo);
-                
                 autoPlayTimeouts.push(timeoutId);
             });
         }
@@ -887,13 +677,10 @@
             isAutoPlaying = false;
             autoPlayTimeouts.forEach(t => clearTimeout(t));
             autoPlayTimeouts = [];
-            
-            autoBtn.style.display = 'block';
+            autoBtn.classList.add('show');
             stopBtn.classList.remove('show');
             clearTargetHighlights();
-            
             document.querySelectorAll('.active').forEach(el => el.classList.remove('active'));
-            
             if (isPracticeMode && currentSongIndex >= 0) {
                 setTimeout(() => highlightTargetKey(), 100);
             }
@@ -905,17 +692,14 @@
             isPracticeMode = true;
             currentSongIndex = songIndex;
             currentNoteIndex = 0;
-            
-            const song = songs[songIndex];
+            const song = allSongs[songIndex];
             buildSheet(song);
             sheetDisplay.classList.add('show');
             updateSheet();
             highlightTargetKey();
-            
             modeBtn.textContent = '🎹 自由演奏';
             backBtn.classList.add('show');
-            autoBtn.style.display = 'block';
-            
+            autoBtn.classList.add('show');
             songTitle.textContent = '♪ ' + song.name;
             songTitle.classList.add('show');
         }
@@ -925,25 +709,20 @@
             isPracticeMode = false;
             currentSongIndex = -1;
             currentNoteIndex = 0;
-            
             sheetDisplay.classList.remove('show');
             sheetDisplay.innerHTML = '';
             clearTargetHighlights();
-            
             modeBtn.textContent = '🎼 練習';
             backBtn.classList.remove('show');
-            autoBtn.style.display = 'none';
+            autoBtn.classList.remove('show');
             songTitle.classList.remove('show');
         }
 
         // ============ UI EVENTS ============
         modeBtn.addEventListener('click', () => {
             initAudio();
-            if (isPracticeMode) {
-                exitPracticeMode();
-            } else {
-                songPanel.classList.add('show');
-            }
+            if (isPracticeMode) exitPracticeMode();
+            else songPanel.classList.add('show');
         });
 
         backBtn.addEventListener('click', () => {
@@ -952,39 +731,63 @@
             songPanel.classList.add('show');
         });
 
-        closePanel.addEventListener('click', () => {
-            songPanel.classList.remove('show');
-        });
-
+        closePanel.addEventListener('click', () => songPanel.classList.remove('show'));
         songPanel.addEventListener('click', (e) => {
             if (e.target === songPanel) songPanel.classList.remove('show');
         });
 
-        autoBtn.addEventListener('click', () => {
-            initAudio();
-            startAutoPlay();
+        autoBtn.addEventListener('click', () => { initAudio(); startAutoPlay(); });
+        stopBtn.addEventListener('click', stopAutoPlay);
+
+        speedSlider.addEventListener('input', (e) => {
+            currentTempo = parseInt(e.target.value);
+            speedValue.textContent = currentTempo + 'ms';
+            if (isAutoPlaying) {
+                stopAutoPlay();
+                setTimeout(() => startAutoPlay(), 200);
+            }
         });
 
-        stopBtn.addEventListener('click', () => {
-            stopAutoPlay();
-        });
-
-        // Tạo danh sách bài hát
-        songs.forEach((song, i) => {
-            const item = document.createElement('div');
-            item.classList.add('song-item');
-            item.textContent = song.name;
-            item.addEventListener('click', () => {
-                songPanel.classList.remove('show');
-                enterPracticeMode(i);
+        // ============ BUILD LISTS ============
+        function buildGrid(container, list, offset) {
+            const grid = document.createElement('div');
+            grid.classList.add('song-grid');
+            list.forEach((item, i) => {
+                const el = document.createElement('div');
+                el.classList.add('song-item');
+                el.textContent = item.name;
+                el.addEventListener('click', () => {
+                    songPanel.classList.remove('show');
+                    enterPracticeMode(offset + i);
+                });
+                grid.appendChild(el);
             });
-            songGrid.appendChild(item);
+            container.appendChild(grid);
+        }
+
+        function buildAllLists() {
+            Object.keys(songCategories).forEach(tabKey => {
+                const container = document.getElementById('tab-' + tabKey);
+                const title = document.createElement('div');
+                title.classList.add('section-title');
+                title.textContent = songCategories[tabKey].title + ` (${songCategories[tabKey].songs.length} bài)`;
+                container.appendChild(title);
+                buildGrid(container, songCategories[tabKey].songs, songCategories[tabKey].offset);
+            });
+        }
+
+        tabBar.addEventListener('click', (e) => {
+            const btn = e.target.closest('.tab-btn');
+            if (!btn) return;
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
         });
 
         // ============ BÀN PHÍM MÁY TÍNH ============
         const keyboardMap = {};
         notes.forEach(n => { if (n.key) keyboardMap[n.key] = n.note; });
-
         window.addEventListener('keydown', (e) => {
             if (e.repeat || isAutoPlaying) return;
             const noteName = keyboardMap[e.key.toUpperCase()];
@@ -998,14 +801,13 @@
         // ============ KHỞI CHẠY ============
         window.onload = () => {
             initPiano();
+            buildAllLists();
             document.body.addEventListener('touchstart', initAudio, { once: true });
             document.body.addEventListener('mousedown', initAudio, { once: true });
         };
 
         window.addEventListener('orientationchange', () => {
-            setTimeout(() => {
-                if (isPracticeMode) updateSheet();
-            }, 300);
+            setTimeout(() => { if (isPracticeMode) updateSheet(); }, 300);
         });
     </script>
 </body>
