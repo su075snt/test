@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <!-- Tối ưu cho iPad/Mobile: Ẩn thanh địa chỉ khi thêm vào màn hình chính -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+
+    <title>Học Bảng Cửu Chương - 九九の練習</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-color: #4A90E2;
+            --board-bg: #FFFFFF;
+            --bubble-color-1: #FF9A44;
+            --bubble-color-2: #FC6076;
+        }
+
+        /* Khóa cuộn trang và chống zoom trên iPad */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            -webkit-user-select: none;
+            overscroll-behavior: none;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+            /* Tôn trọng safe-area (tai thỏ / home indicator) của iPad & iPhone */
+            padding:
+                max(8px, env(safe-area-inset-top))
+                max(10px, env(safe-area-inset-right))
+                max(8px, env(safe-area-inset-bottom))
+                max(10px, env(safe-area-inset-left));
+            gap: clamp(6px, 1.4vmin, 16px);
+        }
+
+        /* Khu vực chứa các Tab - Căn giữa màn hình */
+        .tabs-container {
+            display: flex;
+            flex-wrap: nowrap;
+            gap: clamp(5px, 1vmin, 10px);
+            width: 100%;
+            max-width: 100%;
+            overflow-x: auto;
+            overflow-y: hidden;
+            padding: 2px 2px 5px;
+            justify-content: center;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            flex-shrink: 0;
+        }
+
+        /* Ẩn thanh cuộn trên Chrome/Safari */
+        .tabs-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        .tab-btn {
+            flex-shrink: 0;
+            background-color: rgba(255, 255, 255, 0.8);
+            border: 2px solid transparent;
+            color: #555;
+            padding: clamp(6px, 1vmin, 10px) clamp(11px, 2vmin, 18px);
+            font-family: inherit;
+            font-size: clamp(12px, 1.9vmin, 17px);
+            font-weight: 900;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            white-space: nowrap;
+            line-height: 1.1;
+        }
+
+        .tab-btn.active {
+            background-color: var(--primary-color);
+            color: white;
+            box-shadow: 0 6px 15px rgba(74, 144, 226, 0.4);
+            transform: scale(1.05);
+        }
+
+        /* Vùng chứa bảng - co giãn để bảng luôn vuông & vừa màn hình */
+        .stage {
+            position: relative;
+            flex: 1 1 auto;
+            min-height: 0;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Bảng trò chơi - Dạng hình vuông (kích thước do JS tính) */
+        .game-board {
+            position: relative;
+            background-color: var(--board-bg);
+            border-radius: clamp(14px, 2.5vmin, 24px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+            overflow: hidden;
+            background-image:
+                linear-gradient(to right, #f0f0f0 1px, transparent 1px),
+                linear-gradient(to bottom, #f0f0f0 1px, transparent 1px);
+            background-size: 8% 8%;
+            background-position: center center;
+            flex-shrink: 0;
+        }
+
+        /* Phép toán ở giữa */
+        .problem-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: var(--primary-color);
+            font-weight: 900;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            z-index: 10;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 0.22em 0.7em;
+            border-radius: 0.4em;
+            box-shadow: 0 8px 15px rgba(0,0,0,0.08);
+            letter-spacing: 1px;
+            pointer-events: none;
+            white-space: nowrap;
+            line-height: 1.15;
+        }
+
+        /* Quả bóng đáp án */
+        .bubble {
+            position: absolute;
+            background: radial-gradient(circle at 30% 30%, var(--bubble-color-1), var(--bubble-color-2));
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: 900;
+            cursor: pointer;
+            box-shadow: 0 8px 15px rgba(252, 96, 118, 0.4), inset 0 -4px 0 rgba(0,0,0,0.2);
+            transition: transform 0.1s, box-shadow 0.2s, background 0.2s;
+            z-index: 5;
+
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            transform-origin: center;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0) translate(-50%, -50%); opacity: 0; }
+            100% { transform: scale(1) translate(-50%, -50%); opacity: 1; }
+        }
+
+        /* Trạng thái Đúng / Sai */
+        .bubble.correct {
+            background: radial-gradient(circle at 30% 30%, #2ecc71, #27ae60);
+            box-shadow: 0 8px 15px rgba(46, 204, 113, 0.4), inset 0 -4px 0 rgba(0,0,0,0.2);
+            animation: correctPulse 0.4s ease;
+        }
+
+        .bubble.wrong {
+            background: radial-gradient(circle at 30% 30%, #e74c3c, #c0392b);
+            box-shadow: 0 8px 15px rgba(231, 76, 60, 0.4), inset 0 -4px 0 rgba(0,0,0,0.2);
+            animation: shake 0.4s ease;
+        }
+
+        @keyframes correctPulse {
+            0% { transform: scale(1) translate(-50%, -50%); }
+            50% { transform: scale(1.15) translate(-50%, -50%); }
+            100% { transform: scale(1) translate(-50%, -50%); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translate(-50%, -50%) rotate(0deg); }
+            25% { transform: translate(-50%, -50%) rotate(-8deg); }
+            50% { transform: translate(-50%, -50%) rotate(8deg); }
+            75% { transform: translate(-50%, -50%) rotate(-8deg); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .bubble, .bubble.correct, .bubble.wrong { animation: none !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Thanh chọn bảng cửu chương -->
+    <div class="tabs-container" id="tabsContainer"></div>
+
+    <!-- Vùng chứa bảng (giúp bảng luôn căn giữa & vuông) -->
+    <div class="stage" id="stage">
+        <div class="game-board" id="gameBoard">
+            <div class="problem-text" id="problemText">2 × 3 = ?</div>
+            <div id="bubblesArea"></div>
+        </div>
+    </div>
+
+    <script>
+        const tables = [2, 3, 4, 5, 6, 7, 8, 9];
+        let currentTable = 2;
+        let correctAnswer = 0;
+        let audioCtx = null;
+        let isAnimating = false;
+        let isAudioReady = false;
+        let startAngle = 0; // góc xoay vòng tròn bóng
+
+        const tabsContainer = document.getElementById('tabsContainer');
+        const problemText   = document.getElementById('problemText');
+        const bubblesArea   = document.getElementById('bubblesArea');
+        const gameBoard     = document.getElementById('gameBoard');
+        const stage         = document.getElementById('stage');
+
+        // Từ điển số tiếng Nhật (dùng cho TTS)
+        const jpNumbers = {
+            1: 'いち', 2: 'に', 3: 'さん', 4: 'よん', 5: 'ご',
+            6: 'ろく', 7: 'なな', 8: 'はち', 9: 'きゅう'
+        };
+
+        /* ---------- Âm thanh ---------- */
+        function initAudio() {
+            if (!audioCtx) {
+                const Ctx = window.AudioContext || window.webkitAudioContext;
+                if (Ctx) audioCtx = new Ctx();
+            }
+            if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+            isAudioReady = true;
+            if ('speechSynthesis' in window) window.speechSynthesis.getVoices();
+        }
+
+        function speakProblem(num1, num2) {
+            if (!('speechSynthesis' in window) || !isAudioReady) return;
+
+            const text = `${jpNumbers[num1]} かける ${jpNumbers[num2]} は？`;
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang  = 'ja-JP';
+            utterance.rate  = 0.9;
+            utterance.pitch = 1.1;
+
+            try {
+                window.speechSynthesis.cancel();
+                window.speechSynthesis.speak(utterance);
+            } catch (e) {}
+        }
+
+        function playBuzzSound() {
+            initAudio();
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(120, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(60, audioCtx.currentTime + 0.3);
+
+            gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.3);
+        }
+
+        function playDingSound() {
+            initAudio();
+            if (!audioCtx) return;
+            const playNote = (freq, startTime) => {
+                const osc = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, startTime);
+                gainNode.gain.setValueAtTime(0, startTime);
+                gainNode.gain.linearRampToValueAtTime(0.2, startTime + 0.02);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, startTime + 0.4);
+                osc.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                osc.start(startTime);
+                osc.stop(startTime + 0.4);
+            };
+            playNote(523.25, audioCtx.currentTime);       // C5
+            playNote(659.25, audioCtx.currentTime + 0.1); // E5
+        }
+
+        /* ---------- Khởi tạo các Tab ---------- */
+        function initTabs() {
+            tables.forEach(num => {
+                const btn = document.createElement('button');
+                btn.classList.add('tab-btn');
+                btn.textContent = `Bảng ${num}`;
+                if (num === currentTable) btn.classList.add('active');
+
+                btn.addEventListener('click', () => {
+                    initAudio();
+                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentTable = num;
+                    generateProblem();
+                });
+
+                tabsContainer.appendChild(btn);
+            });
+        }
+
+        /* ---------- Tính kích thước bảng theo màn hình ---------- */
+        function fitBoard() {
+            const rect = stage.getBoundingClientRect();
+            const size = Math.floor(Math.min(rect.width, rect.height));
+            if (size < 60) return;
+
+            gameBoard.style.width  = size + 'px';
+            gameBoard.style.height = size + 'px';
+
+            // Cỡ chữ phép toán & cỡ bóng tính theo kích thước bảng
+            const problemSize = Math.round(Math.min(Math.max(size * 0.075, 20), 46));
+            const bubbleSize  = Math.round(Math.min(Math.max(size * 0.130, 42), 82));
+
+            problemText.style.fontSize = problemSize + 'px';
+            gameBoard.dataset.bubbleSize = String(bubbleSize);
+
+            // Cập nhật lại bóng đang hiển thị (nếu có)
+            layoutBubbles();
+        }
+
+        /* ---------- Đặt vị trí bóng theo vòng tròn (pixel) ---------- */
+        function layoutBubbles() {
+            const size = gameBoard.offsetWidth;
+            if (!size) return;
+
+            const bub    = parseInt(gameBoard.dataset.bubbleSize, 10) || 64;
+            const margin = Math.max(4, size * 0.015);
+            const radius = size / 2 - bub / 2 - margin;
+            const cx     = size / 2;
+            const cy     = size / 2;
+
+            const bubbles = bubblesArea.children;
+            for (let i = 0; i < bubbles.length; i++) {
+                const el = bubbles[i];
+                const angleRad = (i * 40 + startAngle) * Math.PI / 180;
+
+                el.style.width    = bub + 'px';
+                el.style.height   = (bub * 0.87) + 'px';
+                el.style.fontSize = Math.round(bub * 0.34) + 'px';
+                el.style.left = (cx + radius * Math.cos(angleRad)).toFixed(1) + 'px';
+                el.style.top  = (cy + radius * Math.sin(angleRad)).toFixed(1) + 'px';
+            }
+        }
+
+        /* ---------- Tạo câu hỏi mới ---------- */
+        function generateProblem() {
+            isAnimating = false;
+            bubblesArea.innerHTML = '';
+
+            const multiplier = Math.floor(Math.random() * 9) + 1;
+            correctAnswer = currentTable * multiplier;
+            problemText.textContent = `${currentTable} × ${multiplier} = ?`;
+
+            // Đọc câu hỏi tiếng Nhật
+            speakProblem(currentTable, multiplier);
+
+            // 9 đáp án đều là bội của bảng đang chọn
+            const allAnswers = [];
+            for (let i = 1; i <= 9; i++) allAnswers.push(currentTable * i);
+            for (let i = allAnswers.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [allAnswers[i], allAnswers[j]] = [allAnswers[j], allAnswers[i]];
+            }
+
+            // Góc xoay ngẫu nhiên mỗi lần chơi
+            startAngle = Math.random() * 360;
+
+            // Cỡ bóng hiện tại
+            const size = gameBoard.offsetWidth || 400;
+            const bub  = Math.round(Math.min(Math.max(size * 0.130, 42), 82));
+            gameBoard.dataset.bubbleSize = String(bub);
+
+            const margin = Math.max(4, size * 0.015);
+            const radius = size / 2 - bub / 2 - margin;
+            const cx     = size / 2;
+            const cy     = size / 2;
+
+            const frag = document.createDocumentFragment();
+
+            allAnswers.forEach((choice, index) => {
+                const bubble = document.createElement('div');
+                bubble.classList.add('bubble');
+                bubble.textContent = choice;
+
+                bubble.style.width    = bub + 'px';
+                bubble.style.height   = (bub * 0.87) + 'px';
+                bubble.style.fontSize = Math.round(bub * 0.34) + 'px';
+
+                const angleRad = (index * 40 + startAngle) * Math.PI / 180;
+                bubble.style.left = (cx + radius * Math.cos(angleRad)).toFixed(1) + 'px';
+                bubble.style.top  = (cy + radius * Math.sin(angleRad)).toFixed(1) + 'px';
+
+                bubble.addEventListener('click', () => handleAnswer(choice, bubble));
+                frag.appendChild(bubble);
+            });
+
+            bubblesArea.appendChild(frag);
+        }
+
+        /* ---------- Xử lý chọn đáp án ---------- */
+        function handleAnswer(selectedNumber, bubbleElement) {
+            if (isAnimating) return;
+
+            if (selectedNumber === correctAnswer) {
+                isAnimating = true;
+                playDingSound();
+                bubbleElement.classList.add('correct');
+
+                setTimeout(() => {
+                    generateProblem();
+                }, 600);
+            } else {
+                playBuzzSound();
+                bubbleElement.classList.add('wrong');
+
+                isAnimating = true;
+                setTimeout(() => {
+                    bubbleElement.classList.remove('wrong');
+                    isAnimating = false;
+                }, 500);
+            }
+        }
+
+        /* ---------- Theo dõi thay đổi kích thước màn hình ---------- */
+        let resizeTimer = null;
+        function scheduleFit() {
+            if (resizeTimer) cancelAnimationFrame(resizeTimer);
+            resizeTimer = requestAnimationFrame(fitBoard);
+        }
+
+        window.addEventListener('resize', scheduleFit);
+        window.addEventListener('orientationchange', () => {
+            // iPad xoay cần đợi layout ổn định
+            setTimeout(fitBoard, 120);
+            setTimeout(fitBoard, 400);
+        });
+
+        if ('ResizeObserver' in window) {
+            new ResizeObserver(scheduleFit).observe(stage);
+        }
+
+        // Chặn double-tap zoom trên iOS
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', (e) => {
+            const now = Date.now();
+            if (now - lastTouchEnd <= 300) e.preventDefault();
+            lastTouchEnd = now;
+        }, { passive: false });
+
+        // Chặn pinch-zoom (phòng khi Safari bỏ qua user-scalable)
+        document.addEventListener('gesturestart', (e) => e.preventDefault());
+
+        /* ---------- Khởi chạy ---------- */
+        window.addEventListener('load', () => {
+            initTabs();
+            fitBoard();
+            generateProblem();
+
+            document.body.addEventListener('touchstart', initAudio, { once: true, passive: true });
+            document.body.addEventListener('mousedown', initAudio, { once: true });
+
+            // Một nhịp nữa cho iPad sau khi mọi thứ ổn định
+            setTimeout(fitBoard, 300);
+        });
+    </script>
+</body>
+</html>
