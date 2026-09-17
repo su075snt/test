@@ -5,17 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Trống Múa Lân</title>
 
-<!-- ===== iOS: lưu về màn hình chính → mở toàn màn hình, KHÔNG thanh địa chỉ/tìm kiếm ===== -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="Trống Múa Lân">
 
 <script>
-  /* Đánh dấu khi app đang chạy ở chế độ đã lưu về màn hình chính (iOS) */
   if (window.navigator.standalone === true ||
-      window.matchMedia('(display-mode: standalone)').matches) {
-    document.documentElement.classList.add('ios-standalone');
+      (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches)) {
+    document.documentElement.className += ' ios-standalone';
   }
 </script>
 
@@ -24,12 +22,16 @@
   html, body { height: 100%; }
 
   body {
+    display: -webkit-box;
+    display: -webkit-flex;
     display: flex;
+    -webkit-flex-direction: column;
     flex-direction: column;
+    -webkit-align-items: center;
     align-items: center;
+    -webkit-justify-content: center;
     justify-content: center;
-    gap: clamp(10px, 2.2vh, 22px);
-    padding: 10px;
+    padding: 10px 56px 10px 10px;
     background:
       radial-gradient(80% 60% at 50% 0%, #3a0a0a 0%, transparent 60%),
       radial-gradient(70% 60% at 50% 110%, #4a1010 0%, transparent 55%),
@@ -42,52 +44,71 @@
     -webkit-touch-callout: none;
   }
 
-  /* ============ SÂN KHẤU: TRỐNG + 2 CHÈNG ============ */
   .stage {
+    display: -webkit-box;
+    display: -webkit-flex;
     display: flex;
+    -webkit-align-items: center;
     align-items: center;
+    -webkit-justify-content: center;
     justify-content: center;
-    gap: clamp(2px, 1vw, 14px);
-    width: min(98vw, 640px);
+    width: 98vw;
+    max-width: 640px;
+    margin-bottom: 14px;
   }
 
   .drum-wrap {
+    -webkit-box-flex: 0;
+    -webkit-flex: 0 0 auto;
     flex: 0 0 auto;
     position: relative;
-    width: min(78vw, 56vh, 420px);
-    aspect-ratio: 1;
-    filter: drop-shadow(0 16px 34px rgba(0, 0, 0, .75));
+    width: 300px;
+    height: 300px;
+    -webkit-filter: drop-shadow(0 16px 34px rgba(0,0,0,.75));
+    filter: drop-shadow(0 16px 34px rgba(0,0,0,.75));
+    margin: 0 3px;
   }
 
   .cymbal-wrap {
+    -webkit-box-flex: 0;
+    -webkit-flex: 0 0 auto;
     flex: 0 0 auto;
     position: relative;
-    width: min(22vw, 15vh, 110px);
-    aspect-ratio: 1;
+    width: 90px;
+    height: 90px;
     cursor: pointer;
     touch-action: manipulation;
-    filter: drop-shadow(0 8px 18px rgba(0, 0, 0, .65));
+    -webkit-filter: drop-shadow(0 8px 18px rgba(0,0,0,.65));
+    filter: drop-shadow(0 8px 18px rgba(0,0,0,.65));
+    margin: 0 3px;
   }
 
   .cymbal-svg {
     width: 100%;
     height: 100%;
     display: block;
+    -webkit-transition: -webkit-transform .14s cubic-bezier(.3,.9,.4,1), filter .15s ease;
     transition: transform .14s cubic-bezier(.3,.9,.4,1), filter .15s ease;
-    transform-origin: center;
+    -webkit-transform-origin: center center;
+    transform-origin: center center;
     pointer-events: none;
   }
 
   .cymbal-wrap.hit .cymbal-svg {
+    -webkit-animation: cymbalHit .24s ease;
     animation: cymbalHit .24s ease;
+  }
+  @-webkit-keyframes cymbalHit {
+    0%   { -webkit-transform: scale(1) rotate(0deg); filter: brightness(1); }
+    40%  { -webkit-transform: scale(1.16) rotate(-8deg); filter: brightness(1.8) drop-shadow(0 0 22px rgba(200,240,255,.95)); }
+    100% { -webkit-transform: scale(1) rotate(0deg); filter: brightness(1); }
   }
   @keyframes cymbalHit {
     0%   { transform: scale(1) rotate(0deg); filter: brightness(1); }
-    40%  { transform: scale(1.16) rotate(-8deg); filter: brightness(1.8) drop-shadow(0 0 22px rgba(200, 240, 255, .95)); }
+    40%  { transform: scale(1.16) rotate(-8deg); filter: brightness(1.8) drop-shadow(0 0 22px rgba(200,240,255,.95)); }
     100% { transform: scale(1) rotate(0deg); filter: brightness(1); }
   }
 
-  /* ---- SVG trống ---- */
   .drum-svg {
     width: 100%;
     height: 100%;
@@ -98,37 +119,48 @@
   .zone {
     cursor: pointer;
     pointer-events: all;
+    -webkit-transform-box: fill-box;
     transform-box: fill-box;
-    transform-origin: center;
+    -webkit-transform-origin: center center;
+    transform-origin: center center;
+    -webkit-transition: -webkit-transform .12s cubic-bezier(.3,.9,.4,1), filter .15s ease;
     transition: transform .12s cubic-bezier(.3,.9,.4,1), filter .15s ease;
   }
 
   #zoneCenter.hit {
+    -webkit-transform: scale(1.055);
     transform: scale(1.055);
-    filter: brightness(1.35) drop-shadow(0 0 28px rgba(255, 214, 10, .95));
+    -webkit-filter: brightness(1.35) drop-shadow(0 0 28px rgba(255,214,10,.95));
+    filter: brightness(1.35) drop-shadow(0 0 28px rgba(255,214,10,.95));
   }
   #zoneRim.hit {
+    -webkit-transform: scale(1.022);
     transform: scale(1.022);
-    filter: brightness(1.5) saturate(1.4) drop-shadow(0 0 26px rgba(255, 80, 80, .9));
+    -webkit-filter: brightness(1.5) saturate(1.4) drop-shadow(0 0 26px rgba(255,80,80,.9));
+    filter: brightness(1.5) saturate(1.4) drop-shadow(0 0 26px rgba(255,80,80,.9));
   }
 
-  /* ============ ĐIỀU KHIỂN (chỉ còn BPM) ============ */
   .controls {
+    display: -webkit-box;
+    display: -webkit-flex;
     display: flex;
+    -webkit-align-items: center;
     align-items: center;
-    gap: 12px;
+    -webkit-justify-content: center;
     justify-content: center;
   }
 
   .bpm-box {
+    display: -webkit-box;
+    display: -webkit-flex;
     display: flex;
+    -webkit-align-items: center;
     align-items: center;
-    gap: 7px;
     padding: 8px 12px 8px 14px;
     border-radius: 999px;
     background: linear-gradient(180deg, #1a0808, #100404);
     border: 1px solid #3a0c08;
-    box-shadow: inset 0 1px 0 rgba(255, 184, 0, .08);
+    box-shadow: inset 0 1px 0 rgba(255,184,0,.08);
   }
 
   .bpm-adj {
@@ -142,18 +174,30 @@
     font-size: 20px;
     font-weight: 900;
     line-height: 1;
-    display: grid;
-    place-items: center;
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-justify-content: center;
+    justify-content: center;
     cursor: pointer;
-    transition: transform .08s, border-color .15s, color .15s;
+    -webkit-transition: transform .08s, border-color .15s;
+    transition: transform .08s, border-color .15s;
     touch-action: manipulation;
     padding-bottom: 2px;
   }
-  .bpm-adj:active { transform: scale(.9); border-color: #ffb800; }
+  .bpm-adj:active {
+    -webkit-transform: scale(.9);
+    transform: scale(.9);
+    border-color: #ffb800;
+  }
 
   .bpm-val {
     min-width: 3.6ch;
     text-align: center;
+    margin: 0 7px;
+    font-size: 20px;
     font-size: clamp(17px, 4.4vw, 21px);
     font-weight: 900;
     font-variant-numeric: tabular-nums;
@@ -161,16 +205,65 @@
     letter-spacing: .02em;
   }
 
-  /* ==========================================================
-     iOS — KHI ĐÃ LƯU VỀ MÀN HÌNH CHÍNH (standalone)
-     → Trống to hơn 50% so với kích thước gốc
-     (dùng transform để không phá vỡ bố cục 2 chèng hai bên)
-     ========================================================== */
-  @media (display-mode: standalone) {
-    .drum-wrap   { transform: scale(1.5); }
-    .cymbal-wrap { z-index: 2; }   /* 2 chèng luôn nằm trên mặt trống */
+  /* ============ 10 NÚT NHẠC BÊN PHẢI ============ */
+  .song-bar {
+    position: fixed;
+    right: 6px;
+    top: 50%;
+    -webkit-transform: translateY(-50%);
+    transform: translateY(-50%);
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    -webkit-align-items: center;
+    align-items: center;
+    z-index: 50;
   }
-  html.ios-standalone .drum-wrap   { transform: scale(1.5); }
+
+  .song-btn {
+    width: 42px;
+    height: 42px;
+    margin-bottom: 5px;
+    border-radius: 50%;
+    border: 1px solid #5a1810;
+    background: linear-gradient(180deg, #2a0c08, #150404);
+    color: #ffb800;
+    font: inherit;
+    font-size: 15px;
+    font-weight: 900;
+    line-height: 1;
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-justify-content: center;
+    justify-content: center;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    padding: 0;
+    -webkit-transition: background .15s, color .15s, box-shadow .15s, transform .08s;
+    transition: background .15s, color .15s, box-shadow .15s, transform .08s;
+    box-shadow: inset 0 1px 0 rgba(255,184,0,.08);
+  }
+  .song-btn:last-child { margin-bottom: 0; }
+  .song-btn:active { -webkit-transform: scale(.9); transform: scale(.9); }
+  .song-btn.playing {
+    background: linear-gradient(180deg, #ffb800, #c1121f);
+    color: #1a0808;
+    border-color: #ffd60a;
+    box-shadow: 0 0 14px rgba(255,184,0,.75), inset 0 1px 0 rgba(255,255,255,.5);
+  }
+
+  /* iPad standalone → trống to hơn 50% */
+  @media (display-mode: standalone) {
+    .drum-wrap   { -webkit-transform: scale(1.5); transform: scale(1.5); }
+    .cymbal-wrap { z-index: 2; }
+  }
+  html.ios-standalone .drum-wrap   { -webkit-transform: scale(1.5); transform: scale(1.5); }
   html.ios-standalone .cymbal-wrap { z-index: 2; }
 </style>
 </head>
@@ -310,420 +403,481 @@
     </div>
   </div>
 
+  <!-- ============ 10 NÚT NHẠC BÊN PHẢI ============ -->
+  <div class="song-bar" id="songBar">
+    <button class="song-btn" data-song="1">1</button>
+    <button class="song-btn" data-song="2">2</button>
+    <button class="song-btn" data-song="3">3</button>
+    <button class="song-btn" data-song="4">4</button>
+    <button class="song-btn" data-song="5">5</button>
+    <button class="song-btn" data-song="6">6</button>
+    <button class="song-btn" data-song="7">7</button>
+    <button class="song-btn" data-song="8">8</button>
+    <button class="song-btn" data-song="9">9</button>
+    <button class="song-btn" data-song="10">10</button>
+  </div>
+
 <script>
-(() => {
+(function () {
   "use strict";
+
+  /* ==========================================================
+     HELPERS tương thích iOS cũ
+     ========================================================== */
+  function hasClass(el, cls) {
+    if (el.classList) return el.classList.contains(cls);
+    return new RegExp('(^|\\s)' + cls + '(\\s|$)').test(el.className);
+  }
+  function addClass(el, cls) {
+    if (el.classList) el.classList.add(cls);
+    else if (!hasClass(el, cls)) el.className = (el.className + ' ' + cls).replace(/^\s+/, '');
+  }
+  function removeClass(el, cls) {
+    if (el.classList) el.classList.remove(cls);
+    else el.className = el.className.replace(new RegExp('(^|\\s)' + cls + '(\\s|$)', 'g'), ' ').replace(/^\s+|\s+$/g, '');
+  }
+  function toggleClass(el, cls, on) {
+    if (on) addClass(el, cls); else removeClass(el, cls);
+  }
+
+  /* Gắn sự kiện "tap" chạy được trên mọi iOS (kể cả iOS 9) */
+  function addTap(el, fn) {
+    var lastTouch = 0;
+    function wrap(e) {
+      if (e.type === 'touchstart') {
+        lastTouch = Date.now();
+      } else if (e.type === 'mousedown' && Date.now() - lastTouch < 600) {
+        return; /* bỏ qua mousedown giả sau touchstart */
+      }
+      if (e.cancelable) e.preventDefault();
+      fn(e);
+    }
+    if (window.PointerEvent && !/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+      el.addEventListener('pointerdown', wrap, { passive: false });
+    } else {
+      el.addEventListener('touchstart', wrap, { passive: false });
+      el.addEventListener('mousedown', wrap);
+    }
+  }
+
+  /* ==========================================================
+     UNLOCK AUDIO iOS (phát 1 WAV im lặng để mở kênh media)
+     ========================================================== */
+  var mediaUnlocked = false;
+  var SILENT_WAV = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=';
+  function unlockMedia() {
+    if (mediaUnlocked) return;
+    mediaUnlocked = true;
+    try {
+      var s = new Audio();
+      s.src = SILENT_WAV;
+      s.volume = 0.001;
+      var p = s.play();
+      if (p && p.catch) p.catch(function () {});
+    } catch (e) {}
+  }
 
   /* ==========================================================
      AUDIO ENGINE
      ========================================================== */
-  let actx = null, master = null, noiseBuf = null;
+  var actx = null, master = null, noiseBuf = null;
 
   function initAudio() {
     if (actx) {
-      if (actx.state === "suspended") actx.resume();
+      if (actx.state === "suspended" && actx.resume) actx.resume();
       return actx;
     }
-    const AC = window.AudioContext || window.webkitAudioContext;
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return null;
     actx = new AC();
 
     master = actx.createGain();
     master.gain.value = 0.9;
 
-    const comp = actx.createDynamicsCompressor();
-    comp.threshold.value = -8;
-    comp.knee.value = 14;
-    comp.ratio.value = 5;
-    comp.attack.value = 0.003;
-    comp.release.value = 0.18;
+    var comp;
+    if (actx.createDynamicsCompressor) {
+      comp = actx.createDynamicsCompressor();
+      comp.threshold.value = -8;
+      comp.knee.value = 14;
+      comp.ratio.value = 5;
+      comp.attack.value = 0.003;
+      comp.release.value = 0.18;
+    }
 
-    master.connect(comp);
-    comp.connect(actx.destination);
+    if (comp) {
+      master.connect(comp);
+      comp.connect(actx.destination);
+    } else {
+      master.connect(actx.destination);
+    }
 
-    const len = Math.floor(actx.sampleRate * 2);
+    var len = Math.floor(actx.sampleRate * 2);
     noiseBuf = actx.createBuffer(1, len, actx.sampleRate);
-    const d = noiseBuf.getChannelData(0);
-    for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+    var d = noiseBuf.getChannelData(0);
+    for (var i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
 
+    if (actx.state === "suspended" && actx.resume) actx.resume();
     return actx;
   }
 
   function noiseSource() {
-    const s = actx.createBufferSource();
+    var s = actx.createBufferSource();
     s.buffer = noiseBuf;
     return s;
   }
 
-  /* ---------- TÙNG — trống cái (trầm, ấm) ---------- */
-  /* ---------- TÙNG — Trống lân da trâu: TRẦM, VANG, CÓ BASS ---------- */
-function soundTung(t, vel) {
-  vel = vel == null ? 1 : vel;
+  /* Hàm ramp an toàn — một số WebAudio cũ không nhận giá trị 0 */
+  function expRamp(param, val, t) {
+    if (val < 0.0001) val = 0.0001;
+    param.exponentialRampToValueAtTime(val, t);
+  }
 
-  /* ═══════════════════════════════════════════════════════════
-     LỚP 1 — SUB BASS (cực trầm, cảm nhận bằng ngực)
-     Tạo độ "ùm" sâu, rung lồng ngực — trái tim của trống lân
-     ═══════════════════════════════════════════════════════════ */
-  const sub = actx.createOscillator();
-  const subG = actx.createGain();
-  sub.type = "sine";
-  sub.frequency.setValueAtTime(58, t);
-  sub.frequency.exponentialRampToValueAtTime(32, t + 0.35);
-  subG.gain.setValueAtTime(0.0001, t);
-  subG.gain.exponentialRampToValueAtTime(1.05 * vel, t + 0.01);
-  subG.gain.exponentialRampToValueAtTime(0.5 * vel, t + 0.4);
-  subG.gain.exponentialRampToValueAtTime(0.001, t + 1.6);
-  sub.connect(subG).connect(master);
-  sub.start(t); sub.stop(t + 1.65);
+  /* ---------- TÙNG ---------- */
+  function soundTung(t, vel) {
+    vel = vel == null ? 1 : vel;
 
-  /* ═══════════════════════════════════════════════════════════
-     LỚP 2 — BASS CHÍNH (thân trống da trâu)
-     Âm trầm hùng, mạnh mẽ, ấm — đây là "giọng" chính của trống
-     ═══════════════════════════════════════════════════════════ */
-  const body = actx.createOscillator();
-  const bodyG = actx.createGain();
-  body.type = "sine";
-  body.frequency.setValueAtTime(115, t);
-  body.frequency.exponentialRampToValueAtTime(62, t + 0.22);
-  bodyG.gain.setValueAtTime(0.0001, t);
-  bodyG.gain.exponentialRampToValueAtTime(0.98 * vel, t + 0.006);
-  bodyG.gain.exponentialRampToValueAtTime(0.55 * vel, t + 0.35);
-  bodyG.gain.exponentialRampToValueAtTime(0.001, t + 1.15);
-  body.connect(bodyG).connect(master);
-  body.start(t); body.stop(t + 1.2);
+    var sub = actx.createOscillator();
+    var subG = actx.createGain();
+    sub.type = "sine";
+    sub.frequency.setValueAtTime(58, t);
+    expRamp(sub.frequency, 32, t + 0.35);
+    subG.gain.setValueAtTime(0.0001, t);
+    expRamp(subG.gain, 1.05 * vel, t + 0.01);
+    expRamp(subG.gain, 0.5 * vel, t + 0.4);
+    expRamp(subG.gain, 0.001, t + 1.6);
+    sub.connect(subG); subG.connect(master);
+    sub.start(t); sub.stop(t + 1.65);
 
-  /* ═══════════════════════════════════════════════════════════
-     LỚP 3 — HÀI BẬC 2 (tạo độ "dày", "nảy" của mặt da căng)
-     ═══════════════════════════════════════════════════════════ */
-  const harm2 = actx.createOscillator();
-  const harm2G = actx.createGain();
-  harm2.type = "sine";
-  harm2.frequency.setValueAtTime(230, t);
-  harm2.frequency.exponentialRampToValueAtTime(128, t + 0.18);
-  harm2G.gain.setValueAtTime(0.0001, t);
-  harm2G.gain.exponentialRampToValueAtTime(0.42 * vel, t + 0.005);
-  harm2G.gain.exponentialRampToValueAtTime(0.001, t + 0.7);
-  harm2.connect(harm2G).connect(master);
-  harm2.start(t); harm2.stop(t + 0.75);
+    var body = actx.createOscillator();
+    var bodyG = actx.createGain();
+    body.type = "sine";
+    body.frequency.setValueAtTime(115, t);
+    expRamp(body.frequency, 62, t + 0.22);
+    bodyG.gain.setValueAtTime(0.0001, t);
+    expRamp(bodyG.gain, 0.98 * vel, t + 0.006);
+    expRamp(bodyG.gain, 0.55 * vel, t + 0.35);
+    expRamp(bodyG.gain, 0.001, t + 1.15);
+    body.connect(bodyG); bodyG.connect(master);
+    body.start(t); body.stop(t + 1.2);
 
-  /* ═══════════════════════════════════════════════════════════
-     LỚP 4 — HÀI BẬC 3 (độ "đanh" của da trâu, ngắn)
-     ═══════════════════════════════════════════════════════════ */
-  const harm3 = actx.createOscillator();
-  const harm3G = actx.createGain();
-  harm3.type = "triangle";
-  harm3.frequency.setValueAtTime(345, t);
-  harm3.frequency.exponentialRampToValueAtTime(195, t + 0.11);
-  harm3G.gain.setValueAtTime(0.0001, t);
-  harm3G.gain.exponentialRampToValueAtTime(0.20 * vel, t + 0.004);
-  harm3G.gain.exponentialRampToValueAtTime(0.001, t + 0.32);
-  harm3.connect(harm3G).connect(master);
-  harm3.start(t); harm3.stop(t + 0.35);
+    var harm2 = actx.createOscillator();
+    var harm2G = actx.createGain();
+    harm2.type = "sine";
+    harm2.frequency.setValueAtTime(230, t);
+    expRamp(harm2.frequency, 128, t + 0.18);
+    harm2G.gain.setValueAtTime(0.0001, t);
+    expRamp(harm2G.gain, 0.42 * vel, t + 0.005);
+    expRamp(harm2G.gain, 0.001, t + 0.7);
+    harm2.connect(harm2G); harm2G.connect(master);
+    harm2.start(t); harm2.stop(t + 0.75);
 
-  /* ═══════════════════════════════════════════════════════════
-     LỚP 5 — CÚ ĐẬP CỦA DÙI (tiếng "BỐP" da căng)
-     Ngắn, tối, tạo điểm nhấn va chạm tức thời
-     ═══════════════════════════════════════════════════════════ */
-  const hitNoise = noiseSource();
-  const hitHp = actx.createBiquadFilter();
-  hitHp.type = "highpass"; hitHp.frequency.value = 180;
-  const hitLp = actx.createBiquadFilter();
-  hitLp.type = "lowpass"; hitLp.frequency.value = 2200;
-  const hitG = actx.createGain();
-  hitG.gain.setValueAtTime(0.42 * vel, t);
-  hitG.gain.exponentialRampToValueAtTime(0.001, t + 0.032);
-  hitNoise.connect(hitHp).connect(hitLp).connect(hitG).connect(master);
-  hitNoise.start(t); hitNoise.stop(t + 0.045);
+    var harm3 = actx.createOscillator();
+    var harm3G = actx.createGain();
+    harm3.type = "triangle";
+    harm3.frequency.setValueAtTime(345, t);
+    expRamp(harm3.frequency, 195, t + 0.11);
+    harm3G.gain.setValueAtTime(0.0001, t);
+    expRamp(harm3G.gain, 0.20 * vel, t + 0.004);
+    expRamp(harm3G.gain, 0.001, t + 0.32);
+    harm3.connect(harm3G); harm3G.connect(master);
+    harm3.start(t); harm3.stop(t + 0.35);
 
-  /* ═══════════════════════════════════════════════════════════
-     LỚP 6 — VANG RUNG CỦA MẶT DA (tail resonance)
-     Tạo độ "vang xa" — như tiếng trống còn ngân trong không khí
-     ═══════════════════════════════════════════════════════════ */
-  const resonance = actx.createOscillator();
-  const resonanceG = actx.createGain();
-  const resLfo = actx.createOscillator();
-  const resLfoG = actx.createGain();
-  resonance.type = "sine";
-  resonance.frequency.setValueAtTime(78, t);
-  resonance.frequency.exponentialRampToValueAtTime(58, t + 0.9);
-  // Rung lăn tăn nhẹ — mặt da còn rung sau khi đập
-  resLfo.type = "sine";
-  resLfo.frequency.value = 4.5;
-  resLfoG.gain.value = 2.5;
-  resLfo.connect(resLfoG).connect(resonance.frequency);
-  resonanceG.gain.setValueAtTime(0.0001, t);
-  resonanceG.gain.exponentialRampToValueAtTime(0.32 * vel, t + 0.05);
-  resonanceG.gain.exponentialRampToValueAtTime(0.001, t + 1.9);
-  resonance.connect(resonanceG).connect(master);
-  resonance.start(t); resonance.stop(t + 1.95);
-  resLfo.start(t); resLfo.stop(t + 1.95);
+    var hitNoise = noiseSource();
+    var hitHp = actx.createBiquadFilter();
+    hitHp.type = "highpass"; hitHp.frequency.value = 180;
+    var hitLp = actx.createBiquadFilter();
+    hitLp.type = "lowpass"; hitLp.frequency.value = 2200;
+    var hitG = actx.createGain();
+    hitG.gain.setValueAtTime(0.42 * vel, t);
+    expRamp(hitG.gain, 0.001, t + 0.032);
+    hitNoise.connect(hitHp); hitHp.connect(hitLp);
+    hitLp.connect(hitG); hitG.connect(master);
+    hitNoise.start(t); hitNoise.stop(t + 0.045);
 
-  /* ═══════════════════════════════════════════════════════════
-     LỚP 7 — SUB TAIL (đuôi trầm rất dài, "ùm" tan chậm)
-     Tạo cảm giác vang xa, như trống đập giữa sân đình
-     ═══════════════════════════════════════════════════════════ */
-  const tailSub = actx.createOscillator();
-  const tailSubG = actx.createGain();
-  tailSub.type = "sine";
-  tailSub.frequency.setValueAtTime(48, t);
-  tailSub.frequency.exponentialRampToValueAtTime(30, t + 1.4);
-  tailSubG.gain.setValueAtTime(0.0001, t);
-  tailSubG.gain.exponentialRampToValueAtTime(0.28 * vel, t + 0.08);
-  tailSubG.gain.exponentialRampToValueAtTime(0.001, t + 2.4);
-  tailSub.connect(tailSubG).connect(master);
-  tailSub.start(t); tailSub.stop(t + 2.45);
-}
+    var resonance = actx.createOscillator();
+    var resonanceG = actx.createGain();
+    var resLfo = actx.createOscillator();
+    var resLfoG = actx.createGain();
+    resonance.type = "sine";
+    resonance.frequency.setValueAtTime(78, t);
+    expRamp(resonance.frequency, 58, t + 0.9);
+    resLfo.type = "sine";
+    resLfo.frequency.value = 4.5;
+    resLfoG.gain.value = 2.5;
+    resLfo.connect(resLfoG); resLfoG.connect(resonance.frequency);
+    resonanceG.gain.setValueAtTime(0.0001, t);
+    expRamp(resonanceG.gain, 0.32 * vel, t + 0.05);
+    expRamp(resonanceG.gain, 0.001, t + 1.9);
+    resonance.connect(resonanceG); resonanceG.connect(master);
+    resonance.start(t); resonance.stop(t + 1.95);
+    resLfo.start(t); resLfo.stop(t + 1.95);
 
-  /* ---------- CỐC CỐC — gõ thanh gỗ ---------- */
+    var tailSub = actx.createOscillator();
+    var tailSubG = actx.createGain();
+    tailSub.type = "sine";
+    tailSub.frequency.setValueAtTime(48, t);
+    expRamp(tailSub.frequency, 30, t + 1.4);
+    tailSubG.gain.setValueAtTime(0.0001, t);
+    expRamp(tailSubG.gain, 0.28 * vel, t + 0.08);
+    expRamp(tailSubG.gain, 0.001, t + 2.4);
+    tailSub.connect(tailSubG); tailSubG.connect(master);
+    tailSub.start(t); tailSub.stop(t + 2.45);
+  }
+
+  /* ---------- CỐC CỐC ---------- */
   function soundCat(t, vel) {
     vel = vel == null ? 1 : vel;
 
-    const o = actx.createOscillator();
-    const og = actx.createGain();
+    var o = actx.createOscillator();
+    var og = actx.createGain();
     o.type = "sine";
     o.frequency.setValueAtTime(880, t);
-    o.frequency.exponentialRampToValueAtTime(600, t + 0.022);
+    expRamp(o.frequency, 600, t + 0.022);
     og.gain.setValueAtTime(0.0001, t);
-    og.gain.exponentialRampToValueAtTime(0.78 * vel, t + 0.003);
-    og.gain.exponentialRampToValueAtTime(0.001, t + 0.13);
-    o.connect(og).connect(master);
+    expRamp(og.gain, 0.78 * vel, t + 0.003);
+    expRamp(og.gain, 0.001, t + 0.13);
+    o.connect(og); og.connect(master);
     o.start(t); o.stop(t + 0.15);
 
-    const o2 = actx.createOscillator();
-    const og2 = actx.createGain();
+    var o2 = actx.createOscillator();
+    var og2 = actx.createGain();
     o2.type = "sine";
     o2.frequency.setValueAtTime(1620, t);
-    o2.frequency.exponentialRampToValueAtTime(1120, t + 0.016);
+    expRamp(o2.frequency, 1120, t + 0.016);
     og2.gain.setValueAtTime(0.0001, t);
-    og2.gain.exponentialRampToValueAtTime(0.36 * vel, t + 0.002);
-    og2.gain.exponentialRampToValueAtTime(0.001, t + 0.085);
-    o2.connect(og2).connect(master);
+    expRamp(og2.gain, 0.36 * vel, t + 0.002);
+    expRamp(og2.gain, 0.001, t + 0.085);
+    o2.connect(og2); og2.connect(master);
     o2.start(t); o2.stop(t + 0.1);
 
-    const o3 = actx.createOscillator();
-    const og3 = actx.createGain();
+    var o3 = actx.createOscillator();
+    var og3 = actx.createGain();
     o3.type = "sine";
     o3.frequency.setValueAtTime(2450, t);
-    o3.frequency.exponentialRampToValueAtTime(1900, t + 0.012);
+    expRamp(o3.frequency, 1900, t + 0.012);
     og3.gain.setValueAtTime(0.0001, t);
-    og3.gain.exponentialRampToValueAtTime(0.14 * vel, t + 0.002);
-    og3.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
-    o3.connect(og3).connect(master);
+    expRamp(og3.gain, 0.14 * vel, t + 0.002);
+    expRamp(og3.gain, 0.001, t + 0.05);
+    o3.connect(og3); og3.connect(master);
     o3.start(t); o3.stop(t + 0.06);
 
-    const n = noiseSource();
-    const bp = actx.createBiquadFilter();
+    var n = noiseSource();
+    var bp = actx.createBiquadFilter();
     bp.type = "bandpass"; bp.frequency.value = 2600; bp.Q.value = 1.4;
-    const ng = actx.createGain();
+    var ng = actx.createGain();
     ng.gain.setValueAtTime(0.20 * vel, t);
-    ng.gain.exponentialRampToValueAtTime(0.001, t + 0.024);
-    n.connect(bp).connect(ng).connect(master);
+    expRamp(ng.gain, 0.001, t + 0.024);
+    n.connect(bp); bp.connect(ng); ng.connect(master);
     n.start(t); n.stop(t + 0.04);
   }
 
-  /* ---------- BÈNG BÈNG — hai nắp nồi đập vào nhau ---------- */
-/* ---------- BÈNG — HAI NẮP NỒI INOX ĐẬP NHAU ---------- */
-function soundBeng(t, vel) {
-  vel = vel == null ? 1 : vel;
+  /* ---------- BÈNG (nắp nồi inox) ---------- */
+  function soundBeng(t, vel) {
+    vel = vel == null ? 1 : vel;
 
-  /* ═══════════════════════════════════════════════════════════
-     LỚP 1 — CÚ ĐẬP "CẮC" (tức thời, đanh, sắc)
-     Inox mỏng va vào nhau → attack siêu nhanh, sắc như dao
-     ═══════════════════════════════════════════════════════════ */
-  const clash = noiseSource();
-  const clashHp = actx.createBiquadFilter();
-  clashHp.type = "highpass"; clashHp.frequency.value = 58000;
-  const clashBp = actx.createBiquadFilter();
-  clashBp.type = "bandpass"; clashBp.frequency.value = 86000; clashBp.Q.value = 0.55;
-  const clashG = actx.createGain();
-  clashG.gain.setValueAtTime(0.0001, t);
-  clashG.gain.exponentialRampToValueAtTime(1.2 * vel, t + 0.0005);
-  clashG.gain.exponentialRampToValueAtTime(0.001, t + 0.04);
-  clash.connect(clashHp).connect(clashBp).connect(clashG).connect(master);
-  clash.start(t); clash.stop(t + 0.055);
+    /* Lớp 1 — cú đập "cắc" */
+    var clash = noiseSource();
+    var clashHp = actx.createBiquadFilter();
+    clashHp.type = "highpass"; clashHp.frequency.value = 8000;    /* sửa: < Nyquist */
+    var clashBp = actx.createBiquadFilter();
+    clashBp.type = "bandpass"; clashBp.frequency.value = 12000;   /* sửa: < Nyquist */
+    clashBp.Q.value = 0.55;
+    var clashG = actx.createGain();
+    clashG.gain.setValueAtTime(0.0001, t);
+    expRamp(clashG.gain, 1.2 * vel, t + 0.0005);
+    expRamp(clashG.gain, 0.001, t + 0.04);
+    clash.connect(clashHp); clashHp.connect(clashBp);
+    clashBp.connect(clashG); clashG.connect(master);
+    clash.start(t); clash.stop(t + 0.055);
 
-  /* ═══════════════════════════════════════════════════════════
-     LỚP 2 — CLICK INOX (tiếng "KÍP" kim loại mỏng, sắc)
-     Nắp nồi inox mỏng nên click rất sắc, rất cao
-     ═══════════════════════════════════════════════════════════ */
-  const click = noiseSource();
-  const clickBp = actx.createBiquadFilter();
-  clickBp.type = "bandpass"; clickBp.frequency.value = 15200; clickBp.Q.value = 3.5;
-  const clickHp = actx.createBiquadFilter();
-  clickHp.type = "highpass"; clickHp.frequency.value = 10500;
-  const clickG = actx.createGain();
-  clickG.gain.setValueAtTime(0.0001, t);
-  clickG.gain.exponentialRampToValueAtTime(0.78 * vel, t + 0.0006);
-  clickG.gain.exponentialRampToValueAtTime(0.001, t + 0.07);
-  click.connect(clickBp).connect(clickHp).connect(clickG).connect(master);
-  click.start(t); click.stop(t + 0.09);
+    /* Lớp 2 — click inox */
+    var click = noiseSource();
+    var clickBp = actx.createBiquadFilter();
+    clickBp.type = "bandpass"; clickBp.frequency.value = 9800; clickBp.Q.value = 3.5;
+    var clickHp = actx.createBiquadFilter();
+    clickHp.type = "highpass"; clickHp.frequency.value = 7500;
+    var clickG = actx.createGain();
+    clickG.gain.setValueAtTime(0.0001, t);
+    expRamp(clickG.gain, 0.78 * vel, t + 0.0006);
+    expRamp(clickG.gain, 0.001, t + 0.07);
+    click.connect(clickBp); clickBp.connect(clickHp);
+    clickHp.connect(clickG); clickG.connect(master);
+    click.start(t); click.stop(t + 0.09);
 
-  /* ═══════════════════════════════════════════════════════════
-     LỚP 3 — 14 HÀI INOX MỎNG (kim loại mỏng có phổ hài rộng)
-     Inox mỏng → nhiều hài cao, lệch chuẩn, ngân ngắn
-     Đây là "linh hồn" của tiếng nắp nồi inox
-     ═══════════════════════════════════════════════════════════ */
-  const partials = [
-    // Hài thấp — "thân" nắp nồi (mỏng nên vẫn có chút trầm)
-    [780,  0.32, 1.1, "sine"],
-    [1240, 0.30, 1.05, "sine"],
-    // Hài trung — "cang" kim loại
-    [1960, 0.32, 1.0, "square"],
-    [2840, 0.34, 0.95, "square"],
-    [3880, 0.36, 0.9, "square"],
-    // Hài cao — "xèng" inox đặc trưng
-    [5120, 0.38, 0.85, "square"],
-    [6580, 0.40, 0.8, "square"],
-    [8240, 0.38, 0.75, "square"],
-    [10100, 0.36, 0.7, "square"],
-    [12200, 0.32, 0.65, "square"],
-    [14500, 0.28, 0.6, "square"],
-    // Hài siêu cao — "tít" inox chói
-    [17000, 0.22, 0.55, "square"],
-    [19600, 0.16, 0.45, "square"],
-    [22400, 0.10, 0.35, "square"]
-  ];
+    /* Lớp 3 — hài inox (đã hạ tần số cao nhất ≤ 18000) */
+    var partials = [
+      [780,  0.32, 1.1, "sine"],
+      [1240, 0.30, 1.05, "sine"],
+      [1960, 0.32, 1.0, "square"],
+      [2840, 0.34, 0.95, "square"],
+      [3880, 0.36, 0.9, "square"],
+      [5120, 0.38, 0.85, "square"],
+      [6580, 0.40, 0.8, "square"],
+      [8240, 0.38, 0.75, "square"],
+      [10100, 0.36, 0.7, "square"],
+      [12200, 0.32, 0.65, "square"],
+      [14500, 0.28, 0.6, "square"],
+      [16800, 0.22, 0.55, "square"],
+      [18200, 0.16, 0.45, "square"],
+      [19500, 0.10, 0.35, "square"]
+    ];
+    for (var i = 0; i < partials.length; i++) {
+      var f = partials[i][0], a = partials[i][1], dd = partials[i][2], wave = partials[i][3];
+      var po = actx.createOscillator();
+      var pog = actx.createGain();
+      po.type = wave;
+      po.frequency.setValueAtTime(f, t);
+      expRamp(po.frequency, f * 0.955, t + dd);
+      pog.gain.setValueAtTime(0.0001, t);
+      expRamp(pog.gain, a * vel, t + 0.0012);
+      expRamp(pog.gain, 0.0001, t + dd);
+      po.connect(pog); pog.connect(master);
+      po.start(t); po.stop(t + dd + 0.05);
+    }
 
-  partials.forEach(([f, a, d, wave]) => {
-    const o = actx.createOscillator();
-    const og = actx.createGain();
-    o.type = wave;
-    o.frequency.setValueAtTime(f, t);
-    // Rung mạnh hơn — inox mỏng rung dữ khi va
-    o.frequency.exponentialRampToValueAtTime(f * 0.955, t + d);
-    og.gain.setValueAtTime(0.0001, t);
-    og.gain.exponentialRampToValueAtTime(a * vel, t + 0.0012);
-    og.gain.exponentialRampToValueAtTime(0.0001, t + d);
-    o.connect(og).connect(master);
-    o.start(t); o.stop(t + d + 0.05);
-  });
+    /* Lớp 4 — flutter */
+    [3800, 3838].forEach(function (f) {
+      var o = actx.createOscillator();
+      var og = actx.createGain();
+      o.type = "square";
+      o.frequency.setValueAtTime(f, t);
+      og.gain.setValueAtTime(0.0001, t);
+      expRamp(og.gain, 0.18 * vel, t + 0.003);
+      expRamp(og.gain, 0.0001, t + 1.1);
+      o.connect(og); og.connect(master);
+      o.start(t); o.stop(t + 1.15);
+    });
+    [8600, 8650].forEach(function (f) {
+      var o = actx.createOscillator();
+      var og = actx.createGain();
+      o.type = "square";
+      o.frequency.setValueAtTime(f, t);
+      og.gain.setValueAtTime(0.0001, t);
+      expRamp(og.gain, 0.15 * vel, t + 0.003);
+      expRamp(og.gain, 0.0001, t + 0.9);
+      o.connect(og); og.connect(master);
+      o.start(t); o.stop(t + 0.95);
+    });
 
-  /* ═══════════════════════════════════════════════════════════
-     LỚP 4 — FLUTTER (rung lăn tăn của inox mỏng)
-     2 tần số gần nhau tạo dao động "loang loáng"
-     ═══════════════════════════════════════════════════════════ */
-  [3800, 3838].forEach(f => {
-    const o = actx.createOscillator();
-    const og = actx.createGain();
-    o.type = "square";
-    o.frequency.setValueAtTime(f, t);
-    og.gain.setValueAtTime(0.0001, t);
-    og.gain.exponentialRampToValueAtTime(0.18 * vel, t + 0.003);
-    og.gain.exponentialRampToValueAtTime(0.0001, t + 1.1);
-    o.connect(og).connect(master);
-    o.start(t); o.stop(t + 1.15);
-  });
-  [8600, 8650].forEach(f => {
-    const o = actx.createOscillator();
-    const og = actx.createGain();
-    o.type = "square";
-    o.frequency.setValueAtTime(f, t);
-    og.gain.setValueAtTime(0.0001, t);
-    og.gain.exponentialRampToValueAtTime(0.15 * vel, t + 0.003);
-    og.gain.exponentialRampToValueAtTime(0.0001, t + 0.9);
-    o.connect(og).connect(master);
-    o.start(t); o.stop(t + 0.95);
-  });
+    /* Lớp 5 — vibrato inox */
+    var vib = actx.createOscillator();
+    var vibG = actx.createGain();
+    var lfo = actx.createOscillator();
+    var lfoG = actx.createGain();
+    vib.type = "square";
+    vib.frequency.setValueAtTime(4200, t);
+    lfo.type = "sine";
+    lfo.frequency.value = 11;
+    lfoG.gain.value = 32;
+    lfo.connect(lfoG); lfoG.connect(vib.frequency);
+    vibG.gain.setValueAtTime(0.0001, t);
+    expRamp(vibG.gain, 0.14 * vel, t + 0.004);
+    expRamp(vibG.gain, 0.0001, t + 1.2);
+    vib.connect(vibG); vibG.connect(master);
+    vib.start(t); vib.stop(t + 1.25);
+    lfo.start(t); lfo.stop(t + 1.25);
 
-  /* ═══════════════════════════════════════════════════════════
-     LỚP 5 — VIBRATO INOX (rung "loang loáng" kim loại mỏng)
-     ═══════════════════════════════════════════════════════════ */
-  const vib = actx.createOscillator();
-  const vibG = actx.createGain();
-  const lfo = actx.createOscillator();
-  const lfoG = actx.createGain();
-  vib.type = "square";
-  vib.frequency.setValueAtTime(4200, t);
-  lfo.type = "sine";
-  lfo.frequency.value = 11;    // rung nhanh — inox mỏng rung nhanh
-  lfoG.gain.value = 32;         // ±32Hz — rung mạnh
-  lfo.connect(lfoG).connect(vib.frequency);
-  vibG.gain.setValueAtTime(0.0001, t);
-  vibG.gain.exponentialRampToValueAtTime(0.14 * vel, t + 0.004);
-  vibG.gain.exponentialRampToValueAtTime(0.0001, t + 1.2);
-  vib.connect(vibG).connect(master);
-  vib.start(t); vib.stop(t + 1.25);
-  lfo.start(t); lfo.stop(t + 1.25);
+    /* Lớp 6 — wash */
+    var wash = noiseSource();
+    var washHp = actx.createBiquadFilter();
+    washHp.type = "highpass"; washHp.frequency.value = 8000;
+    var washBp = actx.createBiquadFilter();
+    washBp.type = "bandpass"; washBp.frequency.value = 11000; washBp.Q.value = 0.6;
+    var washG = actx.createGain();
+    washG.gain.setValueAtTime(0.0001, t);
+    expRamp(washG.gain, 0.62 * vel, t + 0.004);
+    expRamp(washG.gain, 0.001, t + 1.4);
+    wash.connect(washHp); washHp.connect(washBp);
+    washBp.connect(washG); washG.connect(master);
+    wash.start(t); wash.stop(t + 1.45);
 
-  /* ═══════════════════════════════════════════════════════════
-     LỚP 6 — WASH "XÈÈÈNG" (đuôi ngân inox, sáng, ngắn)
-     Nắp nồi inox ngân không lâu như chiêng — tắt nhanh
-     ═══════════════════════════════════════════════════════════ */
-  const wash = noiseSource();
-  const washHp = actx.createBiquadFilter();
-  washHp.type = "highpass"; washHp.frequency.value = 9200;
-  const washBp = actx.createBiquadFilter();
-  washBp.type = "bandpass"; washBp.frequency.value = 12800; washBp.Q.value = 0.6;
-  const washG = actx.createGain();
-  washG.gain.setValueAtTime(0.0001, t);
-  washG.gain.exponentialRampToValueAtTime(0.62 * vel, t + 0.004);
-  washG.gain.exponentialRampToValueAtTime(0.001, t + 1.4);
-  wash.connect(washHp).connect(washBp).connect(washG).connect(master);
-  wash.start(t); wash.stop(t + 1.45);
+    /* Lớp 7 — đuôi tít siêu cao */
+    var tail = noiseSource();
+    var tailHp = actx.createBiquadFilter();
+    tailHp.type = "highpass"; tailHp.frequency.value = 12000;
+    var tailBp = actx.createBiquadFilter();
+    tailBp.type = "bandpass"; tailBp.frequency.value = 14500; tailBp.Q.value = 1.3;
+    var tailG = actx.createGain();
+    tailG.gain.setValueAtTime(0.0001, t);
+    expRamp(tailG.gain, 0.28 * vel, t + 0.007);
+    expRamp(tailG.gain, 0.001, t + 1.0);
+    tail.connect(tailHp); tailHp.connect(tailBp);
+    tailBp.connect(tailG); tailG.connect(master);
+    tail.start(t); tail.stop(t + 1.05);
 
-  /* ═══════════════════════════════════════════════════════════
-     LỚP 7 — ĐUÔI "TÍT" SIÊU CAO (inox mỏng chói tận cùng)
-     ═══════════════════════════════════════════════════════════ */
-  const tail = noiseSource();
-  const tailHp = actx.createBiquadFilter();
-  tailHp.type = "highpass"; tailHp.frequency.value = 15000;
-  const tailBp = actx.createBiquadFilter();
-  tailBp.type = "bandpass"; tailBp.frequency.value = 17800; tailBp.Q.value = 1.3;
-  const tailG = actx.createGain();
-  tailG.gain.setValueAtTime(0.0001, t);
-  tailG.gain.exponentialRampToValueAtTime(0.28 * vel, t + 0.007);
-  tailG.gain.exponentialRampToValueAtTime(0.001, t + 1.0);
-  tail.connect(tailHp).connect(tailBp).connect(tailG).connect(master);
-  tail.start(t); tail.stop(t + 1.05);
-
-  /* ═══════════════════════════════════════════════════════════
-     LỚP 8 — RING "TÍT TÍT" (tiếng the thé inox còn vang)
-     ═══════════════════════════════════════════════════════════ */
-  const ring = actx.createOscillator();
-  const ringG = actx.createGain();
-  ring.type = "sine";
-  ring.frequency.setValueAtTime(19500, t);
-  ring.frequency.exponentialRampToValueAtTime(18200, t + 0.9);
-  ringG.gain.setValueAtTime(0.0001, t);
-  ringG.gain.exponentialRampToValueAtTime(0.12 * vel, t + 0.005);
-  ringG.gain.exponentialRampToValueAtTime(0.0001, t + 1.0);
-  ring.connect(ringG).connect(master);
-  ring.start(t); ring.stop(t + 1.05);
-}
+    /* Lớp 8 — ring the thé */
+    var ring = actx.createOscillator();
+    var ringG = actx.createGain();
+    ring.type = "sine";
+    ring.frequency.setValueAtTime(17500, t);
+    expRamp(ring.frequency, 16200, t + 0.9);
+    ringG.gain.setValueAtTime(0.0001, t);
+    expRamp(ringG.gain, 0.12 * vel, t + 0.005);
+    expRamp(ringG.gain, 0.0001, t + 1.0);
+    ring.connect(ringG); ringG.connect(master);
+    ring.start(t); ring.stop(t + 1.05);
+  }
 
   /* ==========================================================
      UI
      ========================================================== */
-  const drumSvg   = document.getElementById("drumSvg");
-  const zoneRim   = document.getElementById("zoneRim");
-  const zoneCenter= document.getElementById("zoneCenter");
-  const chengL    = document.getElementById("chengLeft");
-  const chengR    = document.getElementById("chengRight");
-  const bpmVal    = document.getElementById("bpmVal");
-  const bpmUp     = document.getElementById("bpmUp");
-  const bpmDown   = document.getElementById("bpmDown");
+  var drumSvg    = document.getElementById("drumSvg");
+  var zoneRim    = document.getElementById("zoneRim");
+  var zoneCenter = document.getElementById("zoneCenter");
+  var chengL     = document.getElementById("chengLeft");
+  var chengR     = document.getElementById("chengRight");
+  var bpmVal     = document.getElementById("bpmVal");
+  var bpmUp      = document.getElementById("bpmUp");
+  var bpmDown    = document.getElementById("bpmDown");
+  var drumWrap   = document.querySelector(".drum-wrap");
+  var cymWraps   = document.querySelectorAll(".cymbal-wrap");
 
-  let bpm = 100;
+  var bpm = 100;
   bpmVal.textContent = bpm;
+
+  /* ==========================================================
+     LAYOUT: tính kích thước bằng JS → tương thích iOS cũ
+     ========================================================== */
+  function layout() {
+    var W = window.innerWidth;
+    var H = window.innerHeight;
+    var drumSize = Math.min(W * 0.78, H * 0.56, 420);
+    var cymSize  = Math.min(W * 0.22, H * 0.15, 110);
+    if (drumWrap) {
+      drumWrap.style.width  = drumSize + 'px';
+      drumWrap.style.height = drumSize + 'px';
+    }
+    for (var i = 0; i < cymWraps.length; i++) {
+      cymWraps[i].style.width  = cymSize + 'px';
+      cymWraps[i].style.height = cymSize + 'px';
+    }
+  }
+  layout();
+  window.addEventListener('resize', layout);
+  window.addEventListener('orientationchange', function () {
+    setTimeout(layout, 200);
+  });
 
   /* ==========================================================
      HIT LOGIC
      ========================================================== */
   function pulseZone(kind) {
-    const zone = kind === "tung" ? zoneCenter : zoneRim;
-    zone.classList.remove("hit");
+    var zone = kind === "tung" ? zoneCenter : zoneRim;
+    if (!zone) return;
+    removeClass(zone, "hit");
     void zone.getBoundingClientRect();
-    zone.classList.add("hit");
+    addClass(zone, "hit");
     clearTimeout(zone._t);
-    zone._t = setTimeout(() => zone.classList.remove("hit"), 150);
+    zone._t = setTimeout(function () { removeClass(zone, "hit"); }, 150);
   }
 
   function ripple(kind) {
-    const isTung = kind === "tung";
-    const r0 = isTung ? 95 : 158;
-    const r1 = isTung ? 148 : 163;
-    const stroke = isTung ? "#fff2b0" : "#ffb0b0";
+    var isTung = kind === "tung";
+    var r0 = isTung ? 95 : 158;
+    var r1 = isTung ? 148 : 163;
+    var stroke = isTung ? "#fff2b0" : "#ffb0b0";
 
-    const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    var c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
     c.setAttribute("cx", "170");
     c.setAttribute("cy", "170");
     c.setAttribute("r", r0);
@@ -734,36 +888,46 @@ function soundBeng(t, vel) {
     c.style.pointerEvents = "none";
     drumSvg.appendChild(c);
 
-    const dur = isTung ? 520 : 340;
-    const start = performance.now();
+    var dur = isTung ? 520 : 340;
+    var start = (window.performance && performance.now) ? performance.now() : Date.now();
     function step(now) {
-      const p = Math.min(1, (now - start) / dur);
-      const e = 1 - Math.pow(1 - p, 3);
+      var p = Math.min(1, (now - start) / dur);
+      var e = 1 - Math.pow(1 - p, 3);
       c.setAttribute("r", (r0 + (r1 - r0) * e).toFixed(2));
       c.setAttribute("opacity", (0.95 * (1 - e)).toFixed(3));
       c.setAttribute("stroke-width", ((isTung ? 4 : 3) * (1 - e * 0.7)).toFixed(2));
-      if (p < 1) requestAnimationFrame(step);
-      else c.remove();
+      if (p < 1) {
+        if (window.requestAnimationFrame) requestAnimationFrame(step);
+        else setTimeout(function(){ step(Date.now()); }, 16);
+      } else {
+        if (c.parentNode) c.parentNode.removeChild(c);
+      }
     }
-    requestAnimationFrame(step);
+    if (window.requestAnimationFrame) requestAnimationFrame(step);
+    else setTimeout(function(){ step(Date.now()); }, 16);
   }
 
   function pulseCymbals() {
-    [chengL, chengR].forEach(el => {
-      el.classList.remove("hit");
+    [chengL, chengR].forEach(function (el) {
+      if (!el) return;
+      removeClass(el, "hit");
       void el.getBoundingClientRect();
-      el.classList.add("hit");
+      addClass(el, "hit");
       clearTimeout(el._t);
-      el._t = setTimeout(() => el.classList.remove("hit"), 240);
+      el._t = setTimeout(function () { removeClass(el, "hit"); }, 240);
     });
   }
 
   function playHit(kind, vel) {
+    unlockMedia();
     initAudio();
-    const t = actx.currentTime + 0.001;
-    if (kind === "tung")       soundTung(t, vel);
-    else if (kind === "cat")   soundCat(t, vel);
-    else                       soundBeng(t, vel);
+    if (!actx) return;
+    var t = actx.currentTime + 0.001;
+    try {
+      if (kind === "tung")       soundTung(t, vel);
+      else if (kind === "cat")   soundCat(t, vel);
+      else                       soundBeng(t, vel);
+    } catch (e) { /* ignore */ }
 
     if (kind === "tung" || kind === "cat") {
       pulseZone(kind);
@@ -774,53 +938,151 @@ function soundBeng(t, vel) {
   }
 
   /* ==========================================================
-     POINTER
+     ZONE RESOLUTION (fallback cho iOS cũ không có closest)
      ========================================================== */
   function resolveDrumZone(target) {
-    if (!target) return null;
-    if (target.closest && target.closest("#zoneCenter")) return "tung";
-    if (target.closest && target.closest("#zoneRim"))    return "cat";
+    var el = target;
+    var guard = 0;
+    while (el && el !== drumSvg && guard++ < 20) {
+      if (el.id === "zoneCenter") return "tung";
+      if (el.id === "zoneRim")    return "cat";
+      el = el.parentNode;
+    }
     return null;
   }
 
-  drumSvg.addEventListener("pointerdown", e => {
-    const kind = resolveDrumZone(e.target);
-    if (!kind) return;
-    e.preventDefault();
-    playHit(kind, 1);
-  });
+  if (drumSvg) {
+    addTap(drumSvg, function (e) {
+      var kind = resolveDrumZone(e.target);
+      if (!kind) return;
+      playHit(kind, 1);
+    });
+    drumSvg.addEventListener("contextmenu", function (e) { e.preventDefault(); });
+  }
 
-  [chengL, chengR].forEach(el => {
-    el.addEventListener("pointerdown", e => {
-      e.preventDefault();
+  [chengL, chengR].forEach(function (el) {
+    if (!el) return;
+    addTap(el, function () {
       playHit("beng", 1);
     });
+    el.addEventListener("contextmenu", function (e) { e.preventDefault(); });
   });
 
-  drumSvg.addEventListener("contextmenu", e => e.preventDefault());
-  [chengL, chengR].forEach(el => el.addEventListener("contextmenu", e => e.preventDefault()));
-
   /* ==========================================================
-     KEYBOARD: C · T · E
+     KEYBOARD
      ========================================================== */
-  window.addEventListener("keydown", e => {
+  window.addEventListener("keydown", function (e) {
     if (e.repeat) return;
-    const k = e.key.toLowerCase();
-    if (k === "c")      { e.preventDefault(); playHit("cat", 1); }
-    else if (k === "t") { e.preventDefault(); playHit("tung", 1); }
-    else if (k === "e") { e.preventDefault(); playHit("beng", 1); }
+    var k = (e.key || "").toLowerCase();
+    if (k === "c")       { e.preventDefault(); playHit("cat", 1); }
+    else if (k === "t")  { e.preventDefault(); playHit("tung", 1); }
+    else if (k === "e")  { e.preventDefault(); playHit("beng", 1); }
   });
 
   /* ==========================================================
-     BPM (chỉ hiển thị, không còn auto-play nên chỉ lưu giá trị)
+     BPM
      ========================================================== */
   function changeBpm(delta) {
     bpm = Math.max(50, Math.min(180, bpm + delta));
     bpmVal.textContent = bpm;
   }
+  bpmUp.addEventListener("click", function () { changeBpm(5); });
+  bpmDown.addEventListener("click", function () { changeBpm(-5); });
 
-  bpmUp.addEventListener("click", () => changeBpm(5));
-  bpmDown.addEventListener("click", () => changeBpm(-5));
+  /* ==========================================================
+     10 NÚT NHẠC — PHÁT MP3
+     ========================================================== */
+  var songEls = {};
+  var currentSong = null;
+
+  for (var n = 1; n <= 10; n++) {
+    var a = new Audio();
+    a.preload = "auto";
+    a.setAttribute("playsinline", "");
+    a.setAttribute("webkit-playsinline", "");
+    a.src = n + ".mp3";
+    songEls[n] = a;
+  }
+
+  function updateSongUI(playingN) {
+    var btns = document.querySelectorAll(".song-btn");
+    for (var i = 0; i < btns.length; i++) {
+      var num = parseInt(btns[i].getAttribute("data-song"), 10);
+      if (num === playingN) addClass(btns[i], "playing");
+      else removeClass(btns[i], "playing");
+    }
+  }
+
+  function stopAllSongs(exceptN) {
+    for (var k in songEls) {
+      if (!songEls.hasOwnProperty(k)) continue;
+      var num = parseInt(k, 10);
+      if (num === exceptN) continue;
+      var el = songEls[k];
+      if (!el.paused) {
+        try { el.pause(); el.currentTime = 0; } catch (e) {}
+      }
+    }
+  }
+
+  function toggleSong(num) {
+    unlockMedia();
+    var el = songEls[num];
+    if (!el) return;
+
+    /* Nếu đang phát chính bài này → tạm dừng */
+    if (currentSong === num && !el.paused) {
+      try { el.pause(); } catch (e) {}
+      updateSongUI(null);
+      return;
+    }
+
+    /* Dừng các bài khác */
+    stopAllSongs(num);
+
+    try { el.currentTime = 0; } catch (e) {}
+    var p = el.play();
+    if (p && p.catch) {
+      p.catch(function (err) {
+        /* Thử lại một lần sau tương tác — một số iPad cũ cần vậy */
+        console.warn("play() failed:", err);
+      });
+    }
+    currentSong = num;
+    updateSongUI(num);
+  }
+
+  /* Khi bài phát xong → bỏ trạng thái "playing" */
+  Object.keys(songEls).forEach(function (k) {
+    var num = parseInt(k, 10);
+    songEls[k].addEventListener("ended", function () {
+      if (currentSong === num) {
+        currentSong = null;
+        updateSongUI(null);
+      }
+    });
+    songEls[k].addEventListener("pause", function () {
+      /* Nếu pause vì hết bài → UI đã xử lý trong 'ended' */
+    });
+  });
+
+  var songBtns = document.querySelectorAll(".song-btn");
+  for (var b = 0; b < songBtns.length; b++) {
+    (function (btn) {
+      var num = parseInt(btn.getAttribute("data-song"), 10);
+      addTap(btn, function () {
+        toggleSong(num);
+      });
+    })(songBtns[b]);
+  }
+
+  /* Resume AudioContext khi quay lại tab */
+  document.addEventListener("visibilitychange", function () {
+    if (!document.hidden && actx && actx.state === "suspended" && actx.resume) {
+      actx.resume();
+    }
+  });
+
 })();
 </script>
 </body>
