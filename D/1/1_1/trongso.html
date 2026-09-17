@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Drum Pad 9 ô · 10 điệu cơ bản + 20 bài nổi tiếng</title>
+<title>Drum Pad 9 ô · 10 điệu cơ bản + 20 bài nổi tiếng + 10 hiphop + 10 rock dài</title>
 
 <!-- ===== iOS: lưu về màn hình chính → mở toàn màn hình, KHÔNG thanh địa chỉ/tìm kiếm ===== -->
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -709,7 +709,7 @@
   });
 
   /* ==========================================================
-     ====== PHẦN NHẠC: 10 ĐIỆU CƠ BẢN + 20 BÀI NỔI TIẾNG ======
+     ====== PHẦN NHẠC: 10 ĐIỆU CƠ BẢN + 20 BÀI NỔI TIẾNG + 10 SÔI NỔI & HIPHOP + 10 ROCK DÀI ======
      1 Crash · 2 Hi-hat kín · 3 Hi-hat mở · 4 Tom cao
      5 Tom trung · 6 Tom thấp · 7 Kick · 8 Snare · 9 Clap
      Bass 1..8 = A B C D E F G A · dấu "-" = nghỉ
@@ -754,11 +754,65 @@
     { name: "Danger Zone · Kenny Loggins",     bpm: 128, drums: "72-8 72-8 72-8 72-8", bass: "1--- 5--- 4--- 5---" }
   ];
 
+  /* ---------- 10 BÀI TRỐNG SÔI NỔI & HIPHOP ---------- */
+  const LIVELY = [
+    { name: "Lose Yourself · Eminem",          bpm: 86,  drums: "7-8- 7-8- 7-8- 7-8-", bass: "1--- ---- 5--- ----" },
+    { name: "HUMBLE. · Kendrick Lamar",        bpm: 150, drums: "72-8 72-8 72-8 72-8", bass: "1--- 1--- 5--- 5---" },
+    { name: "In Da Club · 50 Cent",            bpm: 90,  drums: "7-2- 8-2- 7-2- 8-2-", bass: "1--- 5--- 1--- 5---" },
+    { name: "Still D.R.E. · Dr. Dre",          bpm: 93,  drums: "7--2 7--2 8--2 8--2", bass: "1--- 1--- 5--- 5---" },
+    { name: "God's Plan · Drake",              bpm: 77,  drums: "7--- 8--- 7-2- 8-2-", bass: "1------- 5-------" },
+    { name: "Uptown Funk · Bruno Mars",        bpm: 115, drums: "7282 72-2 7282 72-2", bass: "1--- 5--- 1--- 5---" },
+    { name: "Can't Stop the Feeling · JT",     bpm: 113, drums: "72-2 82-2 72-2 82-2", bass: "1--- 4--- 5--- 4---" },
+    { name: "Happy · Pharrell Williams",       bpm: 160, drums: "7-2- 8-2- 7-2- 8-2-", bass: "1-1- 5-5- 1-1- 5-5-" },
+    { name: "Sicko Mode · Travis Scott",       bpm: 155, drums: "7272 8282 7272 8282", bass: "1--- 1--- 5--- 5---" },
+    { name: "Shape of You · Ed Sheeran",       bpm: 96,  drums: "7-2- 8-2- 7-2- 8-2-", bass: "1--- 5--- 4--- 5---" }
+  ];
+
+  /* ---------- 10 BÀI ROCK DÀI ---------- */
+  const LONG_ROCK = [
+    { name: "Stairway to Heaven · Led Zeppelin", bpm: 82,
+      drums: "7--- 8--- 7--- 8--- 7-2- 8-2- 7-2- 8-2- 7--- 8--- 7--- 8--- 7-3- 8-3- 7-3- 8-3-",
+      bass:  "1--- 5--- 1--- 5--- 1--- 5--- 1--- 5--- 1--- 5--- 1--- 5--- 1--- 5--- 1--- 5---" },
+    { name: "Free Bird · Lynyrd Skynyrd", bpm: 78,
+      drums: "7--- 7-2- 8--- 8-2- 7--- 7-2- 8--- 8-2- 7--- 7-2- 8--- 8-2- 7-2- 8-2- 7-2- 8-2-",
+      bass:  "1--- 5--- 1--- 5--- 1--- 5--- 1--- 5--- 1--- 5--- 1--- 5--- 1--- 5--- 1--- 5---" },
+    { name: "Hotel California · Eagles", bpm: 75,
+      drums: "7--- 8--- 7-2- 8-2- 7--- 8--- 7-2- 8-2- 7--- 8--- 7-2- 8-2- 7--- 8--- 7-2- 8-2-",
+      bass:  "1--- 5--- 4--- 5--- 1--- 5--- 4--- 5--- 1--- 5--- 4--- 5--- 1--- 5--- 4--- 5---" },
+    { name: "November Rain · Guns N' Roses", bpm: 76,
+      drums: "7--- 8--- 7--- 8--- 7-2- 8-2- 7-2- 8-2- 7--- 8--- 7--- 8--- 7-3- 8-3- 7-3- 8-3-",
+      bass:  "1--- 5--- 4--- 5--- 1--- 5--- 4--- 5--- 1--- 5--- 4--- 5--- 1--- 5--- 4--- 5---" },
+    { name: "Layla · Derek and the Dominos", bpm: 116,
+      drums: "7-2- 8-2- 7-2- 8-2- 7-2- 8-2- 7-2- 8-2- 7-3- 8-3- 7-3- 8-3- 7-3- 8-3- 7-3- 8-3-",
+      bass:  "1--- 5--- 1--- 5--- 1--- 5--- 1--- 5--- 1--- 5--- 1--- 5--- 1--- 5--- 1--- 5---" },
+    { name: "Comfortably Numb · Pink Floyd", bpm: 64,
+      drums: "7--- 8--- 7--- 8--- 7--- 8--- 7--- 8--- 7-2- 8-2- 7-2- 8-2- 7-2- 8-2- 7-2- 8-2-",
+      bass:  "1--- 5--- 1--- 5--- 1--- 5--- 1--- 5--- 1--- 5--- 1--- 5--- 1--- 5--- 1--- 5---" },
+    { name: "Wish You Were Here · Pink Floyd", bpm: 60,
+      drums: "7--- 8--- 7--- 8--- 7-2- 8-2- 7-2- 8-2- 7--- 8--- 7--- 8--- 7-3- 8-3- 7-3- 8-3-",
+      bass:  "1--- 5--- 4--- 5--- 1--- 5--- 4--- 5--- 1--- 5--- 4--- 5--- 1--- 5--- 4--- 5---" },
+    { name: "Paranoid Android · Radiohead", bpm: 82,
+      drums: "7-2- 8-2- 7-2- 8-2- 7-3- 8-3- 7-3- 8-3- 7-2- 8-2- 7-2- 8-2- 7-3- 8-3- 7-3- 8-3-",
+      bass:  "1--- 5--- 1--- 5--- 1--- 5--- 1--- 5--- 1--- 5--- 1--- 5--- 1--- 5--- 1--- 5---" },
+    { name: "Master of Puppets · Metallica", bpm: 108,
+      drums: "7272 8282 7272 8282 7272 8282 7272 8282 7272 8282 7272 8282 7272 8282 7272 8282",
+      bass:  "1--- 1--- 5--- 5--- 1--- 1--- 5--- 5--- 1--- 1--- 5--- 5--- 1--- 1--- 5--- 5---" },
+    { name: "One · Metallica", bpm: 112,
+      drums: "7-8- 7-8- 7-8- 7-8- 7-8- 7-8- 7-8- 7-8- 7-2- 8-2- 7-2- 8-2- 7-2- 8-2- 7-2- 8-2-",
+      bass:  "1--- 5--- 1--- 5--- 1--- 5--- 1--- 5--- 1--- 5--- 1--- 5--- 1--- 5--- 1--- 5---" }
+  ];
+
   BASIC.forEach((s, i) => {
     SONGS.push({ ...s, group: "basic", label: `Điệu ${String(i+1).padStart(2,"0")} · ${s.name}` });
   });
   FAMOUS.forEach((s, i) => {
     SONGS.push({ ...s, group: "famous", label: `${String(i+1).padStart(2,"0")} · ${s.name}` });
+  });
+  LIVELY.forEach((s, i) => {
+    SONGS.push({ ...s, group: "lively", label: `${String(i+1).padStart(2,"0")} · ${s.name}` });
+  });
+  LONG_ROCK.forEach((s, i) => {
+    SONGS.push({ ...s, group: "rock", label: `Rock dài ${String(i+1).padStart(2,"0")} · ${s.name}` });
   });
 
   /* ==========================================================
@@ -788,16 +842,25 @@
     gBasic.label  = "▸ 10 ĐIỆU TRỐNG CƠ BẢN";
     const gFamous = document.createElement("optgroup");
     gFamous.label = "★ 20 BÀI TRỐNG NỔI TIẾNG";
+    const gLively = document.createElement("optgroup");
+    gLively.label = "🔥 10 BÀI SÔI NỔI & HIPHOP";
+    const gRock   = document.createElement("optgroup");
+    gRock.label   = "🎸 10 BÀI ROCK DÀI";
 
     SONGS.forEach((s, i) => {
       const opt = document.createElement("option");
       opt.value = i;
       opt.textContent = s.label;
-      (s.group === "basic" ? gBasic : gFamous).appendChild(opt);
+      if (s.group === "basic")       gBasic.appendChild(opt);
+      else if (s.group === "famous") gFamous.appendChild(opt);
+      else if (s.group === "lively") gLively.appendChild(opt);
+      else                           gRock.appendChild(opt);
     });
 
     songSelect.appendChild(gBasic);
     songSelect.appendChild(gFamous);
+    songSelect.appendChild(gLively);
+    songSelect.appendChild(gRock);
     songSelect.value = "0";
   })();
 
