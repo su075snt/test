@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Drum Pad 9 ô · 10 điệu cơ bản + 20 bài nổi tiếng</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(8px, 1.8vh, 16px);
+    padding: 10px;
+    background:
+      radial-gradient(90% 70% at 50% -10%, #1b2440 0%, transparent 60%),
+      radial-gradient(70% 60% at 50% 110%, #2a1838 0%, transparent 60%),
+      #0a0c14;
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    color: #e8ecf5;
+    overflow: hidden;
+    overscroll-behavior: none;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+  }
+
+  .top-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: min(94vw, 470px);
+  }
+
+  .song-select {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: clamp(38px, 9vw, 46px);
+    padding: 0 34px 0 14px;
+    border-radius: 12px;
+    border: 1px solid #2c3550;
+    background: linear-gradient(180deg, #1a2033, #12161f);
+    color: #e8ecf5;
+    font: inherit;
+    font-size: clamp(11px, 2.7vw, 13px);
+    font-weight: 700;
+    letter-spacing: .02em;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image:
+      linear-gradient(180deg, #1a2033, #12161f),
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M2 4l4 4 4-4' fill='none' stroke='%237ee7d8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+    background-position: 0 0, right 13px center;
+    background-repeat: no-repeat, no-repeat;
+    background-size: 100% 100%, 12px;
+    outline: none;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .song-select:focus {
+    border-color: #5ee7df;
+    box-shadow: 0 0 0 2px rgba(94, 231, 223, .22);
+  }
+  .song-select optgroup {
+    background: #0d1017;
+    color: #7ee7d8;
+    font-weight: 800;
+    font-size: 12px;
+  }
+  .song-select option { background: #12161f; color: #e8ecf5; }
+
+  .bass-toggle {
+    flex: 0 0 auto;
+    height: clamp(38px, 9vw, 46px);
+    padding: 0 clamp(10px, 2.5vw, 14px);
+    border-radius: 12px;
+    border: 1px solid #3a4460;
+    background: linear-gradient(180deg, #1a2032, #12161f);
+    color: #6b7590;
+    font: inherit;
+    font-size: clamp(9px, 2.2vw, 11px);
+    font-weight: 800;
+    letter-spacing: .1em;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: transform .08s ease, border-color .15s, color .15s, background .15s, box-shadow .15s;
+    touch-action: manipulation;
+  }
+  .bass-toggle:active { transform: scale(.96); }
+  .bass-toggle .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: #3a4460;
+    transition: background .15s, box-shadow .15s;
+  }
+  .bass-toggle.on {
+    border-color: #7ee7d8;
+    color: #aef7ec;
+    background: linear-gradient(180deg, #162a2a, #101e1e);
+    box-shadow: 0 0 14px rgba(126, 231, 216, .25);
+  }
+  .bass-toggle.on .dot {
+    background: #7ee7d8;
+    box-shadow: 0 0 10px #7ee7d8;
+  }
+
+  .player {
+    display: flex;
+    align-items: center;
+    gap: clamp(6px, 1.6vw, 10px);
+    width: min(94vw, 470px);
+  }
+
+  .play-btn {
+    flex: 0 0 auto;
+    width: clamp(38px, 9vw, 46px);
+    height: clamp(38px, 9vw, 46px);
+    border-radius: 50%;
+    border: 1px solid #2ee6c5;
+    background: radial-gradient(circle at 50% 28%, rgba(46, 230, 197, .28), rgba(46, 230, 197, .05));
+    color: #7dffe8;
+    font-size: clamp(13px, 3.4vw, 17px);
+    line-height: 1;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    box-shadow: 0 0 16px rgba(46, 230, 197, .18);
+    transition: transform .08s ease, box-shadow .15s ease, border-color .15s, color .15s, background .15s;
+    touch-action: manipulation;
+  }
+  .play-btn:active { transform: scale(.92); }
+  .play-btn.on {
+    border-color: #ff6b6b;
+    color: #ffb3b3;
+    background: radial-gradient(circle at 50% 28%, rgba(255, 107, 107, .3), rgba(255, 107, 107, .05));
+    box-shadow: 0 0 20px rgba(255, 107, 107, .25);
+  }
+
+  .strip-shell {
+    position: relative;
+    flex: 1 1 auto;
+    min-width: 0;
+    border-radius: 13px;
+    border: 1px solid #232a3d;
+    background: linear-gradient(180deg, #131826, #0d1017);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .05);
+    padding: 8px 10px;
+  }
+
+  .strip {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 5px 7px;
+  }
+
+  .playhead {
+    position: absolute;
+    top: 0; left: 0;
+    width: 0; height: 0;
+    border-radius: 9px;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 0;
+    transition:
+      left .11s cubic-bezier(.3,.9,.4,1),
+      top .11s cubic-bezier(.3,.9,.4,1),
+      width .11s ease, height .11s ease,
+      opacity .2s ease;
+  }
+
+  .s-group { display: flex; gap: 3px; }
+  .s-note-wrap { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+
+  .s-note {
+    position: relative;
+    z-index: 1;
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+    width: clamp(19px, 5.2vw, 24px);
+    height: clamp(19px, 5.2vw, 24px);
+    border-radius: 7px;
+    font-size: clamp(10px, 2.6vw, 12.5px);
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    color: #cfd6e4;
+    background: #171b24;
+    border: 1px solid #3a4256;
+    cursor: pointer;
+    transition: color .16s ease, border-color .16s ease, background .16s ease, box-shadow .16s ease;
+    touch-action: manipulation;
+  }
+  .s-note.active {
+    color: #0a0c14;
+    background: #ffffff;
+    border-color: #ffffff;
+    box-shadow: 0 0 14px rgba(255, 255, 255, .75);
+  }
+
+  .b-note {
+    z-index: 1;
+    font-size: clamp(7px, 1.7vw, 9px);
+    font-weight: 800;
+    line-height: 1;
+    min-height: 9px;
+    color: #39415a;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: .02em;
+    transition: color .15s, opacity .15s;
+  }
+  .b-note.on { color: #9aa3b8; }
+  .strip.bass-off .b-note { opacity: .28; }
+  .strip.bass-off .b-note.on { color: #4a5168; }
+
+  .bpm-btn {
+    flex: 0 0 auto;
+    width: clamp(38px, 9vw, 46px);
+    height: clamp(38px, 9vw, 46px);
+    border-radius: 50%;
+    border: 1px solid #3a4460;
+    background: linear-gradient(180deg, #1a2032, #12161f);
+    color: #b8c2d8;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1px;
+    cursor: pointer;
+    transition: transform .08s ease, border-color .15s;
+    touch-action: manipulation;
+  }
+  .bpm-btn:active { transform: scale(.93); border-color: #5ee7df; }
+  .bpm-num {
+    font-size: clamp(11px, 2.9vw, 13px);
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    color: #e8ecf5;
+    line-height: 1;
+  }
+  .bpm-lbl {
+    font-size: clamp(6px, 1.5vw, 7px);
+    letter-spacing: .12em;
+    color: #6b7590;
+    line-height: 1;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: clamp(7px, 1.6vw, 13px);
+    width: min(90vw, 40vh, 380px);
+    aspect-ratio: 1;
+    touch-action: none;
+  }
+
+  .pad {
+    --c: #ff4d4d;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    padding: 4px;
+    border-radius: clamp(12px, 3vw, 20px);
+    border: 1px solid color-mix(in srgb, var(--c) 40%, transparent);
+    background:
+      radial-gradient(130% 120% at 50% -10%,
+        color-mix(in srgb, var(--c) 30%, transparent) 0%, transparent 62%),
+      linear-gradient(180deg, #1b2030 0%, #11141d 100%);
+    color: #e8ecf5;
+    font-family: inherit;
+    cursor: pointer;
+    overflow: hidden;
+    touch-action: none;
+    box-shadow:
+      0 6px 16px rgba(0, 0, 0, .5),
+      inset 0 1px 0 rgba(255, 255, 255, .07);
+    transition: transform .07s ease, box-shadow .13s ease, border-color .13s ease;
+  }
+  .pad::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(80% 80% at 50% 50%,
+      color-mix(in srgb, var(--c) 55%, transparent), transparent 70%);
+    opacity: 0;
+    transition: opacity .18s ease;
+    pointer-events: none;
+  }
+  .pad.hit {
+    transform: scale(.94);
+    border-color: var(--c);
+    box-shadow:
+      0 0 0 2px color-mix(in srgb, var(--c) 65%, transparent),
+      0 0 34px color-mix(in srgb, var(--c) 60%, transparent),
+      inset 0 0 26px color-mix(in srgb, var(--c) 35%, transparent);
+  }
+  .pad.hit::after { opacity: .55; transition-duration: .02s; }
+
+  .pad .num {
+    position: relative;
+    z-index: 1;
+    font-size: clamp(28px, 8.5vw, 50px);
+    font-weight: 900;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    color: color-mix(in srgb, var(--c) 88%, white);
+    text-shadow: 0 0 24px color-mix(in srgb, var(--c) 60%, transparent);
+    pointer-events: none;
+  }
+  .pad .name {
+    position: relative;
+    z-index: 1;
+    font-size: clamp(6.5px, 1.7vw, 9px);
+    font-weight: 700;
+    letter-spacing: .16em;
+    text-indent: .16em;
+    color: #7e88a3;
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+
+  <div class="top-row">
+    <select class="song-select" id="songSelect" aria-label="Chọn bài nhạc"></select>
+    <button class="bass-toggle" id="bassBtn" aria-label="Bật / tắt bass">
+      <span class="dot"></span><span>BASS</span>
+    </button>
+  </div>
+
+  <div class="player">
+    <button class="play-btn" id="playBtn" aria-label="Chơi / Dừng">▶</button>
+    <div class="strip-shell">
+      <div class="strip" id="strip">
+        <div class="playhead" id="playhead"></div>
+      </div>
+    </div>
+    <button class="bpm-btn" id="bpmBtn" aria-label="Đổi nhịp độ">
+      <span class="bpm-num" id="bpmNum">90</span>
+      <span class="bpm-lbl">BPM</span>
+    </button>
+  </div>
+
+  <!-- 9 ô: 789 trên · 456 giữa · 123 dưới -->
+  <div class="grid" id="grid">
+    <button type="button" class="pad" data-sound="kick" style="--c:#ff4d4d">
+      <span class="num">7</span><span class="name">KICK</span>
+    </button>
+    <button type="button" class="pad" data-sound="snare" style="--c:#ffa733">
+      <span class="num">8</span><span class="name">SNARE</span>
+    </button>
+    <button type="button" class="pad" data-sound="clap" style="--c:#ffe066">
+      <span class="num">9</span><span class="name">CLAP</span>
+    </button>
+
+    <button type="button" class="pad" data-sound="tomH" style="--c:#7ee787">
+      <span class="num">4</span><span class="name">TOM CAO</span>
+    </button>
+    <button type="button" class="pad" data-sound="tomM" style="--c:#b18cff">
+      <span class="num">5</span><span class="name">TOM TRUNG</span>
+    </button>
+    <button type="button" class="pad" data-sound="tomL" style="--c:#ff8fd0">
+      <span class="num">6</span><span class="name">TOM THẤP</span>
+    </button>
+
+    <button type="button" class="pad" data-sound="crash" style="--c:#f5b942">
+      <span class="num">1</span><span class="name">CRASH</span>
+    </button>
+    <button type="button" class="pad" data-sound="hhc" style="--c:#2ee6c5">
+      <span class="num">2</span><span class="name">HI-HAT</span>
+    </button>
+    <button type="button" class="pad" data-sound="hho" style="--c:#35b6ff">
+      <span class="num">3</span><span class="name">OPEN HAT</span>
+    </button>
+  </div>
+
+<script>
+(() => {
+  "use strict";
+
+  /* ==========================================================
+     AUDIO ENGINE
+     ========================================================== */
+  let actx = null, master = null, noiseBuf = null;
+
+  function initAudio() {
+    if (actx) {
+      if (actx.state === "suspended") actx.resume();
+      return actx;
+    }
+    const AC = window.AudioContext || window.webkitAudioContext;
+    actx = new AC();
+
+    master = actx.createGain();
+    master.gain.value = 0.85;
+
+    const comp = actx.createDynamicsCompressor();
+    comp.threshold.value = -8;
+    comp.knee.value = 12;
+    comp.ratio.value = 6;
+    comp.attack.value = 0.003;
+    comp.release.value = 0.2;
+
+    master.connect(comp);
+    comp.connect(actx.destination);
+
+    const len = Math.floor(actx.sampleRate * 2);
+    noiseBuf = actx.createBuffer(1, len, actx.sampleRate);
+    const d = noiseBuf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+
+    return actx;
+  }
+
+  function noiseSource() {
+    const s = actx.createBufferSource();
+    s.buffer = noiseBuf;
+    return s;
+  }
+
+  function kick(t) {
+    const o = actx.createOscillator();
+    const g = actx.createGain();
+    o.type = "sine";
+    o.frequency.setValueAtTime(165, t);
+    o.frequency.exponentialRampToValueAtTime(46, t + 0.11);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(1, t + 0.005);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
+    o.connect(g).connect(master);
+    o.start(t); o.stop(t + 0.55);
+
+    const c = actx.createOscillator();
+    const cg = actx.createGain();
+    c.type = "square";
+    c.frequency.setValueAtTime(1100, t);
+    cg.gain.setValueAtTime(0.22, t);
+    cg.gain.exponentialRampToValueAtTime(0.001, t + 0.028);
+    c.connect(cg).connect(master);
+    c.start(t); c.stop(t + 0.04);
+  }
+
+  function snare(t) {
+    const n = noiseSource();
+    const hp = actx.createBiquadFilter();
+    hp.type = "highpass"; hp.frequency.value = 1100;
+    const bp = actx.createBiquadFilter();
+    bp.type = "bandpass"; bp.frequency.value = 3200; bp.Q.value = 0.7;
+    const g = actx.createGain();
+    g.gain.setValueAtTime(0.65, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.21);
+    n.connect(hp).connect(bp).connect(g).connect(master);
+    n.start(t); n.stop(t + 0.25);
+
+    const o = actx.createOscillator();
+    const og = actx.createGain();
+    o.type = "triangle";
+    o.frequency.setValueAtTime(195, t);
+    o.frequency.exponentialRampToValueAtTime(120, t + 0.1);
+    og.gain.setValueAtTime(0.55, t);
+    og.gain.exponentialRampToValueAtTime(0.001, t + 0.13);
+    o.connect(og).connect(master);
+    o.start(t); o.stop(t + 0.15);
+  }
+
+  function hat(t, open) {
+    const dur = open ? 0.55 : 0.07;
+    const n = noiseSource();
+    const hp = actx.createBiquadFilter();
+    hp.type = "highpass"; hp.frequency.value = 7800;
+    const bp = actx.createBiquadFilter();
+    bp.type = "bandpass"; bp.frequency.value = 10500; bp.Q.value = 0.6;
+    const g = actx.createGain();
+    g.gain.setValueAtTime(open ? 0.34 : 0.42, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    n.connect(hp).connect(bp).connect(g).connect(master);
+    n.start(t); n.stop(t + dur + 0.06);
+
+    [6800, 9200, 12500].forEach((f, i) => {
+      const o = actx.createOscillator();
+      const og = actx.createGain();
+      o.type = "square";
+      o.frequency.value = f;
+      const amp = (open ? 0.06 : 0.08) / (i + 1);
+      og.gain.setValueAtTime(amp, t);
+      og.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(og).connect(master);
+      o.start(t); o.stop(t + dur + 0.05);
+    });
+  }
+
+  function tom(t, freq) {
+    const o = actx.createOscillator();
+    const g = actx.createGain();
+    o.type = "sine";
+    o.frequency.setValueAtTime(freq, t);
+    o.frequency.exponentialRampToValueAtTime(freq * 0.52, t + 0.28);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.85, t + 0.006);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.42);
+    o.connect(g).connect(master);
+    o.start(t); o.stop(t + 0.46);
+
+    const n = noiseSource();
+    const hp = actx.createBiquadFilter();
+    hp.type = "highpass"; hp.frequency.value = 1800;
+    const ng = actx.createGain();
+    ng.gain.setValueAtTime(0.12, t);
+    ng.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
+    n.connect(hp).connect(ng).connect(master);
+    n.start(t); n.stop(t + 0.08);
+  }
+
+  function clap(t) {
+    const offsets = [0, 0.011, 0.022, 0.034];
+    offsets.forEach((d, i) => {
+      const isTail = i === offsets.length - 1;
+      const dur = isTail ? 0.19 : 0.022;
+      const n = noiseSource();
+      const bp = actx.createBiquadFilter();
+      bp.type = "bandpass"; bp.frequency.value = 1500; bp.Q.value = 1.1;
+      const hp = actx.createBiquadFilter();
+      hp.type = "highpass"; hp.frequency.value = 700;
+      const g = actx.createGain();
+      g.gain.setValueAtTime(isTail ? 0.5 : 0.4, t + d);
+      g.gain.exponentialRampToValueAtTime(0.001, t + d + dur);
+      n.connect(bp).connect(hp).connect(g).connect(master);
+      n.start(t + d); n.stop(t + d + dur + 0.03);
+    });
+  }
+
+  function crash(t) {
+    const dur = 1.7;
+    const n = noiseSource();
+    const hp = actx.createBiquadFilter();
+    hp.type = "highpass"; hp.frequency.value = 4200;
+    const g = actx.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.45, t + 0.006);
+    g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    n.connect(hp).connect(g).connect(master);
+    n.start(t); n.stop(t + dur + 0.05);
+
+    [3300, 5200, 7400, 9800].forEach((f, i) => {
+      const o = actx.createOscillator();
+      const og = actx.createGain();
+      o.type = "square";
+      o.frequency.value = f;
+      og.gain.setValueAtTime(0.05 / (i * 0.6 + 1), t);
+      og.gain.exponentialRampToValueAtTime(0.0001, t + dur * 0.8);
+      o.connect(og).connect(master);
+      o.start(t); o.stop(t + dur);
+    });
+  }
+
+  function bass(t, freq, dur) {
+    const o1 = actx.createOscillator();
+    const o2 = actx.createOscillator();
+    const g = actx.createGain();
+    const lp = actx.createBiquadFilter();
+
+    o1.type = "sine";
+    o1.frequency.value = freq;
+    o2.type = "triangle";
+    o2.frequency.value = freq * 2.004;
+
+    lp.type = "lowpass";
+    lp.Q.value = 1;
+    lp.frequency.setValueAtTime(1100, t);
+    lp.frequency.exponentialRampToValueAtTime(320, t + dur * 0.85);
+
+    const peak = 0.55;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(peak, t + 0.028);
+    g.gain.exponentialRampToValueAtTime(peak * 0.55, t + dur * 0.6);
+    g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+
+    o1.connect(lp);
+    o2.connect(lp);
+    lp.connect(g).connect(master);
+
+    o1.start(t); o1.stop(t + dur + 0.06);
+    o2.start(t); o2.stop(t + dur + 0.06);
+  }
+
+  const SOUNDS = {
+    kick:  t => kick(t),
+    snare: t => snare(t),
+    hhc:   t => hat(t, false),
+    hho:   t => hat(t, true),
+    tomH:  t => tom(t, 240),
+    tomM:  t => tom(t, 165),
+    tomL:  t => tom(t, 108),
+    clap:  t => clap(t),
+    crash: t => crash(t)
+  };
+
+  /* Nốt bass — A thứ (A B C D E F G A) */
+  const BASS_FREQ = {
+    "1": 55.00, "2": 61.74, "3": 65.41, "4": 73.42,
+    "5": 82.41, "6": 87.31, "7": 98.00, "8": 110.00
+  };
+
+  /* ==========================================================
+     LƯỚI 9 Ô — CHẠM & VUỐT
+     ========================================================== */
+  const grid = document.getElementById("grid");
+  const pads = Array.from(grid.querySelectorAll(".pad"));
+  const padByNum = {};
+  pads.forEach(p => { padByNum[p.querySelector(".num").textContent] = p; });
+
+  function flash(pad) {
+    if (!pad) return;
+    pad.classList.add("hit");
+    clearTimeout(pad._t);
+    pad._t = setTimeout(() => pad.classList.remove("hit"), 130);
+  }
+
+  function triggerPad(pad) {
+    if (!pad) return;
+    const fn = SOUNDS[pad.dataset.sound];
+    if (!fn) return;
+    initAudio();
+    fn(actx.currentTime + 0.001);
+    flash(pad);
+  }
+
+  function padAt(x, y) {
+    const el = document.elementFromPoint(x, y);
+    return el ? el.closest(".pad") : null;
+  }
+
+  const activePointers = new Map();
+
+  grid.addEventListener("pointerdown", e => {
+    e.preventDefault();
+    initAudio();
+    try { grid.setPointerCapture(e.pointerId); } catch (_) {}
+    const pad = padAt(e.clientX, e.clientY);
+    activePointers.set(e.pointerId, pad || null);
+    if (pad) triggerPad(pad);
+  });
+
+  grid.addEventListener("pointermove", e => {
+    if (!activePointers.has(e.pointerId)) return;
+    e.preventDefault();
+    const pad = padAt(e.clientX, e.clientY);
+    if (pad !== activePointers.get(e.pointerId)) {
+      activePointers.set(e.pointerId, pad || null);
+      if (pad) triggerPad(pad);
+    }
+  }, { passive: false });
+
+  function releasePointer(e) { activePointers.delete(e.pointerId); }
+  grid.addEventListener("pointerup", releasePointer);
+  grid.addEventListener("pointercancel", releasePointer);
+  window.addEventListener("blur", () => activePointers.clear());
+  grid.addEventListener("contextmenu", e => e.preventDefault());
+
+  window.addEventListener("keydown", e => {
+    if (e.repeat) return;
+    if ("123456789".includes(e.key) && padByNum[e.key]) {
+      e.preventDefault();
+      triggerPad(padByNum[e.key]);
+    }
+  });
+
+  /* ==========================================================
+     ====== PHẦN NHẠC: 10 ĐIỆU CƠ BẢN + 20 BÀI NỔI TIẾNG ======
+     1 Crash · 2 Hi-hat kín · 3 Hi-hat mở · 4 Tom cao
+     5 Tom trung · 6 Tom thấp · 7 Kick · 8 Snare · 9 Clap
+     Bass 1..8 = A B C D E F G A · dấu "-" = nghỉ
+     ========================================================== */
+  const SONGS = [];
+
+  /* ---------- 10 ĐIỆU CƠ BẢN ---------- */
+  const BASIC = [
+    { name: "Rock cơ bản",  bpm: 100, drums: "7282 7282 7282 7282", bass: "1--- 5--- 1--- 5---" },
+    { name: "Pop 4/4",      bpm: 96,  drums: "72-2 82-2 72-2 82-2", bass: "1--- 4--- 5--- 4---" },
+    { name: "Ballad chậm",  bpm: 68,  drums: "7--- 8--- 7--- 8---", bass: "1------- 5-------" },
+    { name: "Funk",         bpm: 104, drums: "7-22 8-22 7-22 8-22", bass: "1-1- -5-- 1-1- -5--" },
+    { name: "Shuffle",      bpm: 92,  drums: "7-2- 82-2 7-2- 82-2", bass: "1--- 5--- 1--- 5---" },
+    { name: "Half-time",    bpm: 80,  drums: "7--- 8-2- 7--- 8-2-", bass: "1------- 5-------" },
+    { name: "Disco",        bpm: 112, drums: "7-3- 8-3- 7-3- 8-3-", bass: "1-1- 5-5- 1-1- 5-5-" },
+    { name: "Reggae",       bpm: 76,  drums: "7--2 82-- 7--2 82--", bass: "1--- 5--- 1--- 5---" },
+    { name: "Valse 3/4",    bpm: 120, drums: "7-2-2- 7-2-2-",       bass: "1----- 5-----" },
+    { name: "Bossa Nova",   bpm: 88,  drums: "7--2 8-2- 7--2 8-2-", bass: "1--5 1--5 1--5 1--5" }
+  ];
+
+  /* ---------- 20 BÀI TRỐNG NỔI TIẾNG ---------- */
+  const FAMOUS = [
+    { name: "We Will Rock You · Queen",        bpm: 82,  drums: "77-9 77-9 77-9 77-9", bass: "1------- 1-------" },
+    { name: "Billie Jean · M. Jackson",        bpm: 116, drums: "7282 7282 7282 7282", bass: "1--- 1--- 5--- 5---" },
+    { name: "Back in Black · AC/DC",           bpm: 94,  drums: "72-8 72-8 72-8 72-8", bass: "1--- 1--- 5--- 5---" },
+    { name: "Smoke on the Water · Deep Purple",bpm: 112, drums: "72-2 82-2 72-2 82-2", bass: "1--- 1--- 3--- 3---" },
+    { name: "Seven Nation Army · White Stripes",bpm:124, drums: "7--- 7--- 8--- 8---", bass: "1--- 1-5- 1--- 1-4-" },
+    { name: "Come Together · Beatles",         bpm: 84,  drums: "7-7- 8-8- 7-7- 8-8-", bass: "1-1- ---- 5-5- ----" },
+    { name: "When the Levee Breaks · LZ",      bpm: 72,  drums: "7--8 7--8 7--8 7--8", bass: "1------- 5-------" },
+    { name: "Enter Sandman · Metallica",       bpm: 124, drums: "7272 8282 7272 8282", bass: "1--- 1--- 5--- 5---" },
+    { name: "Immigrant Song · Led Zeppelin",   bpm: 112, drums: "7272 7272 8282 8282", bass: "1-1- 1-1- 5-5- 5-5-" },
+    { name: "In the Air Tonight · P. Collins", bpm: 76,  drums: "7--- ---- 8--- ----", bass: "1------- --------" },
+    { name: "Sweet Child O' Mine · GN'R",      bpm: 126, drums: "72-2 82-2 72-2 82-2", bass: "1--- 5--- 1--- 5---" },
+    { name: "Bohemian Rhapsody · Queen",       bpm: 72,  drums: "7--- 8--- 7--- 8---", bass: "1------- 5-------" },
+    { name: "Livin' on a Prayer · Bon Jovi",   bpm: 122, drums: "7282 7282 7282 7282", bass: "1--- 5--- 4--- 5---" },
+    { name: "Walk This Way · Aerosmith",       bpm: 112, drums: "7-2- 8-2- 7-2- 8-2-", bass: "1-1- 5-5- 1-1- 5-5-" },
+    { name: "Another One Bites · Queen",       bpm: 110, drums: "7-8- 7-8- 7-8- 7-8-", bass: "1--- 1--- 4--- 4---" },
+    { name: "Purple Haze · Jimi Hendrix",      bpm: 118, drums: "7272 8282 7272 8282", bass: "1--- 5--- 1--- 5---" },
+    { name: "Whole Lotta Love · LZ",           bpm: 92,  drums: "7-8- 7-8- 7-8- 7-8-", bass: "1-1- 1-1- 5-5- 5-5-" },
+    { name: "Kashmir · Led Zeppelin",          bpm: 80,  drums: "7-2- 8-2- 7-2- 8-2-", bass: "1--- 5--- 1--- 5---" },
+    { name: "Highway to Hell · AC/DC",         bpm: 116, drums: "7282 7282 7282 7282", bass: "1--- 1--- 5--- 5---" },
+    { name: "Danger Zone · Kenny Loggins",     bpm: 128, drums: "72-8 72-8 72-8 72-8", bass: "1--- 5--- 4--- 5---" }
+  ];
+
+  BASIC.forEach((s, i) => {
+    SONGS.push({ ...s, group: "basic", label: `Điệu ${String(i+1).padStart(2,"0")} · ${s.name}` });
+  });
+  FAMOUS.forEach((s, i) => {
+    SONGS.push({ ...s, group: "famous", label: `${String(i+1).padStart(2,"0")} · ${s.name}` });
+  });
+
+  /* ==========================================================
+     UI
+     ========================================================== */
+  const songSelect = document.getElementById("songSelect");
+  const bassBtn    = document.getElementById("bassBtn");
+  const strip      = document.getElementById("strip");
+  const playhead   = document.getElementById("playhead");
+  const playBtn    = document.getElementById("playBtn");
+  const bpmBtn     = document.getElementById("bpmBtn");
+  const bpmNum     = document.getElementById("bpmNum");
+
+  let songIndex    = 0;
+  let bpm          = SONGS[0].bpm;
+  let bassOn       = false;
+  let noteEls      = [];
+  let activeNote   = null;
+  let player       = null;
+  let tokenCounter = 0;
+
+  bpmNum.textContent = bpm;
+
+  /* ---------- TẠO OPTGROUP + OPTIONS ---------- */
+  (function fillSelect() {
+    const gBasic  = document.createElement("optgroup");
+    gBasic.label  = "▸ 10 ĐIỆU TRỐNG CƠ BẢN";
+    const gFamous = document.createElement("optgroup");
+    gFamous.label = "★ 20 BÀI TRỐNG NỔI TIẾNG";
+
+    SONGS.forEach((s, i) => {
+      const opt = document.createElement("option");
+      opt.value = i;
+      opt.textContent = s.label;
+      (s.group === "basic" ? gBasic : gFamous).appendChild(opt);
+    });
+
+    songSelect.appendChild(gBasic);
+    songSelect.appendChild(gFamous);
+    songSelect.value = "0";
+  })();
+
+  function updateBassUI() {
+    bassBtn.classList.toggle("on", bassOn);
+    strip.classList.toggle("bass-off", !bassOn);
+  }
+
+  bassBtn.addEventListener("click", () => {
+    bassOn = !bassOn;
+    updateBassUI();
+  });
+
+  /* ---------- DỰNG STRIP ---------- */
+  function buildStrip() {
+    strip.querySelectorAll(".s-group").forEach(g => g.remove());
+    noteEls = [];
+    activeNote = null;
+    playhead.style.opacity = "0";
+
+    const song = SONGS[songIndex];
+    const drumGroups = song.drums.trim().split(/\s+/);
+    const bassStr    = song.bass.replace(/\s/g, "");
+
+    let idx = 0;
+    drumGroups.forEach(gStr => {
+      const group = document.createElement("div");
+      group.className = "s-group";
+
+      [...gStr].forEach(ch => {
+        const n = +ch;
+        const wrap = document.createElement("div");
+        wrap.className = "s-note-wrap";
+
+        const el = document.createElement("span");
+        el.className = "s-note";
+        el.textContent = ch;
+
+        const myIdx = idx;
+        el.addEventListener("pointerdown", e => {
+          e.preventDefault();
+          initAudio();
+          if (player) {
+            player.step     = myIdx;
+            player.nextTime = actx.currentTime + 0.03;
+            setActive(myIdx);
+          } else {
+            triggerPad(padByNum[ch]);
+            setActive(myIdx);
+          }
+        });
+
+        const b = document.createElement("span");
+        b.className = "b-note";
+        const bCh = bassStr[idx] || "-";
+        b.textContent = bCh === "-" ? "·" : bCh;
+        if (bCh !== "-") b.classList.add("on");
+
+        wrap.appendChild(el);
+        wrap.appendChild(b);
+        group.appendChild(wrap);
+
+        noteEls.push(el);
+        idx++;
+      });
+
+      strip.appendChild(group);
+    });
+  }
+
+  function movePlayhead(i) {
+    const el = noteEls[i];
+    if (!el || !el.offsetParent) return;
+    playhead.style.left   = el.offsetLeft + "px";
+    playhead.style.top    = el.offsetTop + "px";
+    playhead.style.width  = el.offsetWidth + "px";
+    playhead.style.height = el.offsetHeight + "px";
+    playhead.style.opacity = "1";
+    playhead.style.background =
+      "radial-gradient(circle at 50% 45%, rgba(255,255,255,.35) 0%, rgba(255,255,255,.05) 100%)";
+    playhead.style.boxShadow =
+      "0 0 18px 3px rgba(255,255,255,.35), 0 0 42px 10px rgba(255,255,255,.12)";
+  }
+
+  function setActive(i) {
+    if (activeNote !== null && noteEls[activeNote]) {
+      noteEls[activeNote].classList.remove("active");
+    }
+    activeNote = i;
+    const el = noteEls[i];
+    if (!el) return;
+    el.classList.add("active");
+    movePlayhead(i);
+  }
+
+  function clearActive() {
+    if (activeNote !== null && noteEls[activeNote]) {
+      noteEls[activeNote].classList.remove("active");
+    }
+    activeNote = null;
+    playhead.style.opacity = "0";
+  }
+
+  window.addEventListener("resize", () => {
+    if (activeNote !== null) movePlayhead(activeNote);
+  });
+
+  function selectSong(i) {
+    stopSong();
+    songIndex = i;
+    bpm = SONGS[i].bpm;
+    bpmNum.textContent = bpm;
+    songSelect.value = String(i);
+    buildStrip();
+  }
+
+  songSelect.addEventListener("change", () => {
+    selectSong(parseInt(songSelect.value, 10) || 0);
+  });
+
+  /* ==========================================================
+     CHẾ ĐỘ CHƠI TỰ ĐỘNG
+     ========================================================== */
+  function startSong(fromStep = 0) {
+    if (player) return;
+    initAudio();
+
+    const song    = SONGS[songIndex];
+    const steps   = song.drums.replace(/\s/g, "").split("");
+    const bassStr = song.bass.replace(/\s/g, "");
+    const stepDur = 60 / bpm / 2;
+    const myToken = ++tokenCounter;
+
+    const state = {
+      token: myToken,
+      steps, bassStr, stepDur,
+      step: fromStep,
+      nextTime: actx.currentTime + 0.14,
+      timer: null
+    };
+    player = state;
+
+    const schedule = () => {
+      if (!player || player.token !== myToken) return;
+
+      if (state.nextTime < actx.currentTime - 0.25) {
+        state.nextTime = actx.currentTime + 0.05;
+      }
+
+      while (state.nextTime < actx.currentTime + 0.18) {
+        const i   = state.step % state.steps.length;
+        const d   = state.steps[i];
+        const pad = padByNum[d];
+
+        if (pad) {
+          const fn = SOUNDS[pad.dataset.sound];
+          if (fn) fn(state.nextTime);
+        }
+
+        if (bassOn) {
+          const bCh = state.bassStr[i];
+          if (bCh && bCh !== "-") {
+            const bf = BASS_FREQ[bCh];
+            if (bf) bass(state.nextTime, bf, state.stepDur * 1.75);
+          }
+        }
+
+        const delay = Math.max(0, (state.nextTime - actx.currentTime) * 1000);
+        setTimeout(() => {
+          if (!player || player.token !== myToken) return;
+          setActive(i);
+          flash(pad);
+        }, delay);
+
+        state.nextTime += state.stepDur;
+        state.step++;
+      }
+    };
+
+    schedule();
+    state.timer = setInterval(schedule, 25);
+
+    playBtn.classList.add("on");
+    playBtn.textContent = "■";
+  }
+
+  function stopSong() {
+    if (!player) return;
+    clearInterval(player.timer);
+    player = null;
+    tokenCounter++;
+    playBtn.classList.remove("on");
+    playBtn.textContent = "▶";
+    clearActive();
+  }
+
+  playBtn.addEventListener("click", () => {
+    if (player) stopSong();
+    else startSong(0);
+  });
+
+  bpmBtn.addEventListener("click", () => {
+    bpm += 5;
+    if (bpm > 140) bpm = 60;
+    bpmNum.textContent = bpm;
+    if (player) {
+      const resumeAt = player.step;
+      stopSong();
+      startSong(resumeAt);
+    }
+  });
+
+  window.addEventListener("keydown", e => {
+    if (e.code === "Space" || e.key === " ") {
+      e.preventDefault();
+      if (player) stopSong();
+      else startSong(0);
+    }
+  });
+
+  updateBassUI();
+  buildStrip();
+})();
+</script>
+</body>
+</html>
