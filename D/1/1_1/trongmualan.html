@@ -328,40 +328,123 @@
   }
 
   /* ---------- TÙNG — trống cái (trầm, ấm) ---------- */
-  function soundTung(t, vel) {
-    vel = vel == null ? 1 : vel;
+  /* ---------- TÙNG — Trống lân da trâu: TRẦM, VANG, CÓ BASS ---------- */
+function soundTung(t, vel) {
+  vel = vel == null ? 1 : vel;
 
-    const o = actx.createOscillator();
-    const g = actx.createGain();
-    o.type = "sine";
-    o.frequency.setValueAtTime(92, t);
-    o.frequency.exponentialRampToValueAtTime(46, t + 0.14);
-    g.gain.setValueAtTime(0.0001, t);
-    g.gain.exponentialRampToValueAtTime(0.95 * vel, t + 0.008);
-    g.gain.exponentialRampToValueAtTime(0.001, t + 0.62);
-    o.connect(g).connect(master);
-    o.start(t); o.stop(t + 0.66);
+  /* ═══════════════════════════════════════════════════════════
+     LỚP 1 — SUB BASS (cực trầm, cảm nhận bằng ngực)
+     Tạo độ "ùm" sâu, rung lồng ngực — trái tim của trống lân
+     ═══════════════════════════════════════════════════════════ */
+  const sub = actx.createOscillator();
+  const subG = actx.createGain();
+  sub.type = "sine";
+  sub.frequency.setValueAtTime(58, t);
+  sub.frequency.exponentialRampToValueAtTime(32, t + 0.35);
+  subG.gain.setValueAtTime(0.0001, t);
+  subG.gain.exponentialRampToValueAtTime(1.05 * vel, t + 0.01);
+  subG.gain.exponentialRampToValueAtTime(0.5 * vel, t + 0.4);
+  subG.gain.exponentialRampToValueAtTime(0.001, t + 1.6);
+  sub.connect(subG).connect(master);
+  sub.start(t); sub.stop(t + 1.65);
 
-    const o2 = actx.createOscillator();
-    const g2 = actx.createGain();
-    o2.type = "sine";
-    o2.frequency.setValueAtTime(180, t);
-    o2.frequency.exponentialRampToValueAtTime(95, t + 0.1);
-    g2.gain.setValueAtTime(0.0001, t);
-    g2.gain.exponentialRampToValueAtTime(0.22 * vel, t + 0.006);
-    g2.gain.exponentialRampToValueAtTime(0.001, t + 0.28);
-    o2.connect(g2).connect(master);
-    o2.start(t); o2.stop(t + 0.3);
+  /* ═══════════════════════════════════════════════════════════
+     LỚP 2 — BASS CHÍNH (thân trống da trâu)
+     Âm trầm hùng, mạnh mẽ, ấm — đây là "giọng" chính của trống
+     ═══════════════════════════════════════════════════════════ */
+  const body = actx.createOscillator();
+  const bodyG = actx.createGain();
+  body.type = "sine";
+  body.frequency.setValueAtTime(115, t);
+  body.frequency.exponentialRampToValueAtTime(62, t + 0.22);
+  bodyG.gain.setValueAtTime(0.0001, t);
+  bodyG.gain.exponentialRampToValueAtTime(0.98 * vel, t + 0.006);
+  bodyG.gain.exponentialRampToValueAtTime(0.55 * vel, t + 0.35);
+  bodyG.gain.exponentialRampToValueAtTime(0.001, t + 1.15);
+  body.connect(bodyG).connect(master);
+  body.start(t); body.stop(t + 1.2);
 
-    const n = noiseSource();
-    const hp = actx.createBiquadFilter();
-    hp.type = "highpass"; hp.frequency.value = 260;
-    const ng = actx.createGain();
-    ng.gain.setValueAtTime(0.24 * vel, t);
-    ng.gain.exponentialRampToValueAtTime(0.001, t + 0.03);
-    n.connect(hp).connect(ng).connect(master);
-    n.start(t); n.stop(t + 0.05);
-  }
+  /* ═══════════════════════════════════════════════════════════
+     LỚP 3 — HÀI BẬC 2 (tạo độ "dày", "nảy" của mặt da căng)
+     ═══════════════════════════════════════════════════════════ */
+  const harm2 = actx.createOscillator();
+  const harm2G = actx.createGain();
+  harm2.type = "sine";
+  harm2.frequency.setValueAtTime(230, t);
+  harm2.frequency.exponentialRampToValueAtTime(128, t + 0.18);
+  harm2G.gain.setValueAtTime(0.0001, t);
+  harm2G.gain.exponentialRampToValueAtTime(0.42 * vel, t + 0.005);
+  harm2G.gain.exponentialRampToValueAtTime(0.001, t + 0.7);
+  harm2.connect(harm2G).connect(master);
+  harm2.start(t); harm2.stop(t + 0.75);
+
+  /* ═══════════════════════════════════════════════════════════
+     LỚP 4 — HÀI BẬC 3 (độ "đanh" của da trâu, ngắn)
+     ═══════════════════════════════════════════════════════════ */
+  const harm3 = actx.createOscillator();
+  const harm3G = actx.createGain();
+  harm3.type = "triangle";
+  harm3.frequency.setValueAtTime(345, t);
+  harm3.frequency.exponentialRampToValueAtTime(195, t + 0.11);
+  harm3G.gain.setValueAtTime(0.0001, t);
+  harm3G.gain.exponentialRampToValueAtTime(0.20 * vel, t + 0.004);
+  harm3G.gain.exponentialRampToValueAtTime(0.001, t + 0.32);
+  harm3.connect(harm3G).connect(master);
+  harm3.start(t); harm3.stop(t + 0.35);
+
+  /* ═══════════════════════════════════════════════════════════
+     LỚP 5 — CÚ ĐẬP CỦA DÙI (tiếng "BỐP" da căng)
+     Ngắn, tối, tạo điểm nhấn va chạm tức thời
+     ═══════════════════════════════════════════════════════════ */
+  const hitNoise = noiseSource();
+  const hitHp = actx.createBiquadFilter();
+  hitHp.type = "highpass"; hitHp.frequency.value = 180;
+  const hitLp = actx.createBiquadFilter();
+  hitLp.type = "lowpass"; hitLp.frequency.value = 2200;
+  const hitG = actx.createGain();
+  hitG.gain.setValueAtTime(0.42 * vel, t);
+  hitG.gain.exponentialRampToValueAtTime(0.001, t + 0.032);
+  hitNoise.connect(hitHp).connect(hitLp).connect(hitG).connect(master);
+  hitNoise.start(t); hitNoise.stop(t + 0.045);
+
+  /* ═══════════════════════════════════════════════════════════
+     LỚP 6 — VANG RUNG CỦA MẶT DA (tail resonance)
+     Tạo độ "vang xa" — như tiếng trống còn ngân trong không khí
+     ═══════════════════════════════════════════════════════════ */
+  const resonance = actx.createOscillator();
+  const resonanceG = actx.createGain();
+  const resLfo = actx.createOscillator();
+  const resLfoG = actx.createGain();
+  resonance.type = "sine";
+  resonance.frequency.setValueAtTime(78, t);
+  resonance.frequency.exponentialRampToValueAtTime(58, t + 0.9);
+  // Rung lăn tăn nhẹ — mặt da còn rung sau khi đập
+  resLfo.type = "sine";
+  resLfo.frequency.value = 4.5;
+  resLfoG.gain.value = 2.5;
+  resLfo.connect(resLfoG).connect(resonance.frequency);
+  resonanceG.gain.setValueAtTime(0.0001, t);
+  resonanceG.gain.exponentialRampToValueAtTime(0.32 * vel, t + 0.05);
+  resonanceG.gain.exponentialRampToValueAtTime(0.001, t + 1.9);
+  resonance.connect(resonanceG).connect(master);
+  resonance.start(t); resonance.stop(t + 1.95);
+  resLfo.start(t); resLfo.stop(t + 1.95);
+
+  /* ═══════════════════════════════════════════════════════════
+     LỚP 7 — SUB TAIL (đuôi trầm rất dài, "ùm" tan chậm)
+     Tạo cảm giác vang xa, như trống đập giữa sân đình
+     ═══════════════════════════════════════════════════════════ */
+  const tailSub = actx.createOscillator();
+  const tailSubG = actx.createGain();
+  tailSub.type = "sine";
+  tailSub.frequency.setValueAtTime(48, t);
+  tailSub.frequency.exponentialRampToValueAtTime(30, t + 1.4);
+  tailSubG.gain.setValueAtTime(0.0001, t);
+  tailSubG.gain.exponentialRampToValueAtTime(0.28 * vel, t + 0.08);
+  tailSubG.gain.exponentialRampToValueAtTime(0.001, t + 2.4);
+  tailSub.connect(tailSubG).connect(master);
+  tailSub.start(t); tailSub.stop(t + 2.45);
+}
 
   /* ---------- CỐC CỐC — gõ thanh gỗ ---------- */
   function soundCat(t, vel) {
@@ -411,28 +494,173 @@
   }
 
   /* ---------- BÈNG BÈNG — hai nắp nồi đập vào nhau ---------- */
-  function soundBeng(t, vel) {
+/* ---------- BÈNG — HAI NẮP NỒI INOX ĐẬP NHAU ---------- */
+function soundBeng(t, vel) {
   vel = vel == null ? 1 : vel;
-  const n = noiseSource();
-  const hp = actx.createBiquadFilter();
-  hp.type = "highpass"; hp.frequency.value = 6500;
-  const bp = actx.createBiquadFilter();
-  bp.type = "bandpass"; bp.frequency.value = 9500; bp.Q.value = 0.8;
-  const g = actx.createGain();
-  g.gain.setValueAtTime(0.0001, t);
-  g.gain.exponentialRampToValueAtTime(0.7 * vel, t + 0.003);
-  g.gain.exponentialRampToValueAtTime(0.001, t + 1.1);
-  n.connect(hp).connect(bp).connect(g).connect(master);
-  n.start(t); n.stop(t + 1.15);
-  [3600, 5400, 8100, 12150, 18225].forEach((f, i) => {
+
+  /* ═══════════════════════════════════════════════════════════
+     LỚP 1 — CÚ ĐẬP "CẮC" (tức thời, đanh, sắc)
+     Inox mỏng va vào nhau → attack siêu nhanh, sắc như dao
+     ═══════════════════════════════════════════════════════════ */
+  const clash = noiseSource();
+  const clashHp = actx.createBiquadFilter();
+  clashHp.type = "highpass"; clashHp.frequency.value = 58000;
+  const clashBp = actx.createBiquadFilter();
+  clashBp.type = "bandpass"; clashBp.frequency.value = 86000; clashBp.Q.value = 0.55;
+  const clashG = actx.createGain();
+  clashG.gain.setValueAtTime(0.0001, t);
+  clashG.gain.exponentialRampToValueAtTime(1.2 * vel, t + 0.0005);
+  clashG.gain.exponentialRampToValueAtTime(0.001, t + 0.04);
+  clash.connect(clashHp).connect(clashBp).connect(clashG).connect(master);
+  clash.start(t); clash.stop(t + 0.055);
+
+  /* ═══════════════════════════════════════════════════════════
+     LỚP 2 — CLICK INOX (tiếng "KÍP" kim loại mỏng, sắc)
+     Nắp nồi inox mỏng nên click rất sắc, rất cao
+     ═══════════════════════════════════════════════════════════ */
+  const click = noiseSource();
+  const clickBp = actx.createBiquadFilter();
+  clickBp.type = "bandpass"; clickBp.frequency.value = 15200; clickBp.Q.value = 3.5;
+  const clickHp = actx.createBiquadFilter();
+  clickHp.type = "highpass"; clickHp.frequency.value = 10500;
+  const clickG = actx.createGain();
+  clickG.gain.setValueAtTime(0.0001, t);
+  clickG.gain.exponentialRampToValueAtTime(0.78 * vel, t + 0.0006);
+  clickG.gain.exponentialRampToValueAtTime(0.001, t + 0.07);
+  click.connect(clickBp).connect(clickHp).connect(clickG).connect(master);
+  click.start(t); click.stop(t + 0.09);
+
+  /* ═══════════════════════════════════════════════════════════
+     LỚP 3 — 14 HÀI INOX MỎNG (kim loại mỏng có phổ hài rộng)
+     Inox mỏng → nhiều hài cao, lệch chuẩn, ngân ngắn
+     Đây là "linh hồn" của tiếng nắp nồi inox
+     ═══════════════════════════════════════════════════════════ */
+  const partials = [
+    // Hài thấp — "thân" nắp nồi (mỏng nên vẫn có chút trầm)
+    [780,  0.32, 1.1, "sine"],
+    [1240, 0.30, 1.05, "sine"],
+    // Hài trung — "cang" kim loại
+    [1960, 0.32, 1.0, "square"],
+    [2840, 0.34, 0.95, "square"],
+    [3880, 0.36, 0.9, "square"],
+    // Hài cao — "xèng" inox đặc trưng
+    [5120, 0.38, 0.85, "square"],
+    [6580, 0.40, 0.8, "square"],
+    [8240, 0.38, 0.75, "square"],
+    [10100, 0.36, 0.7, "square"],
+    [12200, 0.32, 0.65, "square"],
+    [14500, 0.28, 0.6, "square"],
+    // Hài siêu cao — "tít" inox chói
+    [17000, 0.22, 0.55, "square"],
+    [19600, 0.16, 0.45, "square"],
+    [22400, 0.10, 0.35, "square"]
+  ];
+
+  partials.forEach(([f, a, d, wave]) => {
     const o = actx.createOscillator();
     const og = actx.createGain();
-    o.type = "square"; o.frequency.setValueAtTime(f, t);
+    o.type = wave;
+    o.frequency.setValueAtTime(f, t);
+    // Rung mạnh hơn — inox mỏng rung dữ khi va
+    o.frequency.exponentialRampToValueAtTime(f * 0.955, t + d);
     og.gain.setValueAtTime(0.0001, t);
-    og.gain.exponentialRampToValueAtTime(0.12 * vel / (i * 0.35 + 1), t + 0.004);
-    og.gain.exponentialRampToValueAtTime(0.0001, t + 1.4);
-    o.connect(og).connect(master); o.start(t); o.stop(t + 1.45);
+    og.gain.exponentialRampToValueAtTime(a * vel, t + 0.0012);
+    og.gain.exponentialRampToValueAtTime(0.0001, t + d);
+    o.connect(og).connect(master);
+    o.start(t); o.stop(t + d + 0.05);
   });
+
+  /* ═══════════════════════════════════════════════════════════
+     LỚP 4 — FLUTTER (rung lăn tăn của inox mỏng)
+     2 tần số gần nhau tạo dao động "loang loáng"
+     ═══════════════════════════════════════════════════════════ */
+  [3800, 3838].forEach(f => {
+    const o = actx.createOscillator();
+    const og = actx.createGain();
+    o.type = "square";
+    o.frequency.setValueAtTime(f, t);
+    og.gain.setValueAtTime(0.0001, t);
+    og.gain.exponentialRampToValueAtTime(0.18 * vel, t + 0.003);
+    og.gain.exponentialRampToValueAtTime(0.0001, t + 1.1);
+    o.connect(og).connect(master);
+    o.start(t); o.stop(t + 1.15);
+  });
+  [8600, 8650].forEach(f => {
+    const o = actx.createOscillator();
+    const og = actx.createGain();
+    o.type = "square";
+    o.frequency.setValueAtTime(f, t);
+    og.gain.setValueAtTime(0.0001, t);
+    og.gain.exponentialRampToValueAtTime(0.15 * vel, t + 0.003);
+    og.gain.exponentialRampToValueAtTime(0.0001, t + 0.9);
+    o.connect(og).connect(master);
+    o.start(t); o.stop(t + 0.95);
+  });
+
+  /* ═══════════════════════════════════════════════════════════
+     LỚP 5 — VIBRATO INOX (rung "loang loáng" kim loại mỏng)
+     ═══════════════════════════════════════════════════════════ */
+  const vib = actx.createOscillator();
+  const vibG = actx.createGain();
+  const lfo = actx.createOscillator();
+  const lfoG = actx.createGain();
+  vib.type = "square";
+  vib.frequency.setValueAtTime(4200, t);
+  lfo.type = "sine";
+  lfo.frequency.value = 11;    // rung nhanh — inox mỏng rung nhanh
+  lfoG.gain.value = 32;         // ±32Hz — rung mạnh
+  lfo.connect(lfoG).connect(vib.frequency);
+  vibG.gain.setValueAtTime(0.0001, t);
+  vibG.gain.exponentialRampToValueAtTime(0.14 * vel, t + 0.004);
+  vibG.gain.exponentialRampToValueAtTime(0.0001, t + 1.2);
+  vib.connect(vibG).connect(master);
+  vib.start(t); vib.stop(t + 1.25);
+  lfo.start(t); lfo.stop(t + 1.25);
+
+  /* ═══════════════════════════════════════════════════════════
+     LỚP 6 — WASH "XÈÈÈNG" (đuôi ngân inox, sáng, ngắn)
+     Nắp nồi inox ngân không lâu như chiêng — tắt nhanh
+     ═══════════════════════════════════════════════════════════ */
+  const wash = noiseSource();
+  const washHp = actx.createBiquadFilter();
+  washHp.type = "highpass"; washHp.frequency.value = 9200;
+  const washBp = actx.createBiquadFilter();
+  washBp.type = "bandpass"; washBp.frequency.value = 12800; washBp.Q.value = 0.6;
+  const washG = actx.createGain();
+  washG.gain.setValueAtTime(0.0001, t);
+  washG.gain.exponentialRampToValueAtTime(0.62 * vel, t + 0.004);
+  washG.gain.exponentialRampToValueAtTime(0.001, t + 1.4);
+  wash.connect(washHp).connect(washBp).connect(washG).connect(master);
+  wash.start(t); wash.stop(t + 1.45);
+
+  /* ═══════════════════════════════════════════════════════════
+     LỚP 7 — ĐUÔI "TÍT" SIÊU CAO (inox mỏng chói tận cùng)
+     ═══════════════════════════════════════════════════════════ */
+  const tail = noiseSource();
+  const tailHp = actx.createBiquadFilter();
+  tailHp.type = "highpass"; tailHp.frequency.value = 15000;
+  const tailBp = actx.createBiquadFilter();
+  tailBp.type = "bandpass"; tailBp.frequency.value = 17800; tailBp.Q.value = 1.3;
+  const tailG = actx.createGain();
+  tailG.gain.setValueAtTime(0.0001, t);
+  tailG.gain.exponentialRampToValueAtTime(0.28 * vel, t + 0.007);
+  tailG.gain.exponentialRampToValueAtTime(0.001, t + 1.0);
+  tail.connect(tailHp).connect(tailBp).connect(tailG).connect(master);
+  tail.start(t); tail.stop(t + 1.05);
+
+  /* ═══════════════════════════════════════════════════════════
+     LỚP 8 — RING "TÍT TÍT" (tiếng the thé inox còn vang)
+     ═══════════════════════════════════════════════════════════ */
+  const ring = actx.createOscillator();
+  const ringG = actx.createGain();
+  ring.type = "sine";
+  ring.frequency.setValueAtTime(19500, t);
+  ring.frequency.exponentialRampToValueAtTime(18200, t + 0.9);
+  ringG.gain.setValueAtTime(0.0001, t);
+  ringG.gain.exponentialRampToValueAtTime(0.12 * vel, t + 0.005);
+  ringG.gain.exponentialRampToValueAtTime(0.0001, t + 1.0);
+  ring.connect(ringG).connect(master);
+  ring.start(t); ring.stop(t + 1.05);
 }
 
   /* ==========================================================
