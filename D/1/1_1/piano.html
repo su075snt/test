@@ -138,7 +138,8 @@
         .wood-bar { height: 12px; background: linear-gradient(to bottom, #8d6e63, #4e342e);
             border-radius: 4px 4px 0 0; margin-bottom: 6px;
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.5), 0 2px 3px rgba(0,0,0,0.3); flex-shrink: 0; }
-        .keys-wrapper { position: relative; flex: 1; display: flex; width: 100%; height: 100%; }
+        .keys-wrapper { position: relative; flex: 1; display: flex; width: 100%; height: 100%;
+            touch-action: none; }
         .white-key { flex: 1; background: linear-gradient(to bottom, #ffffff 0%, #f8f8f8 85%, #e8e8e8 100%);
             border: 1px solid #bbb; border-top: none; border-radius: 0 0 6px 6px;
             box-shadow: 0 5px 0 #cfcfcf, 0 6px 5px rgba(0,0,0,0.15), inset 0 -6px 10px rgba(0,0,0,0.05);
@@ -809,6 +810,145 @@
         window.addEventListener('orientationchange', () => {
             setTimeout(() => { if (isPracticeMode) updateSheet(); }, 300);
         });
+    </script>
+
+    <!-- ============================================================
+         MODULE VUỐT PHÍM — thêm mới, không can thiệp code gốc
+         ============================================================ -->
+    <script>
+    (function () {
+        'use strict';
+
+        function boot() {
+            var wrapper = document.getElementById('keysWrapper');
+            if (!wrapper) { console.error('[Swipe] Không tìm thấy #keysWrapper'); return; }
+            if (typeof keyElements === 'undefined' || Object.keys(keyElements).length === 0) {
+                setTimeout(boot, 80);
+                return;
+            }
+            console.log('%c[Swipe] boot OK — số phím: ' + Object.keys(keyElements).length,
+                'color:#2ecc71;font-weight:bold');
+
+            var elToNote = new Map();
+            for (var k in keyElements) elToNote.set(keyElements[k], k);
+
+            function keyAt(x, y) {
+                var el = document.elementFromPoint(x, y);
+                if (!el || !el.closest) return null;
+                var key = el.closest('.white-key, .black-key');
+                return (key && wrapper.contains(key)) ? key : null;
+            }
+
+            // Bong bóng nốt bay lên
+            function showBubble(keyEl, text) {
+                var r = keyEl.getBoundingClientRect();
+                var b = document.createElement('div');
+                b.textContent = text;
+                b.style.cssText =
+                    'position:fixed;left:' + (r.left + r.width / 2) + 'px;' +
+                    'top:' + (r.top + r.height * 0.30) + 'px;' +
+                    'transform:translate(-50%,-50%) scale(1);pointer-events:none;z-index:99999;' +
+                    'background:linear-gradient(135deg,#FF9A44,#FC6076);color:#fff;' +
+                    'font:900 15px/1 Nunito,sans-serif;padding:6px 12px;border-radius:999px;' +
+                    'box-shadow:0 8px 22px rgba(252,96,118,.65);opacity:1;' +
+                    'transition:transform .5s ease-out,opacity .5s ease-out;';
+                document.body.appendChild(b);
+                requestAnimationFrame(function () {
+                    b.style.transform = 'translate(-50%,-170%) scale(1.45)';
+                    b.style.opacity = '0';
+                });
+                setTimeout(function () { b.remove(); }, 560);
+            }
+
+            // Phát nốt khi lướt qua
+            function glide(noteName) {
+                if (!noteName || !noteMap[noteName]) return;
+                if (typeof isAutoPlaying !== 'undefined' && isAutoPlaying) return;
+                var noteObj = noteMap[noteName];
+                var keyEl = keyElements[noteName];
+                if (!keyEl) return;
+                initAudio();
+
+                if (isPracticeMode && currentSongIndex >= 0) {
+                    var song = allSongs[currentSongIndex];
+                    if (song && song.notes[currentNoteIndex] === noteName) {
+                        handleNoteInput(noteObj, keyEl);
+                        showBubble(keyEl, noteObj.jpNote);
+                        return;
+                    }
+                }
+                playNote(noteObj.freq, 0.4);
+                keyEl.classList.add('active');
+                setTimeout(function () { keyEl.classList.remove('active'); }, 150);
+                showBubble(keyEl, noteObj.jpNote);
+            }
+
+            // CẢM ỨNG — listener ở document capture phase
+            var swipes = Object.create(null);
+
+            document.addEventListener('touchstart', function (e) {
+                for (var i = 0; i < e.changedTouches.length; i++) {
+                    var t = e.changedTouches[i];
+                    var keyEl = keyAt(t.clientX, t.clientY);
+                    if (keyEl) swipes[t.identifier] = elToNote.get(keyEl) || null;
+                }
+            }, { capture: true, passive: true });
+
+            document.addEventListener('touchmove', function (e) {
+                var any = false;
+                for (var i = 0; i < e.touches.length; i++) {
+                    if (e.touches[i].identifier in swipes) { any = true; break; }
+                }
+                if (!any) return;
+                if (e.cancelable) e.preventDefault();
+
+                for (var j = 0; j < e.touches.length; j++) {
+                    var t = e.touches[j];
+                    if (!(t.identifier in swipes)) continue;
+                    var keyEl = keyAt(t.clientX, t.clientY);
+                    if (!keyEl) continue;
+                    var note = elToNote.get(keyEl);
+                    if (!note || swipes[t.identifier] === note) continue;
+                    swipes[t.identifier] = note;
+                    glide(note);
+                }
+            }, { capture: true, passive: false });
+
+            function endTouch(e) {
+                for (var i = 0; i < e.changedTouches.length; i++) {
+                    delete swipes[e.changedTouches[i].identifier];
+                }
+            }
+            document.addEventListener('touchend',    endTouch, { capture: true, passive: true });
+            document.addEventListener('touchcancel', endTouch, { capture: true, passive: true });
+
+            // CHUỘT — giữ trái + kéo ngang
+            var mDown = false, mLast = null;
+            document.addEventListener('mousedown', function (e) {
+                if (e.button !== 0) return;
+                var keyEl = keyAt(e.clientX, e.clientY);
+                if (!keyEl) { mDown = false; return; }
+                mDown = true;
+                mLast = elToNote.get(keyEl) || null;
+            });
+            document.addEventListener('mouseup', function () { mDown = false; mLast = null; });
+            document.addEventListener('mousemove', function (e) {
+                if (!mDown) return;
+                var keyEl = keyAt(e.clientX, e.clientY);
+                if (!keyEl) return;
+                var note = elToNote.get(keyEl);
+                if (!note || note === mLast) return;
+                mLast = note;
+                glide(note);
+            });
+
+            console.log('%c[Swipe] ready ✓ — kéo lướt trên phím để chơi',
+                'color:#2ecc71;font-weight:bold');
+        }
+
+        if (document.readyState === 'complete') setTimeout(boot, 60);
+        else window.addEventListener('load', function () { setTimeout(boot, 60); });
+    })();
     </script>
 </body>
 </html>
