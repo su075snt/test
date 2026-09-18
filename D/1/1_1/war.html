@@ -177,6 +177,39 @@
     from { box-shadow: 0 0 10px rgba(255,140,0,.55), inset 0 0 14px rgba(255,120,0,.3); }
     to   { box-shadow: 0 0 24px rgba(255,180,0,.95), inset 0 0 26px rgba(255,150,0,.6); }
   }
+
+  /* ============================================================
+     LỚP PHỦ VỤ NỔ HẠT NHÂN 3D
+     ============================================================ */
+  #nukeOverlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 9998;
+    background: #000;
+    opacity: 0;
+    pointer-events: none;
+    -webkit-transition: opacity .55s ease;
+    transition: opacity .55s ease;
+  }
+  #nukeOverlay.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  #nukeOverlay canvas {
+    display: block;
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+  }
+  #nukeFlash {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 9999;
+    background: #fff;
+    opacity: 0;
+    pointer-events: none;
+  }
 </style>
 </head>
 <body>
@@ -188,6 +221,10 @@
 </div>
 
 <div class="grid" id="grid"></div>
+
+<!-- Lớp phủ vụ nổ 3D -->
+<div id="nukeOverlay"></div>
+<div id="nukeFlash"></div>
 
 <script>
 (function () {
@@ -245,24 +282,19 @@
 
   /* ==========================================================
      SINH 32 Ô TỰ ĐỘNG
-     Mỗi ô có:
-       - số thứ tự A01..A32 ở góc trên-trái
-       - ảnh A01.png..A32.png làm nền (file chưa có sẽ ẩn, không lỗi)
-       - khi chạm: phát A01.mp3..A32.mp3 (loop) — chạm lại: dừng
      ========================================================== */
   var grid = document.getElementById("grid");
   var TOTAL = 32;
 
-  var audios = {};    /* "A01" → HTMLAudioElement */
-  var buttons = {};   /* "A01" → button.pad       */
-  var activeKeys = {};/* "A01" → true nếu đang phát */
+  var audios = {};
+  var buttons = {};
+  var activeKeys = {};
 
   for (var i = 1; i <= TOTAL; i++) {
-    var key = fileName(i);         /* "A01" .. "A32" */
+    var key = fileName(i);
     var imgSrc = key + ".png";
     var mp3Src = key + ".mp3";
 
-    /* ---------- Tạo nút ---------- */
     var btn = document.createElement("button");
     btn.className = "pad";
     btn.setAttribute("data-key", key);
@@ -270,18 +302,15 @@
     var inner = document.createElement("span");
     inner.className = "pad-in";
 
-    /* Ảnh minh họa (nằm dưới, phủ kín ô) */
     var img = document.createElement("img");
     img.className = "pad-img";
     img.alt = "";
     img.setAttribute("draggable", "false");
     img.onerror = function () {
-      /* File chưa có → ẩn ảnh, để lại nền gradient */
       this.style.display = "none";
     };
     img.src = imgSrc;
 
-    /* Số thứ tự ở góc */
     var num = document.createElement("span");
     num.className = "num";
     num.textContent = key;
@@ -291,29 +320,24 @@
     btn.appendChild(inner);
     grid.appendChild(btn);
 
-    /* ---------- Tạo audio ---------- */
     var a = new Audio();
-    a.preload = "none";        /* chỉ tải khi bấm lần đầu, đỡ nặng */
-    a.loop = true;             /* loop để nghe liên tục như tiếng nền */
+    a.preload = "none";
+    a.loop = true;
     a.setAttribute("playsinline", "");
     a.setAttribute("webkit-playsinline", "");
     a.src = mp3Src;
 
-    a.addEventListener("error", function () {
-      /* File chưa có → im lặng, người dùng thêm sau */
-    });
+    a.addEventListener("error", function () {});
 
     audios[key] = a;
     buttons[key] = btn;
     activeKeys[key] = false;
 
-    /* ---------- Gắn sự kiện tap ---------- */
     (function (k, el, audio) {
       addTap(el, function () {
         unlockMedia();
 
         if (activeKeys[k]) {
-          /* Đang phát → dừng */
           try {
             audio.pause();
             audio.currentTime = 0;
@@ -321,7 +345,6 @@
           activeKeys[k] = false;
           removeClass(el, "playing");
         } else {
-          /* Chưa phát → bật */
           try {
             audio.currentTime = 0;
             var p = audio.play();
@@ -338,9 +361,33 @@
         }
       });
 
-      /* Chặn menu context khi nhấn giữ trên mobile */
       el.addEventListener("contextmenu", function (e) { e.preventDefault(); });
     })(key, btn, a);
+
+    /* ==========================================================
+       ĐẶC BIỆT CHO NÚT A20: sau 3s hiện vụ nổ hạt nhân 3D
+       ========================================================== */
+    if (key === "A20") {
+      (function (k, el) {
+        var nukeTimer = null;
+        addTap(el, function () {
+          if (nukeTimer) {
+            clearTimeout(nukeTimer);
+            nukeTimer = null;
+          }
+          if (activeKeys[k]) {
+            /* Vừa bật tiếng → hẹn 3 giây sau kích nổ */
+            nukeTimer = setTimeout(function () {
+              nukeTimer = null;
+              if (window.startNukeExplosion) window.startNukeExplosion();
+            }, 3000);
+          } else {
+            /* Vừa tắt tiếng → tắt luôn vụ nổ nếu đang hiện */
+            if (window.stopNukeExplosion) window.stopNukeExplosion();
+          }
+        });
+      })(key, btn);
+    }
   }
 
   /* ==========================================================
@@ -361,11 +408,12 @@
           removeClass(buttons[k], "playing");
         }
       }
+      if (window.stopNukeExplosion) window.stopNukeExplosion();
     });
   }
 
   /* ==========================================================
-     TỰ ĐỘNG DỪNG KHI ẨN TAB (tiết kiệm pin)
+     TỰ ĐỘNG DỪNG KHI ẨN TAB
      ========================================================== */
   document.addEventListener("visibilitychange", function () {
     if (document.hidden) {
@@ -382,5 +430,666 @@
 
 })();
 </script>
+
+<!-- Three.js import map -->
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
+  }
+}
+</script>
+
+<!-- ============================================================
+     MODULE 3D: VỤ NỔ HẠT NHÂN
+     ============================================================ -->
+<script type="module">
+import * as THREE from 'three';
+
+/* ------------------------------------------------------------
+   DOM
+------------------------------------------------------------ */
+const overlayEl = document.getElementById('nukeOverlay');
+const flashEl   = document.getElementById('nukeFlash');
+
+/* ------------------------------------------------------------
+   TIỆN ÍCH
+------------------------------------------------------------ */
+const rand  = (a, b) => a + Math.random() * (b - a);
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const lerp  = (a, b, t) => a + (b - a) * t;
+
+function randDir() {
+  const u = Math.random() * 2 - 1;
+  const th = Math.random() * Math.PI * 2;
+  const s = Math.sqrt(1 - u * u);
+  return [s * Math.cos(th), u, s * Math.sin(th)];
+}
+function smoothstep(e0, e1, x) {
+  const t = clamp((x - e0) / (e1 - e0), 0, 1);
+  return t * t * (3 - 2 * t);
+}
+
+/* ------------------------------------------------------------
+   STATE
+------------------------------------------------------------ */
+let initialized = false;
+let running = false;
+let renderer, scene, camera, clock;
+let T = -1;          // thời gian kể từ lúc nổ
+let shake = 0;
+
+let fireSys, smokeSys;
+let core, glow;
+const rings = [];
+const live = [];
+const free = [];
+
+const CAM_POS  = new THREE.Vector3(0, 42, 235);
+const CAM_LOOK = new THREE.Vector3(0, 58, 0);
+
+/* ------------------------------------------------------------
+   SPRITE TEXTURE (hạt sáng / khói)
+------------------------------------------------------------ */
+function makeSpriteTexture() {
+  const S = 128;
+  const c = document.createElement('canvas');
+  c.width = c.height = S;
+  const ctx = c.getContext('2d');
+  const g = ctx.createRadialGradient(S/2, S/2, 0, S/2, S/2, S/2);
+  g.addColorStop(0.00, 'rgba(255,255,255,1)');
+  g.addColorStop(0.28, 'rgba(255,255,255,0.72)');
+  g.addColorStop(0.62, 'rgba(255,255,255,0.22)');
+  g.addColorStop(1.00, 'rgba(255,255,255,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, S, S);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+let SPRITE;
+
+/* ------------------------------------------------------------
+   PARTICLE SHADERS
+------------------------------------------------------------ */
+const PARTICLE_VERT = `
+  attribute float aSize;
+  attribute float aAlpha;
+  attribute vec3  aColor;
+  uniform float uScale;
+  varying float vAlpha;
+  varying vec3  vColor;
+  void main(){
+    vAlpha = aAlpha;
+    vColor = aColor;
+    vec4 mv = modelViewMatrix * vec4(position, 1.0);
+    gl_PointSize = clamp(aSize * uScale / max(0.001, -mv.z), 0.0, 320.0);
+    gl_Position = projectionMatrix * mv;
+  }
+`;
+const PARTICLE_FRAG = `
+  uniform sampler2D uTex;
+  varying float vAlpha;
+  varying vec3  vColor;
+  void main(){
+    vec4 t = texture2D(uTex, gl_PointCoord);
+    float a = t.a * vAlpha;
+    if (a < 0.003) discard;
+    gl_FragColor = vec4(vColor * t.rgb, a);
+  }
+`;
+
+function createParticleSystem(max, blending) {
+  const geo = new THREE.BufferGeometry();
+  const pos = new Float32Array(max * 3);
+  const col = new Float32Array(max * 3);
+  const siz = new Float32Array(max);
+  const alp = new Float32Array(max);
+
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  geo.setAttribute('aColor',   new THREE.BufferAttribute(col, 3));
+  geo.setAttribute('aSize',    new THREE.BufferAttribute(siz, 1));
+  geo.setAttribute('aAlpha',   new THREE.BufferAttribute(alp, 1));
+  geo.setDrawRange(0, 0);
+
+  const mat = new THREE.ShaderMaterial({
+    uniforms: {
+      uTex:   { value: SPRITE },
+      uScale: { value: 900 }
+    },
+    vertexShader: PARTICLE_VERT,
+    fragmentShader: PARTICLE_FRAG,
+    transparent: true,
+    depthWrite: false,
+    depthTest: true,
+    blending
+  });
+
+  const points = new THREE.Points(geo, mat);
+  points.frustumCulled = false;
+  scene.add(points);
+
+  return { geo, mat, points, pos, col, siz, alp, max, count: 0 };
+}
+
+/* ------------------------------------------------------------
+   GROUND TEXTURE
+------------------------------------------------------------ */
+function makeGroundTexture() {
+  const s = 512;
+  const c = document.createElement('canvas');
+  c.width = c.height = s;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#15171d';
+  ctx.fillRect(0, 0, s, s);
+  ctx.strokeStyle = 'rgba(95,120,155,0.16)';
+  ctx.lineWidth = 2;
+  for (let i = 0; i <= 8; i++) {
+    const p = (i * s) / 8;
+    ctx.beginPath(); ctx.moveTo(p, 0); ctx.lineTo(p, s); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, p); ctx.lineTo(s, p); ctx.stroke();
+  }
+  const t = new THREE.CanvasTexture(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.repeat.set(70, 70);
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.anisotropy = 8;
+  return t;
+}
+
+/* ------------------------------------------------------------
+   KHỞI TẠO SCENE (lazy - chỉ chạy lần đầu)
+------------------------------------------------------------ */
+function init() {
+  if (initialized) return;
+  initialized = true;
+
+  SPRITE = makeSpriteTexture();
+
+  scene = new THREE.Scene();
+  scene.fog = new THREE.FogExp2(0x05060a, 0.0016);
+
+  camera = new THREE.PerspectiveCamera(52, innerWidth / innerHeight, 0.5, 6000);
+  camera.position.copy(CAM_POS);
+  camera.lookAt(CAM_LOOK);
+
+  renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setSize(innerWidth, innerHeight);
+  renderer.setClearColor(0x05060a, 1);
+  overlayEl.appendChild(renderer.domElement);
+
+  /* --- Bầu trời gradient --- */
+  const sky = new THREE.Mesh(
+    new THREE.SphereGeometry(2600, 32, 16),
+    new THREE.ShaderMaterial({
+      side: THREE.BackSide,
+      depthWrite: false,
+      uniforms: {
+        cTop:    { value: new THREE.Color(0x060a16) },
+        cBottom: { value: new THREE.Color(0x1a1d26) }
+      },
+      vertexShader: `
+        varying vec3 vP;
+        void main(){ vP = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }
+      `,
+      fragmentShader: `
+        uniform vec3 cTop; uniform vec3 cBottom;
+        varying vec3 vP;
+        void main(){
+          float h = normalize(vP).y * 0.5 + 0.5;
+          vec3 col = mix(cBottom, cTop, smoothstep(0.30, 0.85, h));
+          gl_FragColor = vec4(col, 1.0);
+        }
+      `
+    })
+  );
+  scene.add(sky);
+
+  /* --- Sao --- */
+  (function stars() {
+    const N = 900;
+    const g = new THREE.BufferGeometry();
+    const p = new Float32Array(N * 3);
+    for (let i = 0; i < N; i++) {
+      const d = randDir();
+      const r = 1500 + Math.random() * 800;
+      p[i*3]   = d[0] * r;
+      p[i*3+1] = Math.abs(d[1]) * r * 0.9 + 40;
+      p[i*3+2] = d[2] * r;
+    }
+    g.setAttribute('position', new THREE.BufferAttribute(p, 3));
+    scene.add(new THREE.Points(g, new THREE.PointsMaterial({
+      color: 0x9fb4d8, size: 4, sizeAttenuation: true,
+      transparent: true, opacity: 0.75, depthWrite: false,
+      blending: THREE.AdditiveBlending, fog: false
+    })));
+  })();
+
+  /* --- Mặt đất --- */
+  const ground = new THREE.Mesh(
+    new THREE.PlaneGeometry(5000, 5000),
+    new THREE.MeshStandardMaterial({
+      map: makeGroundTexture(),
+      color: 0x8a92a0,
+      roughness: 0.96,
+      metalness: 0.05
+    })
+  );
+  ground.rotation.x = -Math.PI / 2;
+  scene.add(ground);
+
+  /* --- Ánh sáng --- */
+  scene.add(new THREE.HemisphereLight(0x2b3550, 0x090a0e, 0.55));
+  const dirLight = new THREE.DirectionalLight(0x6f86b8, 0.35);
+  dirLight.position.set(-120, 160, 90);
+  scene.add(dirLight);
+
+  /* --- Hệ thống hạt --- */
+  fireSys  = createParticleSystem(1400, THREE.AdditiveBlending);
+  smokeSys = createParticleSystem(6500, THREE.NormalBlending);
+
+  /* --- Lõi sáng --- */
+  core = new THREE.Mesh(
+    new THREE.SphereGeometry(1, 32, 24),
+    new THREE.MeshBasicMaterial({
+      color: 0xfff3d0, transparent: true, opacity: 0,
+      blending: THREE.AdditiveBlending, depthWrite: false, fog: false
+    })
+  );
+  core.position.y = 12;
+  core.visible = false;
+  scene.add(core);
+
+  /* --- Vệt sáng mặt đất --- */
+  glow = new THREE.Mesh(
+    new THREE.PlaneGeometry(2, 2),
+    new THREE.MeshBasicMaterial({
+      map: SPRITE, color: 0xffb257, transparent: true, opacity: 0,
+      blending: THREE.AdditiveBlending, depthWrite: false, fog: false
+    })
+  );
+  glow.rotation.x = -Math.PI / 2;
+  glow.position.y = 0.6;
+  glow.visible = false;
+  scene.add(glow);
+
+  /* --- Vòng xung kích --- */
+  const RING_GEO = new THREE.RingGeometry(0.86, 1.0, 160);
+  for (let i = 0; i < 3; i++) {
+    const m = new THREE.Mesh(RING_GEO, new THREE.MeshBasicMaterial({
+      color: i === 0 ? 0xfff0c8 : (i === 1 ? 0xffb060 : 0xbfd4ff),
+      transparent: true, opacity: 0, side: THREE.DoubleSide,
+      blending: THREE.AdditiveBlending, depthWrite: false, fog: false
+    }));
+    m.rotation.x = -Math.PI / 2;
+    m.position.y = 0.8 + i * 1.5;
+    m.visible = false;
+    scene.add(m);
+    rings.push({
+      mesh: m,
+      delay: i * 0.10,
+      dur:   1.9 + i * 0.8,
+      maxR:  520 - i * 120
+    });
+  }
+
+  clock = new THREE.Clock();
+
+  window.addEventListener('resize', onResize);
+  onResize();
+}
+
+function onResize() {
+  if (!renderer) return;
+  const w = innerWidth, h = innerHeight;
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+  renderer.setSize(w, h);
+
+  const px  = renderer.getPixelRatio();
+  const fov = THREE.MathUtils.degToRad(camera.fov);
+  const scale = (h * px) / (2 * Math.tan(fov / 2));
+
+  fireSys.mat.uniforms.uScale.value  = scale;
+  smokeSys.mat.uniforms.uScale.value = scale;
+}
+
+/* ------------------------------------------------------------
+   HỆ THỐNG HẠT
+------------------------------------------------------------ */
+function spawn(o) {
+  const p = free.pop() || {};
+  p.x = o.x; p.y = o.y; p.z = o.z;
+  p.vx = o.vx; p.vy = o.vy; p.vz = o.vz;
+  p.drag = o.drag;
+  p.g    = o.g || 0;
+  p.delay = o.delay;
+  p.life  = o.life;
+  p.age   = 0;
+  p.size0 = o.size0;
+  p.size1 = o.size1;
+  p.c0 = o.c0;
+  p.c1 = o.c1;
+  p.aMax = o.aMax;
+  p.kind = o.kind;
+  p.sys  = o.sys;
+  live.push(p);
+}
+
+function updateParticles(dt) {
+  fireSys.count = 0;
+  smokeSys.count = 0;
+
+  let w = 0;
+  for (let i = 0; i < live.length; i++) {
+    const p = live[i];
+    p.age += dt;
+
+    if (p.age > p.delay + p.life) { free.push(p); continue; }
+    live[w++] = p;
+
+    let alpha = 0, size = p.size0;
+    let cr = p.c0[0], cg = p.c0[1], cb = p.c0[2];
+
+    if (p.age >= p.delay) {
+      const u = clamp((p.age - p.delay) / p.life, 0, 1);
+
+      p.vy += p.g * dt;
+      const damp = Math.exp(-p.drag * dt);
+      p.vx *= damp; p.vy *= damp; p.vz *= damp;
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      p.z += p.vz * dt;
+
+      if (p.y < 0.4 && p.vy < 0) {
+        p.y = 0.4;
+        p.vy *= -0.15;
+        p.vx *= 0.90;
+        p.vz *= 0.90;
+      }
+
+      size = lerp(p.size0, p.size1, u);
+      cr = lerp(p.c0[0], p.c1[0], u);
+      cg = lerp(p.c0[1], p.c1[1], u);
+      cb = lerp(p.c0[2], p.c1[2], u);
+
+      if (p.kind === 0) {
+        alpha = smoothstep(0, 0.05, u) * Math.pow(1 - u, 1.6) * p.aMax;
+      } else {
+        alpha = smoothstep(0, 0.12, u) * (1 - smoothstep(0.45, 1.0, u)) * p.aMax;
+      }
+    }
+
+    const sys = p.sys === 0 ? fireSys : smokeSys;
+    const k = sys.count;
+    if (k < sys.max) {
+      sys.pos[k*3]     = p.x;
+      sys.pos[k*3 + 1] = p.y;
+      sys.pos[k*3 + 2] = p.z;
+      sys.col[k*3]     = cr;
+      sys.col[k*3 + 1] = cg;
+      sys.col[k*3 + 2] = cb;
+      sys.siz[k] = size;
+      sys.alp[k] = alpha;
+      sys.count++;
+    }
+  }
+  live.length = w;
+
+  [fireSys, smokeSys].forEach(s => {
+    s.geo.setDrawRange(0, s.count);
+    s.geo.attributes.position.needsUpdate = true;
+    s.geo.attributes.aColor.needsUpdate   = true;
+    s.geo.attributes.aSize.needsUpdate    = true;
+    s.geo.attributes.aAlpha.needsUpdate   = true;
+  });
+}
+
+/* ------------------------------------------------------------
+   HIỆU ỨNG PHỤ
+------------------------------------------------------------ */
+function stemY(t) {
+  const k = clamp(t / 1.9, 0, 1);
+  return 8 + 66 * (1 - Math.pow(1 - k, 1.7));
+}
+
+function updateFX(dt) {
+  if (T < 0) return;
+
+  const u1 = T / 0.50;
+  if (u1 < 1) {
+    core.visible = true;
+    const s = 1 + u1 * 32;
+    core.scale.setScalar(s);
+    core.material.opacity = Math.pow(1 - u1, 1.5);
+  } else core.visible = false;
+
+  const u2 = T / 1.30;
+  if (u2 < 1) {
+    glow.visible = true;
+    const s = 40 + u2 * 460;
+    glow.scale.set(s, s, 1);
+    glow.material.opacity = Math.pow(1 - u2, 2.0) * 0.85;
+  } else glow.visible = false;
+
+  for (let i = 0; i < rings.length; i++) {
+    const r = rings[i];
+    const u = (T - r.delay) / r.dur;
+    if (u > 0 && u < 1) {
+      r.mesh.visible = true;
+      const s = r.maxR * (1 - Math.pow(1 - u, 3));
+      r.mesh.scale.set(s, s, 1);
+      r.mesh.material.opacity = Math.pow(1 - u, 2.2) * 0.9;
+    } else {
+      r.mesh.visible = false;
+    }
+  }
+}
+
+/* ------------------------------------------------------------
+   ÂM THANH NỔ (WebAudio)
+------------------------------------------------------------ */
+let audioCtx = null;
+function playBoom() {
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const ctx = audioCtx;
+    const t0 = ctx.currentTime;
+
+    const len = Math.floor(ctx.sampleRate * 2.6);
+    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.6);
+    }
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+
+    const lp = ctx.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.setValueAtTime(1400, t0);
+    lp.frequency.exponentialRampToValueAtTime(70, t0 + 2.4);
+
+    const g1 = ctx.createGain();
+    g1.gain.setValueAtTime(0.55, t0);
+    g1.gain.exponentialRampToValueAtTime(0.001, t0 + 2.5);
+
+    src.connect(lp).connect(g1).connect(ctx.destination);
+    src.start(t0);
+
+    const osc = ctx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(72, t0);
+    osc.frequency.exponentialRampToValueAtTime(18, t0 + 2.2);
+
+    const g2 = ctx.createGain();
+    g2.gain.setValueAtTime(0.0001, t0);
+    g2.gain.exponentialRampToValueAtTime(0.75, t0 + 0.05);
+    g2.gain.exponentialRampToValueAtTime(0.0001, t0 + 2.6);
+
+    osc.connect(g2).connect(ctx.destination);
+    osc.start(t0);
+    osc.stop(t0 + 2.7);
+  } catch (e) {}
+}
+
+/* ------------------------------------------------------------
+   KÍCH NỔ
+------------------------------------------------------------ */
+function startExplosion() {
+  if (!initialized) init();
+
+  overlayEl.classList.add('active');
+
+  /* Reset hạt */
+  for (let i = 0; i < live.length; i++) free.push(live[i]);
+  live.length = 0;
+
+  T = 0;
+  shake = 1.0;
+
+  /* Flash trắng */
+  flashEl.style.transition = 'none';
+  flashEl.style.opacity = '0.96';
+  requestAnimationFrame(() => {
+    flashEl.style.transition = 'opacity 1.15s cubic-bezier(.15,.85,.3,1)';
+    flashEl.style.opacity = '0';
+  });
+
+  playBoom();
+
+  /* 1. QUẢ CẦU LỬA */
+  for (let i = 0; i < 350; i++) {
+    const d  = randDir();
+    const sp = rand(10, 55);
+    spawn({
+      x: d[0] * rand(0, 5), y: rand(3, 12), z: d[2] * rand(0, 5),
+      vx: d[0] * sp, vy: d[1] * sp * 0.75 + rand(8, 26), vz: d[2] * sp,
+      drag: rand(1.6, 2.9), g: rand(12, 30),
+      delay: rand(0, 0.10), life: rand(0.9, 1.9),
+      size0: rand(8, 22), size1: rand(26, 55),
+      c0: [1.00, 0.97, 0.86], c1: [0.95, 0.22, 0.02],
+      aMax: 1, kind: 0, sys: 0
+    });
+  }
+
+  /* 2. THÂN NẤM */
+  for (let i = 0; i < 600; i++) {
+    const ang = Math.random() * Math.PI * 2;
+    const r   = Math.pow(Math.random(), 0.6) * 9;
+    spawn({
+      x: Math.cos(ang) * r, y: rand(0, 8), z: Math.sin(ang) * r,
+      vx: Math.cos(ang) * rand(1, 5), vy: rand(20, 38), vz: Math.sin(ang) * rand(1, 5),
+      drag: rand(0.55, 0.90), g: rand(5, 11),
+      delay: rand(0.02, 1.0), life: rand(5.5, 9),
+      size0: rand(9, 18), size1: rand(38, 70),
+      c0: [1.00, 0.66, 0.30], c1: [0.40, 0.39, 0.42],
+      aMax: rand(0.22, 0.42), kind: 1, sys: 1
+    });
+  }
+
+  /* 3. CHÙM MÂY NẤM */
+  for (let i = 0; i < 1100; i++) {
+    const d     = randDir();
+    const delay = rand(0.45, 2.30);
+    const y0    = stemY(delay);
+    const sp    = rand(12, 34);
+    spawn({
+      x: rand(-6, 6), y: y0 + rand(-5, 5), z: rand(-6, 6),
+      vx: d[0] * sp, vy: d[1] * sp * 0.5 + rand(6, 20), vz: d[2] * sp,
+      drag: rand(0.60, 0.95), g: rand(3, 8),
+      delay, life: rand(6, 10),
+      size0: rand(12, 24), size1: rand(48, 92),
+      c0: [1.00, 0.72, 0.38], c1: [0.42, 0.41, 0.45],
+      aMax: rand(0.18, 0.38), kind: 1, sys: 1
+    });
+  }
+
+  /* 4. MẢNH VỠ / TIA LỬA */
+  for (let i = 0; i < 220; i++) {
+    const d  = randDir();
+    const sp = rand(25, 75);
+    spawn({
+      x: d[0] * 3, y: rand(3, 16), z: d[2] * 3,
+      vx: d[0] * sp, vy: Math.abs(d[1]) * sp * 0.6 + rand(15, 35), vz: d[2] * sp,
+      drag: rand(0.7, 1.1), g: -48,
+      delay: 0, life: rand(2.0, 4.5),
+      size0: rand(1.5, 4), size1: rand(0.5, 1.5),
+      c0: [1.00, 0.92, 0.65], c1: [1.00, 0.30, 0.05],
+      aMax: 1, kind: 0, sys: 0
+    });
+  }
+
+  /* 5. BỤI ĐẤT LAN RA */
+  for (let i = 0; i < 600; i++) {
+    const ang = Math.random() * Math.PI * 2;
+    const r   = rand(4, 45);
+    const sp  = rand(28, 80) * (1 - r / 70);
+    spawn({
+      x: Math.cos(ang) * r, y: rand(0.5, 9), z: Math.sin(ang) * r,
+      vx: Math.cos(ang) * sp, vy: rand(1, 10), vz: Math.sin(ang) * sp,
+      drag: rand(0.70, 1.10), g: rand(0.5, 3),
+      delay: rand(0.03, 0.45), life: rand(3.5, 7),
+      size0: rand(8, 16), size1: rand(34, 68),
+      c0: [0.85, 0.70, 0.48], c1: [0.28, 0.27, 0.30],
+      aMax: rand(0.15, 0.32), kind: 1, sys: 1
+    });
+  }
+
+  /* Khởi động vòng lặp */
+  if (!running) {
+    running = true;
+    if (clock) clock.getDelta();
+    animate();
+  }
+}
+
+function stopExplosion() {
+  running = false;
+  overlayEl.classList.remove('active');
+}
+
+/* ------------------------------------------------------------
+   VÒNG LẶP RENDER
+------------------------------------------------------------ */
+function animate() {
+  if (!running) return;
+  requestAnimationFrame(animate);
+
+  const dt = Math.min(clock.getDelta(), 0.05);
+  if (T >= 0) T += dt;
+
+  updateParticles(dt);
+  updateFX(dt);
+
+  if (shake > 0.002) {
+    const amp = shake * 9;
+    camera.position.set(
+      CAM_POS.x + (Math.random() - 0.5) * amp,
+      CAM_POS.y + (Math.random() - 0.5) * amp,
+      CAM_POS.z + (Math.random() - 0.5) * amp * 0.5
+    );
+    shake *= Math.pow(0.14, dt);
+  } else {
+    shake = 0;
+    camera.position.lerp(CAM_POS, 1 - Math.pow(0.02, dt));
+  }
+  camera.lookAt(CAM_LOOK);
+
+  renderer.render(scene, camera);
+
+  /* Tự động ẩn sau ~9.5 giây */
+  if (T > 9.5) stopExplosion();
+}
+
+/* ------------------------------------------------------------
+   EXPORT RA NGOÀI CHO SCRIPT CHÍNH GỌI
+------------------------------------------------------------ */
+window.startNukeExplosion = startExplosion;
+window.stopNukeExplosion  = stopExplosion;
+</script>
+
 </body>
 </html>
