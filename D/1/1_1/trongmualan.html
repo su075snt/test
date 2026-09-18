@@ -31,7 +31,7 @@
     align-items: center;
     -webkit-justify-content: center;
     justify-content: center;
-    padding: 10px 56px 10px 10px;
+    padding: 10px 56px 10px 66px;
     background:
       radial-gradient(80% 60% at 50% 0%, #3a0a0a 0%, transparent 60%),
       radial-gradient(70% 60% at 50% 110%, #4a1010 0%, transparent 55%),
@@ -52,9 +52,9 @@
     align-items: center;
     -webkit-justify-content: center;
     justify-content: center;
-    width: 98vw;
+    width: 100%;
     max-width: 640px;
-    margin-bottom: 14px;
+    margin-bottom: 12px;
   }
 
   .drum-wrap {
@@ -140,6 +140,7 @@
     filter: brightness(1.5) saturate(1.4) drop-shadow(0 0 26px rgba(255,80,80,.9));
   }
 
+  /* ============ ĐIỀU KHIỂN — THANH KÉO ĐỘ NGÂN VANG ============ */
   .controls {
     display: -webkit-box;
     display: -webkit-flex;
@@ -150,59 +151,95 @@
     justify-content: center;
   }
 
-  .bpm-box {
+  .sustain-box {
     display: -webkit-box;
     display: -webkit-flex;
     display: flex;
-    -webkit-align-items: center;
-    align-items: center;
-    padding: 8px 12px 8px 14px;
-    border-radius: 999px;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    -webkit-align-items: stretch;
+    align-items: stretch;
+    padding: 8px 16px 10px;
+    border-radius: 14px;
     background: linear-gradient(180deg, #1a0808, #100404);
     border: 1px solid #3a0c08;
     box-shadow: inset 0 1px 0 rgba(255,184,0,.08);
+    min-width: 210px;
   }
 
-  .bpm-adj {
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
-    border: 1px solid #5a1810;
-    background: linear-gradient(180deg, #2a0c08, #150404);
-    color: #ffb800;
-    font: inherit;
-    font-size: 20px;
-    font-weight: 900;
-    line-height: 1;
+  .sustain-top {
     display: -webkit-box;
     display: -webkit-flex;
     display: flex;
-    -webkit-align-items: center;
-    align-items: center;
-    -webkit-justify-content: center;
-    justify-content: center;
-    cursor: pointer;
-    -webkit-transition: transform .08s, border-color .15s;
-    transition: transform .08s, border-color .15s;
-    touch-action: manipulation;
-    padding-bottom: 2px;
-  }
-  .bpm-adj:active {
-    -webkit-transform: scale(.9);
-    transform: scale(.9);
-    border-color: #ffb800;
+    -webkit-justify-content: space-between;
+    justify-content: space-between;
+    -webkit-align-items: baseline;
+    align-items: baseline;
+    margin-bottom: 6px;
   }
 
-  .bpm-val {
-    min-width: 3.6ch;
-    text-align: center;
-    margin: 0 7px;
-    font-size: 20px;
-    font-size: clamp(17px, 4.4vw, 21px);
+  .sustain-lbl {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .14em;
+    color: #ffb800;
+    opacity: .85;
+    text-transform: uppercase;
+  }
+
+  .sustain-val {
+    font-size: 13px;
     font-weight: 900;
-    font-variant-numeric: tabular-nums;
     color: #ffe066;
-    letter-spacing: .02em;
+    font-variant-numeric: tabular-nums;
+    margin-left: 12px;
+  }
+
+  .sustain-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 8px;
+    border-radius: 4px;
+    background: linear-gradient(90deg, #3a0c08 0%, #6a1810 50%, #ffb800 100%);
+    outline: none;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+
+  .sustain-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #fff2b0 0%, #ffb800 45%, #c1121f 100%);
+    border: 1px solid #ffd60a;
+    box-shadow: 0 0 12px rgba(255,184,0,.85),
+                inset 0 1px 0 rgba(255,255,255,.6);
+    cursor: pointer;
+    margin-top: -8px;
+  }
+  .sustain-slider::-webkit-slider-runnable-track {
+    height: 8px;
+    border-radius: 4px;
+    background: linear-gradient(90deg, #3a0c08 0%, #6a1810 50%, #ffb800 100%);
+  }
+  .sustain-slider::-moz-range-thumb {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #fff2b0 0%, #ffb800 45%, #c1121f 100%);
+    border: 1px solid #ffd60a;
+    box-shadow: 0 0 12px rgba(255,184,0,.85);
+    cursor: pointer;
+  }
+  .sustain-slider::-moz-range-track {
+    height: 8px;
+    border-radius: 4px;
+    background: linear-gradient(90deg, #3a0c08 0%, #6a1810 50%, #ffb800 100%);
   }
 
   /* ============ 10 NÚT NHẠC BÊN PHẢI ============ */
@@ -256,6 +293,87 @@
     color: #1a0808;
     border-color: #ffd60a;
     box-shadow: 0 0 14px rgba(255,184,0,.75), inset 0 1px 0 rgba(255,255,255,.5);
+  }
+
+  /* ============ 2 NÚT TỰ ĐÁNH BÊN TRÁI ============ */
+  .auto-bar {
+    position: fixed;
+    left: 6px;
+    top: 50%;
+    -webkit-transform: translateY(-50%);
+    transform: translateY(-50%);
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    -webkit-align-items: center;
+    align-items: center;
+    z-index: 50;
+  }
+
+  .auto-btn {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-justify-content: center;
+    justify-content: center;
+    width: 52px;
+    height: 52px;
+    margin-bottom: 10px;
+    border-radius: 12px;
+    border: 1px solid #5a1810;
+    background: linear-gradient(180deg, #2a0c08, #150404);
+    color: #ffb800;
+    font: inherit;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    padding: 4px 2px;
+    text-align: center;
+    -webkit-transition: background .15s, color .15s, box-shadow .15s, transform .08s;
+    transition: background .15s, color .15s, box-shadow .15s, transform .08s;
+    box-shadow: inset 0 1px 0 rgba(255,184,0,.08);
+  }
+  .auto-btn:last-child { margin-bottom: 0; }
+  .auto-btn:active { -webkit-transform: scale(.92); transform: scale(.92); }
+
+  .auto-btn .auto-num {
+    display: block;
+    font-size: 17px;
+    font-weight: 900;
+    line-height: 1;
+    margin-bottom: 2px;
+  }
+
+  .auto-btn .auto-lbl {
+    display: block;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: .02em;
+    line-height: 1;
+    opacity: .85;
+  }
+
+  .auto-btn.playing {
+    background: linear-gradient(180deg, #ffb800, #c1121f);
+    color: #1a0808;
+    border-color: #ffd60a;
+    box-shadow: 0 0 14px rgba(255,184,0,.8), inset 0 1px 0 rgba(255,255,255,.5);
+    -webkit-animation: autoPulse 0.6s ease infinite alternate;
+    animation: autoPulse 0.6s ease infinite alternate;
+  }
+  @-webkit-keyframes autoPulse {
+    from { box-shadow: 0 0 10px rgba(255,184,0,.55), inset 0 1px 0 rgba(255,255,255,.5); }
+    to   { box-shadow: 0 0 22px rgba(255,184,0,.95), inset 0 1px 0 rgba(255,255,255,.6); }
+  }
+  @keyframes autoPulse {
+    from { box-shadow: 0 0 10px rgba(255,184,0,.55), inset 0 1px 0 rgba(255,255,255,.5); }
+    to   { box-shadow: 0 0 22px rgba(255,184,0,.95), inset 0 1px 0 rgba(255,255,255,.6); }
   }
 
   /* iPad standalone → trống to hơn 50% */
@@ -395,12 +513,28 @@
 
   </div>
 
+  <!-- ============ ĐIỀU KHIỂN — ĐỘ NGÂN VANG ============ -->
   <div class="controls">
-    <div class="bpm-box">
-      <button class="bpm-adj" id="bpmDown" aria-label="Giảm nhịp">−</button>
-      <span class="bpm-val" id="bpmVal">100</span>
-      <button class="bpm-adj" id="bpmUp" aria-label="Tăng nhịp">+</button>
+    <div class="sustain-box">
+      <div class="sustain-top">
+        <span class="sustain-lbl">Độ ngân vang</span>
+        <span class="sustain-val" id="sustainVal">×1.0</span>
+      </div>
+      <input type="range" class="sustain-slider" id="sustainSlider"
+             min="40" max="250" value="100" step="5">
     </div>
+  </div>
+
+  <!-- ============ 2 NÚT TỰ ĐÁNH BÊN TRÁI ============ -->
+  <div class="auto-bar" id="autoBar">
+    <button class="auto-btn" data-mode="1">
+      <span class="auto-num">1</span>
+      <span class="auto-lbl">CHÈNG</span>
+    </button>
+    <button class="auto-btn" data-mode="2">
+      <span class="auto-num">2</span>
+      <span class="auto-lbl">BÈNG</span>
+    </button>
   </div>
 
   <!-- ============ 10 NÚT NHẠC BÊN PHẢI ============ -->
@@ -436,18 +570,14 @@
     if (el.classList) el.classList.remove(cls);
     else el.className = el.className.replace(new RegExp('(^|\\s)' + cls + '(\\s|$)', 'g'), ' ').replace(/^\s+|\s+$/g, '');
   }
-  function toggleClass(el, cls, on) {
-    if (on) addClass(el, cls); else removeClass(el, cls);
-  }
 
-  /* Gắn sự kiện "tap" chạy được trên mọi iOS (kể cả iOS 9) */
   function addTap(el, fn) {
     var lastTouch = 0;
     function wrap(e) {
       if (e.type === 'touchstart') {
         lastTouch = Date.now();
       } else if (e.type === 'mousedown' && Date.now() - lastTouch < 600) {
-        return; /* bỏ qua mousedown giả sau touchstart */
+        return;
       }
       if (e.cancelable) e.preventDefault();
       fn(e);
@@ -461,7 +591,7 @@
   }
 
   /* ==========================================================
-     UNLOCK AUDIO iOS (phát 1 WAV im lặng để mở kênh media)
+     UNLOCK AUDIO iOS
      ========================================================== */
   var mediaUnlocked = false;
   var SILENT_WAV = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=';
@@ -481,6 +611,16 @@
      AUDIO ENGINE
      ========================================================== */
   var actx = null, master = null, noiseBuf = null;
+
+  /* ---------- HỆ SỐ NGÂN VANG ---------- */
+  var sustainFactor = 1.0;   /* 0.40 .. 2.50 */
+  /* sd(x) = thời gian decay đã nhân hệ số ngân vang */
+  function sd(base) {
+    var v = base * sustainFactor;
+    if (v < 0.05) v = 0.05;
+    if (v > 8.0)  v = 8.0;
+    return v;
+  }
 
   function initAudio() {
     if (actx) {
@@ -526,62 +666,70 @@
     return s;
   }
 
-  /* Hàm ramp an toàn — một số WebAudio cũ không nhận giá trị 0 */
   function expRamp(param, val, t) {
     if (val < 0.0001) val = 0.0001;
     param.exponentialRampToValueAtTime(val, t);
   }
 
-  /* ---------- TÙNG ---------- */
+  /* ---------- TÙNG — ngân vang dài (chịu ảnh hưởng mạnh của slider) ---------- */
   function soundTung(t, vel) {
     vel = vel == null ? 1 : vel;
 
+    /* Lớp 1 — SUB BASS */
+    var subDecay = Math.max(0.5, sd(1.6));
     var sub = actx.createOscillator();
     var subG = actx.createGain();
     sub.type = "sine";
     sub.frequency.setValueAtTime(58, t);
-    expRamp(sub.frequency, 32, t + 0.35);
+    sub.frequency.exponentialRampToValueAtTime(32, t + 0.35);
     subG.gain.setValueAtTime(0.0001, t);
     expRamp(subG.gain, 1.05 * vel, t + 0.01);
     expRamp(subG.gain, 0.5 * vel, t + 0.4);
-    expRamp(subG.gain, 0.001, t + 1.6);
+    expRamp(subG.gain, 0.001, t + subDecay);
     sub.connect(subG); subG.connect(master);
-    sub.start(t); sub.stop(t + 1.65);
+    sub.start(t); sub.stop(t + subDecay + 0.05);
 
+    /* Lớp 2 — BASS CHÍNH (thân trống) */
+    var bodyDecay = Math.max(0.45, sd(1.15));
     var body = actx.createOscillator();
     var bodyG = actx.createGain();
     body.type = "sine";
     body.frequency.setValueAtTime(115, t);
-    expRamp(body.frequency, 62, t + 0.22);
+    body.frequency.exponentialRampToValueAtTime(62, t + 0.22);
     bodyG.gain.setValueAtTime(0.0001, t);
     expRamp(bodyG.gain, 0.98 * vel, t + 0.006);
     expRamp(bodyG.gain, 0.55 * vel, t + 0.35);
-    expRamp(bodyG.gain, 0.001, t + 1.15);
+    expRamp(bodyG.gain, 0.001, t + bodyDecay);
     body.connect(bodyG); bodyG.connect(master);
-    body.start(t); body.stop(t + 1.2);
+    body.start(t); body.stop(t + bodyDecay + 0.05);
 
+    /* Lớp 3 — HÀI BẬC 2 */
+    var h2Decay = Math.max(0.25, sd(0.7));
     var harm2 = actx.createOscillator();
     var harm2G = actx.createGain();
     harm2.type = "sine";
     harm2.frequency.setValueAtTime(230, t);
-    expRamp(harm2.frequency, 128, t + 0.18);
+    harm2.frequency.exponentialRampToValueAtTime(128, t + 0.18);
     harm2G.gain.setValueAtTime(0.0001, t);
     expRamp(harm2G.gain, 0.42 * vel, t + 0.005);
-    expRamp(harm2G.gain, 0.001, t + 0.7);
+    expRamp(harm2G.gain, 0.001, t + h2Decay);
     harm2.connect(harm2G); harm2G.connect(master);
-    harm2.start(t); harm2.stop(t + 0.75);
+    harm2.start(t); harm2.stop(t + h2Decay + 0.05);
 
+    /* Lớp 4 — HÀI BẬC 3 */
+    var h3Decay = Math.max(0.18, sd(0.32));
     var harm3 = actx.createOscillator();
     var harm3G = actx.createGain();
     harm3.type = "triangle";
     harm3.frequency.setValueAtTime(345, t);
-    expRamp(harm3.frequency, 195, t + 0.11);
+    harm3.frequency.exponentialRampToValueAtTime(195, t + 0.11);
     harm3G.gain.setValueAtTime(0.0001, t);
     expRamp(harm3G.gain, 0.20 * vel, t + 0.004);
-    expRamp(harm3G.gain, 0.001, t + 0.32);
+    expRamp(harm3G.gain, 0.001, t + h3Decay);
     harm3.connect(harm3G); harm3G.connect(master);
-    harm3.start(t); harm3.stop(t + 0.35);
+    harm3.start(t); harm3.stop(t + h3Decay + 0.05);
 
+    /* Lớp 5 — CÚ ĐẬP CỦA DÙI (attack ngắn — không ngân) */
     var hitNoise = noiseSource();
     var hitHp = actx.createBiquadFilter();
     hitHp.type = "highpass"; hitHp.frequency.value = 180;
@@ -592,74 +740,81 @@
     expRamp(hitG.gain, 0.001, t + 0.032);
     hitNoise.connect(hitHp); hitHp.connect(hitLp);
     hitLp.connect(hitG); hitG.connect(master);
-    hitNoise.start(t); hitNoise.stop(t + 0.045);
+    hitNoise.start(t); hitNoise.stop(t + 0.05);
 
+    /* Lớp 6 — VANG RUNG CỦA MẶT DA */
+    var resDecay = Math.max(0.6, sd(1.9));
     var resonance = actx.createOscillator();
     var resonanceG = actx.createGain();
     var resLfo = actx.createOscillator();
     var resLfoG = actx.createGain();
     resonance.type = "sine";
     resonance.frequency.setValueAtTime(78, t);
-    expRamp(resonance.frequency, 58, t + 0.9);
+    resonance.frequency.exponentialRampToValueAtTime(58, t + 0.9);
     resLfo.type = "sine";
     resLfo.frequency.value = 4.5;
     resLfoG.gain.value = 2.5;
     resLfo.connect(resLfoG); resLfoG.connect(resonance.frequency);
     resonanceG.gain.setValueAtTime(0.0001, t);
     expRamp(resonanceG.gain, 0.32 * vel, t + 0.05);
-    expRamp(resonanceG.gain, 0.001, t + 1.9);
+    expRamp(resonanceG.gain, 0.001, t + resDecay);
     resonance.connect(resonanceG); resonanceG.connect(master);
-    resonance.start(t); resonance.stop(t + 1.95);
-    resLfo.start(t); resLfo.stop(t + 1.95);
+    resonance.start(t); resonance.stop(t + resDecay + 0.05);
+    resLfo.start(t); resLfo.stop(t + resDecay + 0.05);
 
+    /* Lớp 7 — SUB TAIL (đuôi trầm dài) */
+    var tailDecay = Math.max(0.8, sd(2.4));
     var tailSub = actx.createOscillator();
     var tailSubG = actx.createGain();
     tailSub.type = "sine";
     tailSub.frequency.setValueAtTime(48, t);
-    expRamp(tailSub.frequency, 30, t + 1.4);
+    tailSub.frequency.exponentialRampToValueAtTime(30, t + 1.4);
     tailSubG.gain.setValueAtTime(0.0001, t);
     expRamp(tailSubG.gain, 0.28 * vel, t + 0.08);
-    expRamp(tailSubG.gain, 0.001, t + 2.4);
+    expRamp(tailSubG.gain, 0.001, t + tailDecay);
     tailSub.connect(tailSubG); tailSubG.connect(master);
-    tailSub.start(t); tailSub.stop(t + 2.45);
+    tailSub.start(t); tailSub.stop(t + tailDecay + 0.05);
   }
 
-  /* ---------- CỐC CỐC ---------- */
+  /* ---------- CỐC CỐC (attack ngắn — ít ngân) ---------- */
   function soundCat(t, vel) {
     vel = vel == null ? 1 : vel;
 
+    var d1 = Math.max(0.06, sd(0.13));
     var o = actx.createOscillator();
     var og = actx.createGain();
     o.type = "sine";
     o.frequency.setValueAtTime(880, t);
-    expRamp(o.frequency, 600, t + 0.022);
+    o.frequency.exponentialRampToValueAtTime(600, t + 0.022);
     og.gain.setValueAtTime(0.0001, t);
     expRamp(og.gain, 0.78 * vel, t + 0.003);
-    expRamp(og.gain, 0.001, t + 0.13);
+    expRamp(og.gain, 0.001, t + d1);
     o.connect(og); og.connect(master);
-    o.start(t); o.stop(t + 0.15);
+    o.start(t); o.stop(t + d1 + 0.02);
 
+    var d2 = Math.max(0.05, sd(0.085));
     var o2 = actx.createOscillator();
     var og2 = actx.createGain();
     o2.type = "sine";
     o2.frequency.setValueAtTime(1620, t);
-    expRamp(o2.frequency, 1120, t + 0.016);
+    o2.frequency.exponentialRampToValueAtTime(1120, t + 0.016);
     og2.gain.setValueAtTime(0.0001, t);
     expRamp(og2.gain, 0.36 * vel, t + 0.002);
-    expRamp(og2.gain, 0.001, t + 0.085);
+    expRamp(og2.gain, 0.001, t + d2);
     o2.connect(og2); og2.connect(master);
-    o2.start(t); o2.stop(t + 0.1);
+    o2.start(t); o2.stop(t + d2 + 0.02);
 
+    var d3 = Math.max(0.04, sd(0.05));
     var o3 = actx.createOscillator();
     var og3 = actx.createGain();
     o3.type = "sine";
     o3.frequency.setValueAtTime(2450, t);
-    expRamp(o3.frequency, 1900, t + 0.012);
+    o3.frequency.exponentialRampToValueAtTime(1900, t + 0.012);
     og3.gain.setValueAtTime(0.0001, t);
     expRamp(og3.gain, 0.14 * vel, t + 0.002);
-    expRamp(og3.gain, 0.001, t + 0.05);
+    expRamp(og3.gain, 0.001, t + d3);
     o3.connect(og3); og3.connect(master);
-    o3.start(t); o3.stop(t + 0.06);
+    o3.start(t); o3.stop(t + d3 + 0.02);
 
     var n = noiseSource();
     var bp = actx.createBiquadFilter();
@@ -671,16 +826,16 @@
     n.start(t); n.stop(t + 0.04);
   }
 
-  /* ---------- BÈNG (nắp nồi inox) ---------- */
+  /* ---------- BÈNG (nắp nồi inox — wash/tail ngân dài) ---------- */
   function soundBeng(t, vel) {
     vel = vel == null ? 1 : vel;
 
-    /* Lớp 1 — cú đập "cắc" */
+    /* Lớp 1 — CÚ ĐẬP "CẮC" (attack ngắn) */
     var clash = noiseSource();
     var clashHp = actx.createBiquadFilter();
-    clashHp.type = "highpass"; clashHp.frequency.value = 8000;    /* sửa: < Nyquist */
+    clashHp.type = "highpass"; clashHp.frequency.value = 8000;
     var clashBp = actx.createBiquadFilter();
-    clashBp.type = "bandpass"; clashBp.frequency.value = 12000;   /* sửa: < Nyquist */
+    clashBp.type = "bandpass"; clashBp.frequency.value = 12000;
     clashBp.Q.value = 0.55;
     var clashG = actx.createGain();
     clashG.gain.setValueAtTime(0.0001, t);
@@ -690,7 +845,7 @@
     clashBp.connect(clashG); clashG.connect(master);
     clash.start(t); clash.stop(t + 0.055);
 
-    /* Lớp 2 — click inox */
+    /* Lớp 2 — CLICK INOX */
     var click = noiseSource();
     var clickBp = actx.createBiquadFilter();
     clickBp.type = "bandpass"; clickBp.frequency.value = 9800; clickBp.Q.value = 3.5;
@@ -704,7 +859,7 @@
     clickHp.connect(clickG); clickG.connect(master);
     click.start(t); click.stop(t + 0.09);
 
-    /* Lớp 3 — hài inox (đã hạ tần số cao nhất ≤ 18000) */
+    /* Lớp 3 — 14 HÀI INOX (hơi chịu ảnh hưởng của slider) */
     var partials = [
       [780,  0.32, 1.1, "sine"],
       [1240, 0.30, 1.05, "sine"],
@@ -722,12 +877,13 @@
       [19500, 0.10, 0.35, "square"]
     ];
     for (var i = 0; i < partials.length; i++) {
-      var f = partials[i][0], a = partials[i][1], dd = partials[i][2], wave = partials[i][3];
+      var f = partials[i][0], a = partials[i][1], dd = sd(partials[i][2]), wave = partials[i][3];
+      if (dd < 0.15) dd = 0.15;
       var po = actx.createOscillator();
       var pog = actx.createGain();
       po.type = wave;
       po.frequency.setValueAtTime(f, t);
-      expRamp(po.frequency, f * 0.955, t + dd);
+      po.frequency.exponentialRampToValueAtTime(f * 0.955, t + dd);
       pog.gain.setValueAtTime(0.0001, t);
       expRamp(pog.gain, a * vel, t + 0.0012);
       expRamp(pog.gain, 0.0001, t + dd);
@@ -735,7 +891,8 @@
       po.start(t); po.stop(t + dd + 0.05);
     }
 
-    /* Lớp 4 — flutter */
+    /* Lớp 4 — FLUTTER (rung lăn tăn) */
+    var fl1 = Math.max(0.3, sd(1.1));
     [3800, 3838].forEach(function (f) {
       var o = actx.createOscillator();
       var og = actx.createGain();
@@ -743,10 +900,11 @@
       o.frequency.setValueAtTime(f, t);
       og.gain.setValueAtTime(0.0001, t);
       expRamp(og.gain, 0.18 * vel, t + 0.003);
-      expRamp(og.gain, 0.0001, t + 1.1);
+      expRamp(og.gain, 0.0001, t + fl1);
       o.connect(og); og.connect(master);
-      o.start(t); o.stop(t + 1.15);
+      o.start(t); o.stop(t + fl1 + 0.05);
     });
+    var fl2 = Math.max(0.25, sd(0.9));
     [8600, 8650].forEach(function (f) {
       var o = actx.createOscillator();
       var og = actx.createGain();
@@ -754,12 +912,13 @@
       o.frequency.setValueAtTime(f, t);
       og.gain.setValueAtTime(0.0001, t);
       expRamp(og.gain, 0.15 * vel, t + 0.003);
-      expRamp(og.gain, 0.0001, t + 0.9);
+      expRamp(og.gain, 0.0001, t + fl2);
       o.connect(og); og.connect(master);
-      o.start(t); o.stop(t + 0.95);
+      o.start(t); o.stop(t + fl2 + 0.05);
     });
 
-    /* Lớp 5 — vibrato inox */
+    /* Lớp 5 — VIBRATO INOX */
+    var vibDecay = Math.max(0.4, sd(1.2));
     var vib = actx.createOscillator();
     var vibG = actx.createGain();
     var lfo = actx.createOscillator();
@@ -772,12 +931,13 @@
     lfo.connect(lfoG); lfoG.connect(vib.frequency);
     vibG.gain.setValueAtTime(0.0001, t);
     expRamp(vibG.gain, 0.14 * vel, t + 0.004);
-    expRamp(vibG.gain, 0.0001, t + 1.2);
+    expRamp(vibG.gain, 0.0001, t + vibDecay);
     vib.connect(vibG); vibG.connect(master);
-    vib.start(t); vib.stop(t + 1.25);
-    lfo.start(t); lfo.stop(t + 1.25);
+    vib.start(t); vib.stop(t + vibDecay + 0.05);
+    lfo.start(t); lfo.stop(t + vibDecay + 0.05);
 
-    /* Lớp 6 — wash */
+    /* Lớp 6 — WASH "XÈÈÈNG" (ngân vang chính của bèng) */
+    var washDecay = Math.max(0.5, sd(1.4));
     var wash = noiseSource();
     var washHp = actx.createBiquadFilter();
     washHp.type = "highpass"; washHp.frequency.value = 8000;
@@ -786,12 +946,13 @@
     var washG = actx.createGain();
     washG.gain.setValueAtTime(0.0001, t);
     expRamp(washG.gain, 0.62 * vel, t + 0.004);
-    expRamp(washG.gain, 0.001, t + 1.4);
+    expRamp(washG.gain, 0.001, t + washDecay);
     wash.connect(washHp); washHp.connect(washBp);
     washBp.connect(washG); washG.connect(master);
-    wash.start(t); wash.stop(t + 1.45);
+    wash.start(t); wash.stop(t + washDecay + 0.05);
 
-    /* Lớp 7 — đuôi tít siêu cao */
+    /* Lớp 7 — ĐUÔI "TÍT" SIÊU CAO */
+    var tailDecay = Math.max(0.4, sd(1.0));
     var tail = noiseSource();
     var tailHp = actx.createBiquadFilter();
     tailHp.type = "highpass"; tailHp.frequency.value = 12000;
@@ -800,22 +961,23 @@
     var tailG = actx.createGain();
     tailG.gain.setValueAtTime(0.0001, t);
     expRamp(tailG.gain, 0.28 * vel, t + 0.007);
-    expRamp(tailG.gain, 0.001, t + 1.0);
+    expRamp(tailG.gain, 0.001, t + tailDecay);
     tail.connect(tailHp); tailHp.connect(tailBp);
     tailBp.connect(tailG); tailG.connect(master);
-    tail.start(t); tail.stop(t + 1.05);
+    tail.start(t); tail.stop(t + tailDecay + 0.05);
 
-    /* Lớp 8 — ring the thé */
+    /* Lớp 8 — RING "TÍT TÍT" */
+    var ringDecay = Math.max(0.4, sd(1.0));
     var ring = actx.createOscillator();
     var ringG = actx.createGain();
     ring.type = "sine";
     ring.frequency.setValueAtTime(17500, t);
-    expRamp(ring.frequency, 16200, t + 0.9);
+    ring.frequency.exponentialRampToValueAtTime(16200, t + Math.min(0.9, ringDecay * 0.9));
     ringG.gain.setValueAtTime(0.0001, t);
     expRamp(ringG.gain, 0.12 * vel, t + 0.005);
-    expRamp(ringG.gain, 0.0001, t + 1.0);
+    expRamp(ringG.gain, 0.0001, t + ringDecay);
     ring.connect(ringG); ringG.connect(master);
-    ring.start(t); ring.stop(t + 1.05);
+    ring.start(t); ring.stop(t + ringDecay + 0.05);
   }
 
   /* ==========================================================
@@ -826,23 +988,25 @@
   var zoneCenter = document.getElementById("zoneCenter");
   var chengL     = document.getElementById("chengLeft");
   var chengR     = document.getElementById("chengRight");
-  var bpmVal     = document.getElementById("bpmVal");
-  var bpmUp      = document.getElementById("bpmUp");
-  var bpmDown    = document.getElementById("bpmDown");
   var drumWrap   = document.querySelector(".drum-wrap");
   var cymWraps   = document.querySelectorAll(".cymbal-wrap");
 
-  var bpm = 100;
-  bpmVal.textContent = bpm;
+  var sustainSlider = document.getElementById("sustainSlider");
+  var sustainVal    = document.getElementById("sustainVal");
 
   /* ==========================================================
-     LAYOUT: tính kích thước bằng JS → tương thích iOS cũ
+     LAYOUT
      ========================================================== */
   function layout() {
     var W = window.innerWidth;
     var H = window.innerHeight;
-    var drumSize = Math.min(W * 0.78, H * 0.56, 420);
-    var cymSize  = Math.min(W * 0.22, H * 0.15, 110);
+    var availW = W - 66 - 56 - 10;
+    var availH = H - 150;
+    var drumSize = Math.min(availW / 1.55, availH * 0.95, 420);
+    if (drumSize < 140) drumSize = 140;
+    var cymSize = drumSize * 0.28;
+    if (cymSize < 50) cymSize = 50;
+
     if (drumWrap) {
       drumWrap.style.width  = drumSize + 'px';
       drumWrap.style.height = drumSize + 'px';
@@ -857,6 +1021,27 @@
   window.addEventListener('orientationchange', function () {
     setTimeout(layout, 200);
   });
+
+  /* ==========================================================
+     SUSTAIN SLIDER — chỉnh độ ngân vang
+     ========================================================== */
+  function applySustain(val) {
+    sustainFactor = val / 100;
+    if (sustainFactor < 0.4) sustainFactor = 0.4;
+    if (sustainFactor > 2.5) sustainFactor = 2.5;
+    sustainVal.textContent = "×" + sustainFactor.toFixed(1);
+  }
+  function onSustainChange() {
+    var v = parseInt(sustainSlider.value, 10);
+    if (isNaN(v)) v = 100;
+    applySustain(v);
+  }
+  sustainSlider.addEventListener("input", onSustainChange);
+  sustainSlider.addEventListener("change", onSustainChange);
+  /* iOS cũ đôi khi chỉ bắn touchmove/touchend */
+  sustainSlider.addEventListener("touchmove", onSustainChange, { passive: true });
+  sustainSlider.addEventListener("touchend", onSustainChange, { passive: true });
+  onSustainChange();
 
   /* ==========================================================
      HIT LOGIC
@@ -907,15 +1092,18 @@
     else setTimeout(function(){ step(Date.now()); }, 16);
   }
 
+  function pulseCymbal(el) {
+    if (!el) return;
+    removeClass(el, "hit");
+    void el.getBoundingClientRect();
+    addClass(el, "hit");
+    clearTimeout(el._t);
+    el._t = setTimeout(function () { removeClass(el, "hit"); }, 240);
+  }
+
   function pulseCymbals() {
-    [chengL, chengR].forEach(function (el) {
-      if (!el) return;
-      removeClass(el, "hit");
-      void el.getBoundingClientRect();
-      addClass(el, "hit");
-      clearTimeout(el._t);
-      el._t = setTimeout(function () { removeClass(el, "hit"); }, 240);
-    });
+    pulseCymbal(chengL);
+    pulseCymbal(chengR);
   }
 
   function playHit(kind, vel) {
@@ -927,7 +1115,7 @@
       if (kind === "tung")       soundTung(t, vel);
       else if (kind === "cat")   soundCat(t, vel);
       else                       soundBeng(t, vel);
-    } catch (e) { /* ignore */ }
+    } catch (e) {}
 
     if (kind === "tung" || kind === "cat") {
       pulseZone(kind);
@@ -938,7 +1126,7 @@
   }
 
   /* ==========================================================
-     ZONE RESOLUTION (fallback cho iOS cũ không có closest)
+     ZONE RESOLUTION
      ========================================================== */
   function resolveDrumZone(target) {
     var el = target;
@@ -980,17 +1168,89 @@
   });
 
   /* ==========================================================
-     BPM
+     AUTO-PLAY — nhịp cố định 100 BPM
+     Mode 1: 1 CHÈNG → xen kẽ trái/phải
+     Mode 2: 2 BÈNG  → 2 cái liên tiếp vào cả 2 chèng
      ========================================================== */
-  function changeBpm(delta) {
-    bpm = Math.max(50, Math.min(180, bpm + delta));
-    bpmVal.textContent = bpm;
+  var AUTO_BPM = 100;
+
+  var autos = {
+    1: { active: false, timer: null, secondTimer: null, side: "left" },
+    2: { active: false, timer: null, secondTimer: null }
+  };
+
+  function playAutoHit(vel, side) {
+    unlockMedia();
+    initAudio();
+    if (!actx) return;
+    var t = actx.currentTime + 0.001;
+    try { soundBeng(t, vel); } catch (e) {}
+
+    if (side === "left")       pulseCymbal(chengL);
+    else if (side === "right") pulseCymbal(chengR);
+    else                       pulseCymbals();
   }
-  bpmUp.addEventListener("click", function () { changeBpm(5); });
-  bpmDown.addEventListener("click", function () { changeBpm(-5); });
+
+  function autoTick(mode) {
+    var st = autos[mode];
+    if (!st.active) return;
+
+    if (mode === 1) {
+      playAutoHit(1, st.side);
+      st.side = (st.side === "left") ? "right" : "left";
+    } else {
+      playAutoHit(1, "both");
+      var gap = (60000 / AUTO_BPM) * 0.30;
+      st.secondTimer = setTimeout(function () {
+        if (st.active) playAutoHit(0.82, "both");
+      }, gap);
+    }
+
+    st.timer = setTimeout(function () { autoTick(mode); }, 60000 / AUTO_BPM);
+  }
+
+  function startAuto(mode) {
+    var st = autos[mode];
+    if (!st || st.active) return;
+    st.active = true;
+    if (mode === 1) st.side = "left";
+    updateAutoUI();
+    autoTick(mode);
+  }
+
+  function stopAuto(mode) {
+    var st = autos[mode];
+    if (!st) return;
+    st.active = false;
+    if (st.timer)       { clearTimeout(st.timer); st.timer = null; }
+    if (st.secondTimer) { clearTimeout(st.secondTimer); st.secondTimer = null; }
+    updateAutoUI();
+  }
+
+  function toggleAuto(mode) {
+    if (autos[mode].active) stopAuto(mode);
+    else                    startAuto(mode);
+  }
+
+  function updateAutoUI() {
+    var btns = document.querySelectorAll(".auto-btn");
+    for (var i = 0; i < btns.length; i++) {
+      var m = parseInt(btns[i].getAttribute("data-mode"), 10);
+      if (autos[m] && autos[m].active) addClass(btns[i], "playing");
+      else                             removeClass(btns[i], "playing");
+    }
+  }
+
+  var autoBtns = document.querySelectorAll(".auto-btn");
+  for (var ai = 0; ai < autoBtns.length; ai++) {
+    (function (btn) {
+      var mode = parseInt(btn.getAttribute("data-mode"), 10);
+      addTap(btn, function () { toggleAuto(mode); });
+    })(autoBtns[ai]);
+  }
 
   /* ==========================================================
-     10 NÚT NHẠC — PHÁT MP3
+     10 NÚT NHẠC
      ========================================================== */
   var songEls = {};
   var currentSong = null;
@@ -1009,7 +1269,7 @@
     for (var i = 0; i < btns.length; i++) {
       var num = parseInt(btns[i].getAttribute("data-song"), 10);
       if (num === playingN) addClass(btns[i], "playing");
-      else removeClass(btns[i], "playing");
+      else                  removeClass(btns[i], "playing");
     }
   }
 
@@ -1030,29 +1290,22 @@
     var el = songEls[num];
     if (!el) return;
 
-    /* Nếu đang phát chính bài này → tạm dừng */
     if (currentSong === num && !el.paused) {
       try { el.pause(); } catch (e) {}
       updateSongUI(null);
       return;
     }
 
-    /* Dừng các bài khác */
     stopAllSongs(num);
-
     try { el.currentTime = 0; } catch (e) {}
     var p = el.play();
     if (p && p.catch) {
-      p.catch(function (err) {
-        /* Thử lại một lần sau tương tác — một số iPad cũ cần vậy */
-        console.warn("play() failed:", err);
-      });
+      p.catch(function (err) { console.warn("play() failed:", err); });
     }
     currentSong = num;
     updateSongUI(num);
   }
 
-  /* Khi bài phát xong → bỏ trạng thái "playing" */
   Object.keys(songEls).forEach(function (k) {
     var num = parseInt(k, 10);
     songEls[k].addEventListener("ended", function () {
@@ -1061,18 +1314,13 @@
         updateSongUI(null);
       }
     });
-    songEls[k].addEventListener("pause", function () {
-      /* Nếu pause vì hết bài → UI đã xử lý trong 'ended' */
-    });
   });
 
   var songBtns = document.querySelectorAll(".song-btn");
   for (var b = 0; b < songBtns.length; b++) {
     (function (btn) {
       var num = parseInt(btn.getAttribute("data-song"), 10);
-      addTap(btn, function () {
-        toggleSong(num);
-      });
+      addTap(btn, function () { toggleSong(num); });
     })(songBtns[b]);
   }
 
