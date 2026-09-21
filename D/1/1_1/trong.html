@@ -40,6 +40,30 @@
             z-index: 100; display: none; font-family: 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
             max-width: 45vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .pattern-title.show { display: block; }
+
+        /* ===== NUMBER PAD (T01.mp3 - T20.mp3) ===== */
+        .number-pad { position: fixed;
+            top: calc(max(15px, env(safe-area-inset-top)) + 58px);
+            right: max(15px, env(safe-area-inset-right));
+            display: grid; grid-template-columns: repeat(5, auto); gap: 6px;
+            z-index: 100; }
+        .num-btn { width: clamp(30px, 7.5vw, 42px); height: clamp(30px, 7.5vw, 42px);
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.3); color: white; padding: 0;
+            font-size: clamp(11px, 2.8vw, 14px); font-weight: 900;
+            border-radius: 10px; cursor: pointer; transition: all 0.15s ease;
+            font-family: 'Nunito', 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif; }
+        .num-btn:hover { background: rgba(255,255,255,0.3); }
+        .num-btn:active { transform: scale(0.92); }
+        .num-btn.playing { background: linear-gradient(135deg, #2ecc71, #27ae60);
+            border-color: #27ae60; box-shadow: 0 0 14px rgba(46,204,113,0.8); transform: scale(1.05); }
+        @media (orientation: portrait) and (max-width: 480px) {
+            .number-pad { gap: 4px; }
+            .num-btn { width: 30px; height: 30px; font-size: 11px; border-radius: 8px; }
+        }
+
         .song-panel { position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.8); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
             z-index: 300; display: none; justify-content: center; align-items: center;
@@ -149,6 +173,10 @@
         <button class="stop-btn" id="stopBtn">⏹ 停止</button>
         <button class="mode-btn" id="modeBtn">🥁 練習</button>
     </div>
+
+    <!-- ===== NUMBER PAD 1-20 (T01.mp3 - T20.mp3) ===== -->
+    <div class="number-pad" id="numberPad"></div>
+
     <button class="back-btn" id="backBtn">← 選ぶ</button>
     <div class="pattern-title" id="patternTitle"></div>
     <div class="song-panel" id="songPanel">
@@ -526,6 +554,7 @@
         const stopBtn = document.getElementById('stopBtn');
         const patternTitle = document.getElementById('patternTitle');
         const tabBar = document.getElementById('tabBar');
+        const numberPad = document.getElementById('numberPad');
 
         let audioCtx = null;
         const padElements = {};
@@ -662,6 +691,72 @@
             playAt(659.25, t + 0.15, 0.2);
             playAt(783.99, t + 0.3, 0.2);
             playAt(1046.50, t + 0.45, 0.6);
+        }
+
+        // ============ MP3 NUMBER PAD (T01.mp3 - T20.mp3) ============
+        let currentMp3Audio = null;
+        let currentMp3Btn = null;
+
+        function stopMp3() {
+            if (currentMp3Audio) {
+                try { currentMp3Audio.pause(); currentMp3Audio.currentTime = 0; } catch (e) {}
+                currentMp3Audio = null;
+            }
+            if (currentMp3Btn) {
+                currentMp3Btn.classList.remove('playing');
+                currentMp3Btn = null;
+            }
+        }
+
+        function playMp3(num, btn) {
+            stopMp3();
+            const fileName = 'T' + String(num).padStart(2, '0') + '.mp3';
+            const audio = new Audio(fileName);
+            audio.preload = 'auto';
+            currentMp3Audio = audio;
+            currentMp3Btn = btn;
+            btn.classList.add('playing');
+            audio.addEventListener('ended', () => {
+                if (currentMp3Audio === audio) {
+                    btn.classList.remove('playing');
+                    currentMp3Audio = null;
+                    currentMp3Btn = null;
+                }
+            });
+            audio.addEventListener('error', () => {
+                console.warn('ファイルが見つかりません: ' + fileName);
+                if (currentMp3Audio === audio) {
+                    btn.classList.remove('playing');
+                    currentMp3Audio = null;
+                    currentMp3Btn = null;
+                }
+            });
+            audio.play().catch(err => {
+                console.warn('再生できません: ' + fileName, err);
+                btn.classList.remove('playing');
+                if (currentMp3Audio === audio) { currentMp3Audio = null; currentMp3Btn = null; }
+            });
+        }
+
+        function buildNumberPad() {
+            for (let i = 1; i <= 20; i++) {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.classList.add('num-btn');
+                btn.textContent = i;
+                btn.dataset.num = i;
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    // Nếu đang phát chính nút này -> dừng lại
+                    if (currentMp3Btn === btn && currentMp3Audio) {
+                        stopMp3();
+                    } else {
+                        playMp3(i, btn);
+                    }
+                });
+                numberPad.appendChild(btn);
+            }
         }
 
         // ============ BUILD DRUM KIT ============
@@ -974,6 +1069,7 @@
         window.onload = () => {
             initDrumKit();
             buildAllLists();
+            buildNumberPad();
             document.body.addEventListener('touchstart', initAudio, { once: true });
             document.body.addEventListener('mousedown', initAudio, { once: true });
         };
