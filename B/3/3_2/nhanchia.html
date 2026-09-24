@@ -95,7 +95,7 @@ body{
   justify-content:center;
   overflow:hidden;
   background:var(--bg);
-  padding: 26px 10px 0;
+  padding: 20px 8px 0;
 }
 
 .hint{
@@ -211,19 +211,21 @@ body.dragging .pgrid .cell.droppable.over{
 }
 
 /* =================================================================
-   わりざん
+   わりざん ★ 画面 の 向き に あわせて 自動 サイズ ちょうせい
    ================================================================= */
 .division-board{
   position: relative;
   display: inline-block;
-  font-size: clamp(1.8rem, 5.2vh, 3.2rem);
-  --cell-w: 1.35em;
-  --cell-h: 1.35em;
-  --gap-w: 14px;
-  --v-extend-top: 14px;
-  --v-extend-bottom: 22px;
-  --h-extend-right: 22px;
-  padding: var(--v-extend-top) calc(var(--h-extend-right) + 8px) var(--v-extend-bottom) 0;
+  /* 基準 の フォント サイズ。JS で 上書き され る */
+  font-size: clamp(0.85rem, min(4vw, 5vh), 2.6rem);
+  --cell-w: 1.2em;
+  --cell-h: 1.2em;
+  --gap-w: 12px;
+  --v-extend-top: 12px;
+  --v-extend-bottom: 20px;
+  --h-extend-right: 20px;
+  padding: var(--v-extend-top) calc(var(--h-extend-right) + 6px) var(--v-extend-bottom) 0;
+  max-width: 100%;
 }
 
 .db-cells{
@@ -253,8 +255,9 @@ body.dragging .pgrid .cell.droppable.over{
   -webkit-user-select: none;
   touch-action: none;
   position: relative;
-  padding: 0 2px;
+  padding: 0 1px;
   line-height: 1;
+  overflow: hidden;
 }
 .db-cell.given{ color: var(--ink); }
 .db-cell.droppable{ cursor: default; }
@@ -281,7 +284,7 @@ body.dragging .db-cell.droppable.over{
   left: calc(var(--lc) * var(--cell-w));
   top: var(--cell-h);
   width: calc(var(--rc) * var(--cell-w) + var(--h-extend-right));
-  height: 7px;
+  height: 6px;
   background: var(--pen-blue);
   border-radius: 6px;
   pointer-events: none;
@@ -301,6 +304,8 @@ body.dragging .db-cell.droppable.over{
   outline: 2px solid #f59e0b; outline-offset: -2px;
 }
 
+/* ================================================================= */
+
 #ink{
   position:absolute;inset:0;width:100%;height:100%;
   touch-action:none;z-index:2;
@@ -314,7 +319,6 @@ body.started #ink{opacity:1;pointer-events:auto}
   overflow:hidden;
 }
 
-/* ---- 右20%：パレット ---- */
 .palette{
   flex: 0 0 20%;
   max-width: 20%;
@@ -549,7 +553,7 @@ body.started .check-btn{display:flex}
 }
 
 /* =================================================================
-   ★ 放射状 すうじ ピッカー（ながおし で まわり に 0〜9）
+   ★ 放射状 すうじ ピッカー
    ================================================================= */
 .radial-menu{
   position: fixed;
@@ -560,7 +564,6 @@ body.started .check-btn{display:flex}
 }
 .radial-menu.open{ display: block; }
 
-/* うすい かげ（まんなか を めだたせる） */
 .radial-menu.open::before{
   content:'';
   position:absolute;
@@ -609,7 +612,6 @@ body.started .check-btn{display:flex}
   box-shadow: 0 8px 22px rgba(22,163,74,.55);
 }
 
-/* まんなか の ヒント（いま の すうじ） */
 .radial-center{
   position: absolute;
   width: 44px; height: 44px;
@@ -712,7 +714,6 @@ body.started .check-btn{display:flex}
 
 <div class="toast" id="toast"></div>
 
-<!-- ★ 放射状 ピッカー -->
 <div class="radial-menu" id="radialMenu"></div>
 
 <script>
@@ -898,6 +899,7 @@ function renderMultiplicationGrid(a, b){
   }
 
   pgrid.className = 'pgrid';
+  pgrid.style.fontSize = '';
   pgrid.style.setProperty('--n', cols);
   pgrid.innerHTML = html;
   problemEl.classList.remove('division');
@@ -913,7 +915,7 @@ function renderDivisionGrid(a, b){
   const nc = dividendStr.length;
   const dc = divisorStr.length;
 
-  const leftCols  = Math.max(nc + 3, 6);
+  const leftCols  = Math.max(nc + 2, 5);
   const rightCols = Math.max(dc + 2, 4);
   const rows = 4;
   const divOffset = rightCols - dc;
@@ -946,9 +948,53 @@ function renderDivisionGrid(a, b){
   }
 
   pgrid.className = 'division-board';
+  pgrid.style.fontSize = '';
   pgrid.innerHTML = `<div class="db-cells" style="--lc:${leftCols};--rc:${rightCols};--rows:${rows};">${html}</div>`;
   problemEl.classList.add('division');
   problemEl.style.fontSize = '';
+
+  // ★ レイアウト ご に 自動 サイズ ちょうせい
+  requestAnimationFrame(() => fitDivisionBoard());
+}
+
+/* ★ わりざん ボード が きゃく に おさまる よう に font-size を ちょうせい */
+function fitDivisionBoard(){
+  if (S.op !== '÷') return;
+
+  const dbCells = pgrid.querySelector('.db-cells');
+  if (!dbCells) return;
+
+  // グリッド の れつ すう を よみとる
+  const lc = parseInt(dbCells.style.getPropertyValue('--lc'), 10) || 6;
+  const rc = parseInt(dbCells.style.getPropertyValue('--rc'), 10) || 4;
+  const rows = parseInt(dbCells.style.getPropertyValue('--rows'), 10) || 4;
+
+  // いちど リセット して から はかる
+  pgrid.style.fontSize = '';
+
+  // きゃく の ない ぶ の はば ・ たか さ
+  const areaW = problemArea.clientWidth - 20;
+  const areaH = problemArea.clientHeight - 60;
+
+  // こてい ぴくせる： よこ せん よう gap 12 + ボード の みぎ ぱ で ぃ ん ぐ 20+6 + border 2
+  const fixedW = 12 + 26 + 2;
+  // たて： うえ ぱ で ぃ ん ぐ 12 + した 20 + border 2
+  const fixedH = 12 + 20 + 2;
+
+  // セル はば は 1.2em。 em は font-size に ひれい
+  const cellEm = 1.2;
+
+  // はば から の せいげん
+  const fsW = (areaW - fixedW) / ((lc + rc) * cellEm);
+  // たか さ から の せいげん
+  const fsH = (areaH - fixedH) / (rows * cellEm);
+
+  let fs = Math.min(fsW, fsH);
+  // じょうげん ・ かげん
+  fs = Math.min(fs, 56);
+  fs = Math.max(fs, 13);
+
+  pgrid.style.fontSize = fs + 'px';
 }
 
 function renderProblemGrid(a, b, op){
@@ -1016,27 +1062,23 @@ function setOverCell(cell){
 }
 
 /* =====================================================
-   ★ 放射状 ピッカー
+   放射状 ピッカー
    ===================================================== */
 const radialMenu = $('#radialMenu');
 let radialState = null;
 
 function openRadial(cell, clientX, clientY){
-  // えがお の サイズ から はんけい を きめる
   const W = window.innerWidth, H = window.innerHeight;
-  const PAD = 46; // アイテム はんけい + よはく
+  const PAD = 46;
   let R = 138;
   R = Math.min(R, (W - 2*PAD) / 2, (H - 2*PAD) / 2);
   R = Math.max(R, 92);
 
-  // ちゅうしん を がめん ない に おさめる
   const cx = Math.max(R + PAD, Math.min(W - R - PAD, clientX));
   const cy = Math.max(R + PAD, Math.min(H - R - PAD, clientY));
 
-  // そうじ
   radialMenu.innerHTML = '';
 
-  // ちゅうしん に いま の あたい
   const curStr = (cell.textContent || '').trim();
   const curVal = /^[0-9]$/.test(curStr) ? +curStr : -1;
 
@@ -1047,7 +1089,6 @@ function openRadial(cell, clientX, clientY){
   center.textContent = curVal >= 0 ? curStr : '';
   radialMenu.appendChild(center);
 
-  // アイテム を えん じょう に ならべる
   const items = [];
   for (let i = 0; i <= 9; i++){
     const angle = -Math.PI/2 + i * (2*Math.PI/10);
@@ -1083,14 +1124,12 @@ function updateRadial(clientX, clientY){
   const dy = clientY - cy;
   const dist = Math.sqrt(dx*dx + dy*dy);
 
-  // ちゅうしん に ちか すぎる → まだ えらばない
   if (dist < radialState.R * 0.42){
     items.forEach(it => it.el.classList.remove('active'));
     radialState.activeIdx = -1;
     return;
   }
 
-  // いちばん ちかい アイテム を さがす
   let best = -1, bestD = Infinity;
   for (let i = 0; i < items.length; i++){
     const ddx = clientX - items[i].x;
@@ -1121,7 +1160,7 @@ function confirmRadial(){
 }
 
 /* =====================================================
-   ながおし けんしゅつ
+   ながおし
    ===================================================== */
 let lpTimer = null;
 let lpStart = null;
@@ -1150,7 +1189,6 @@ canvas.addEventListener('pointerdown', e=>{
     if (!lpStart) return;
     const cell = findCellAtPoint(lpStart.x, lpStart.y);
     if (cell){
-      // かいた せん を けす
       if (current && strokes[strokes.length-1] === current){
         strokes.pop();
         current = null;
@@ -1162,7 +1200,6 @@ canvas.addEventListener('pointerdown', e=>{
       void cell.offsetWidth;
       cell.classList.add('longpress');
 
-      // ピッカー ひらく
       openRadial(cell, lpStart.x, lpStart.y);
     }
     lpTimer = null;
@@ -1171,7 +1208,6 @@ canvas.addEventListener('pointerdown', e=>{
 });
 
 canvas.addEventListener('pointermove', e=>{
-  // ピッカー が ひらいている とき
   if (radialState){
     e.preventDefault();
     radialState.moved = true;
@@ -1182,7 +1218,6 @@ canvas.addEventListener('pointermove', e=>{
   if (!drawing || !current) return;
   e.preventDefault();
 
-  // ながおし キャンセル
   if (lpStart && lpTimer){
     const dx = e.clientX - lpStart.x, dy = e.clientY - lpStart.y;
     if (dx*dx + dy*dy > 100) cancelLongPress();
@@ -1212,7 +1247,6 @@ function endStroke(){
 canvas.addEventListener('pointerup', e=>{
   if (radialState){
     e.preventDefault();
-    // ちゅうしん から はなれて いれば けってい
     if (radialState.moved){
       confirmRadial();
     } else {
@@ -1526,8 +1560,16 @@ function boot(){
   setTimeout(()=>{ syncNumSize(); fit(); }, 500);
 }
 
-window.addEventListener('resize', ()=> setTimeout(()=>{ syncNumSize(); fit(); }, 80));
-window.addEventListener('orientationchange', ()=> setTimeout(()=>{ syncNumSize(); fit(); }, 250));
+function onResize(){
+  setTimeout(()=>{
+    syncNumSize();
+    fit();
+    fitDivisionBoard();
+  }, 80);
+}
+
+window.addEventListener('resize', onResize);
+window.addEventListener('orientationchange', ()=> setTimeout(onResize, 250));
 
 document.addEventListener('gesturestart', e => e.preventDefault());
 document.addEventListener('touchmove', e => {
