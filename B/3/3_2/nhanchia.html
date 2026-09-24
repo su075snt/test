@@ -22,100 +22,97 @@
 html{height:100%;margin:0}
 body{
   height:100%;margin:0;
-  position:fixed;
-  top:0; left:0; right:0; bottom:0;
-  display:flex;flex-direction:column;
-  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Maru Gothic ProN","Hiragino Sans","Yu Gothic","SF Pro Rounded",sans-serif;
+  position:fixed;top:0;left:0;right:0;bottom:0;
+  display:-webkit-box;display:-webkit-flex;display:flex;
+  -webkit-flex-direction:column;flex-direction:column;
+  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Maru Gothic ProN","Hiragino Sans","Yu Gothic",sans-serif;
   background:var(--bg);color:var(--ink);
-  overflow:hidden;overscroll-behavior:none;
+  overflow:hidden;
   -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
-  padding-top:constant(safe-area-inset-top);
-  padding-top:env(safe-area-inset-top);
-  padding-left:constant(safe-area-inset-left);
-  padding-left:env(safe-area-inset-left);
-  padding-right:constant(safe-area-inset-right);
-  padding-right:env(safe-area-inset-right);
-  padding-bottom:constant(safe-area-inset-bottom);
-  padding-bottom:env(safe-area-inset-bottom);
+  padding-top:constant(safe-area-inset-top);padding-top:env(safe-area-inset-top);
+  padding-left:constant(safe-area-inset-left);padding-left:env(safe-area-inset-left);
+  padding-right:constant(safe-area-inset-right);padding-right:env(safe-area-inset-right);
+  padding-bottom:constant(safe-area-inset-bottom);padding-bottom:env(safe-area-inset-bottom);
 }
 
 .topbar{
-  display:flex;flex-wrap:wrap;align-items:center;
+  display:-webkit-box;display:-webkit-flex;display:flex;
+  -webkit-flex-wrap:wrap;flex-wrap:wrap;
+  -webkit-align-items:center;align-items:center;
   padding:8px 12px;background:var(--card);
   border-bottom:1px solid var(--line);
   box-shadow:0 2px 14px rgba(20,30,60,.06);
   z-index:10;
-  flex-shrink:0;
+  -webkit-flex-shrink:0;flex-shrink:0;
 }
 .topbar > *{ margin-right:8px; margin-bottom:4px; }
 .topbar > *:last-child{ margin-right:0; }
 
-.group{display:flex;align-items:center;background:#eef1f7;border-radius:14px;padding:4px}
+.group{
+  display:-webkit-box;display:-webkit-flex;display:flex;
+  -webkit-align-items:center;align-items:center;
+  background:#eef1f7;border-radius:14px;padding:4px;
+}
 .group > *{ margin-right:3px; }
 .group > *:last-child{ margin-right:0; }
 
 .ops button{
   width:56px;height:44px;border:0;border-radius:10px;background:transparent;
   font-size:26px;font-weight:800;color:#697690;line-height:1;
-  transition:.15s;
 }
 .ops button.on{background:var(--blue);color:#fff;box-shadow:0 3px 10px rgba(59,130,246,.45)}
 
 .picker .lbl{
   font-size:14px;font-weight:800;color:var(--muted);
-  padding:0 6px 0 10px;white-space:nowrap;letter-spacing:.2px;line-height:1.1;
+  padding:0 6px 0 10px;white-space:nowrap;line-height:1.1;
 }
 .picker .lbl small{
   display:block;font-size:10px;font-weight:700;color:#9aa5bc;
-  letter-spacing:.4px;margin-top:1px;
+  margin-top:1px;
 }
 .picker .val{
   min-width:46px;text-align:center;font-size:26px;font-weight:800;
-  font-variant-numeric:tabular-nums;color:var(--ink);line-height:1;
+  color:var(--ink);line-height:1;
 }
 .picker button{
   width:40px;height:40px;border:0;border-radius:11px;background:#fff;
   font-size:21px;font-weight:800;color:#41506e;line-height:1;
   box-shadow:0 1px 3px rgba(20,30,60,.12);
 }
-.picker button:active{background:#dfe6f2}
 
 .start{
   margin-left:auto;height:52px;padding:0 28px;border:0;border-radius:14px;
   background:linear-gradient(180deg,#22c55e,#15a34a);color:#fff;
-  font-size:18px;font-weight:900;letter-spacing:.6px;
+  font-size:18px;font-weight:900;
   box-shadow:0 4px 16px rgba(22,163,74,.38);
 }
-.start:active{transform:translateY(1px)}
 
 .stage{
   position:relative;
-  flex:1;
+  -webkit-box-flex:1;-webkit-flex:1;flex:1;
   min-height:0;
-  display:flex;
+  display:-webkit-box;display:-webkit-flex;display:flex;
   overflow:hidden;
 }
 
 .problem-area{
   position:relative;
-  flex: 0 0 80%;
-  max-width: 80%;
-  min-width:0;
-  height:100%;
-  display:flex;
-  align-items:flex-start;
-  justify-content:center;
-  overflow:hidden;
-  background:var(--bg);
-  padding: 20px 8px 0;
+  -webkit-flex:0 0 80%;flex:0 0 80%;
+  max-width:80%;min-width:0;height:100%;
+  display:-webkit-box;display:-webkit-flex;display:flex;
+  -webkit-align-items:flex-start;align-items:flex-start;
+  -webkit-justify-content:center;justify-content:center;
+  overflow:hidden;background:var(--bg);
+  padding:20px 8px 0;
 }
 
 .hint{
   position:absolute;top:0;left:0;right:0;bottom:0;
-  display:flex;align-items:center;justify-content:center;
+  display:-webkit-box;display:-webkit-flex;display:flex;
+  -webkit-align-items:center;align-items:center;
+  -webkit-justify-content:center;justify-content:center;
   text-align:center;padding:30px;color:var(--muted);
-  font-size:18px; /* fallback */
-  font-size:clamp(15px,1.8vw,20px);
+  font-size:16px;font-size:clamp(15px,1.8vw,20px);
   font-weight:700;line-height:1.8;
   pointer-events:none;
 }
@@ -124,431 +121,206 @@ body.started .hint{display:none}
 
 .problem{
   position:relative;z-index:1;
-  opacity:0;transition:opacity .25s ease;
-  pointer-events:none;
-  padding:0;
-  -webkit-transform: translateX(-0.5em);
-  transform: translateX(-0.5em);
-  font-size:64px; /* fallback for old iOS */
+  opacity:0;
+  -webkit-transition:opacity .25s ease;transition:opacity .25s ease;
+  pointer-events:none;padding:0;
+  -webkit-transform:translateX(-0.5em);transform:translateX(-0.5em);
+  font-size:64px;
 }
-.problem.division{ -webkit-transform: none; transform: none; }
+.problem.division{ -webkit-transform:none;transform:none; }
 body.started .problem{opacity:1}
 
-/* =================================================================
-   かけざん
-   ================================================================= */
+/* ============ かけざん ============ */
 .pgrid{
-  display:grid;
-  grid-template-columns: auto repeat(var(--n, 3), 1.05em);
-  -webkit-justify-content:center;
-  justify-content:center;
-  font-size:64px; /* fallback; JS 上書き */
-  font-weight:400;
-  line-height:1.05;
-  font-variant-numeric:tabular-nums;
-  color:var(--ink);
-  row-gap:0;
+  display:grid;-webkit-display:grid;
+  grid-template-columns: auto repeat(var(--n,3),1.05em);
+  -webkit-justify-content:center;justify-content:center;
+  font-size:64px;font-weight:400;line-height:1.05;color:var(--ink);
 }
 .pgrid .cell{
-  display:flex;align-items:center;justify-content:center;
-  width:1.05em;height:1.05em;
-  border-radius:6px;
-  transition: background .15s, outline .15s, box-shadow .15s, transform .15s;
-  position:relative;
-  pointer-events:none;
+  display:-webkit-box;display:-webkit-flex;display:flex;
+  -webkit-align-items:center;align-items:center;
+  -webkit-justify-content:center;justify-content:center;
+  width:1.05em;height:1.05em;border-radius:6px;
+  position:relative;pointer-events:none;
 }
-.pgrid .cell.sign{
-  color:var(--blue);
-  width:auto;padding-right:.15em;
-  justify-content:flex-end;
-}
-.pgrid .cell.carry{
-  height:.62em;
-  font-size:.5em;
-  color:#ef4444;
-  font-weight:900;
-  align-items:flex-end;
-  padding-bottom:1px;
-  justify-content:flex-end;
-  padding-right:.08em;
-}
-.pgrid .sep{
-  grid-column: 1 / -1;
-  height:.055em;
-  background:var(--ink);
-  border-radius:99px;
-  margin:.14em 0 .14em .2em;
-  opacity:.85;
-}
-.pgrid .cell.answer{ color:#0f5132; }
-.pgrid .cell.answer.partial{ color:#1d4ed8; }
+.pgrid .cell.sign{color:var(--blue);width:auto;padding-right:.15em;-webkit-justify-content:flex-end;justify-content:flex-end;}
+.pgrid .cell.carry{height:.62em;font-size:.5em;color:#ef4444;font-weight:900;-webkit-align-items:flex-end;align-items:flex-end;padding-bottom:1px;-webkit-justify-content:flex-end;justify-content:flex-end;padding-right:.08em;}
+.pgrid .sep{grid-column:1/-1;height:.055em;background:var(--ink);border-radius:99px;margin:.14em 0 .14em .2em;opacity:.85;}
+.pgrid .cell.answer{color:#0f5132;}
+.pgrid .cell.answer.partial{color:#1d4ed8;}
+.pgrid .cell.droppable{background:#ffffff;box-shadow:inset 0 0 0 1.5px var(--cell-line);}
+body.dragging .pgrid .cell.droppable{background:rgba(59,130,246,.12);box-shadow:inset 0 0 0 2px rgba(59,130,246,.55);}
+body.dragging .pgrid .cell.droppable.over{background:rgba(34,197,94,.25);box-shadow:inset 0 0 0 2.5px #22c55e;}
+.pgrid .cell.answer.correct{background:#d9f2e2;color:#0f5132;box-shadow:inset 0 0 0 2px #22c55e;}
+.pgrid .cell.answer.wrong{background:#ffe4e6;color:#be123c;box-shadow:inset 0 0 0 2px #ef4444;}
+.pgrid .cell.answer.missing{background:#fff3c4;color:#b45309;box-shadow:inset 0 0 0 2px #f59e0b;}
 
-.pgrid .cell.droppable{
-  background: #ffffff;
-  box-shadow: inset 0 0 0 1.5px var(--cell-line);
-}
-
-body.dragging .pgrid .cell.droppable{
-  background: rgba(59,130,246,.12);
-  box-shadow: inset 0 0 0 2px rgba(59,130,246,.55);
-}
-body.dragging .pgrid .cell.droppable.over{
-  background: rgba(34,197,94,.25);
-  box-shadow: inset 0 0 0 2.5px #22c55e;
-}
-
-.pgrid .cell.answer.correct{
-  background: #d9f2e2;color:#0f5132;
-  box-shadow: inset 0 0 0 2px #22c55e;
-}
-.pgrid .cell.answer.wrong{
-  background: #ffe4e6;color:#be123c;
-  box-shadow: inset 0 0 0 2px #ef4444;
-}
-.pgrid .cell.answer.missing{
-  background: #fff3c4;color:#b45309;
-  box-shadow: inset 0 0 0 2px #f59e0b;
-}
-
-@-webkit-keyframes cellPulse{
-  0%   { -webkit-transform: scale(1); }
-  40%  { -webkit-transform: scale(1.18); }
-  100% { -webkit-transform: scale(1); }
-}
-@keyframes cellPulse{
-  0%   { transform: scale(1); }
-  40%  { transform: scale(1.18); }
-  100% { transform: scale(1); }
-}
-.pgrid .cell.longpress, .db-cell.longpress{
-  -webkit-animation: cellPulse .35s ease;
-  animation: cellPulse .35s ease;
-}
-
-@-webkit-keyframes cellPop{
-  0%   { -webkit-transform: scale(.6); opacity:.4; }
-  60%  { -webkit-transform: scale(1.18); }
-  100% { -webkit-transform: scale(1); opacity:1; }
-}
-@keyframes cellPop{
-  0%   { transform: scale(.6); opacity:.4; }
-  60%  { transform: scale(1.18); }
-  100% { transform: scale(1); opacity:1; }
-}
-.pgrid .cell.justFilled, .db-cell.justFilled{
-  -webkit-animation: cellPop .38s cubic-bezier(.2,1.5,.5,1);
-  animation: cellPop .38s cubic-bezier(.2,1.5,.5,1);
-}
-
-/* =================================================================
-   わりざん
-   ================================================================= */
+/* ============ わりざん ============ */
 .division-board{
-  position: relative;
-  display: inline-block;
-  font-size: 26px; /* fallback for old iOS */
-  font-size: clamp(0.85rem, 4vw, 2.6rem);
-  --cell-w: 1.2em;
-  --cell-h: 1.2em;
-  --gap-w: 12px;
-  --v-extend-top: 12px;
-  --v-extend-bottom: 20px;
-  --h-extend-right: 20px;
-  padding: var(--v-extend-top) calc(var(--h-extend-right) + 6px) var(--v-extend-bottom) 0;
-  max-width: 100%;
+  position:relative;display:inline-block;
+  font-size:26px;font-size:clamp(0.85rem,4vw,2.6rem);
+  --cell-w:1.2em;--cell-h:1.2em;--gap-w:12px;
+  --v-extend-top:12px;--v-extend-bottom:20px;--h-extend-right:20px;
+  padding:var(--v-extend-top) calc(var(--h-extend-right) + 6px) var(--v-extend-bottom) 0;
+  max-width:100%;
 }
-
 .db-cells{
-  display: grid;
-  -ms-grid-columns: none;
-  grid-template-columns: repeat(var(--lc), var(--cell-w)) var(--gap-w) repeat(var(--rc), var(--cell-w));
-  grid-template-rows: repeat(var(--rows), var(--cell-h));
-  border-left: 1px solid var(--cell-line);
-  border-top: 1px solid var(--cell-line);
-  background: #fff;
-  width: -webkit-max-content;
-  width: max-content;
-  position: relative;
-  z-index: 1;
+  display:grid;-webkit-display:grid;
+  grid-template-columns:repeat(var(--lc),var(--cell-w)) var(--gap-w) repeat(var(--rc),var(--cell-w));
+  grid-template-rows:repeat(var(--rows),var(--cell-h));
+  border-left:1px solid var(--cell-line);
+  border-top:1px solid var(--cell-line);
+  background:#fff;
+  width:-webkit-max-content;width:max-content;
+  position:relative;z-index:1;
 }
-
 .db-cell{
-  border-right: 1px solid var(--cell-line);
-  border-bottom: 1px solid var(--cell-line);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1em;
-  font-weight: 400;
-  color: var(--ink);
-  font-variant-numeric: tabular-nums;
-  background: #fff;
-  -webkit-user-select: none;
-  user-select: none;
-  touch-action: none;
-  position: relative;
-  padding: 0 1px;
-  line-height: 1;
-  overflow: hidden;
+  border-right:1px solid var(--cell-line);
+  border-bottom:1px solid var(--cell-line);
+  display:-webkit-box;display:-webkit-flex;display:flex;
+  -webkit-align-items:center;align-items:center;
+  -webkit-justify-content:center;justify-content:center;
+  font-size:1em;font-weight:400;color:var(--ink);
+  background:#fff;
+  position:relative;padding:0 1px;line-height:1;overflow:hidden;
 }
-.db-cell.given{ color: var(--ink); }
-.db-cell.droppable{ cursor: default; }
-body.dragging .db-cell.droppable{ background: rgba(59,130,246,.08); }
-body.dragging .db-cell.droppable.over{
-  background: rgba(34,197,94,.22);
-  outline: 2px solid #22c55e;
-  outline-offset: -2px;
-}
+.db-cell.droppable{cursor:default;}
+body.dragging .db-cell.droppable{background:rgba(59,130,246,.08);}
+body.dragging .db-cell.droppable.over{background:rgba(34,197,94,.22);outline:2px solid #22c55e;outline-offset:-2px;}
 
-.db-vline{
-  position: absolute;
-  left: calc(var(--lc) * var(--cell-w));
-  top: calc(-1 * var(--v-extend-top));
-  bottom: calc(-1 * var(--v-extend-bottom));
-  width: var(--gap-w);
-  background: var(--pen-blue);
-  border-radius: 6px;
-  pointer-events: none;
-  z-index: 2;
-}
-.db-hline{
-  position: absolute;
-  left: calc(var(--lc) * var(--cell-w));
-  top: var(--cell-h);
-  width: calc(var(--rc) * var(--cell-w) + var(--h-extend-right));
-  height: 6px;
-  background: var(--pen-blue);
-  border-radius: 6px;
-  pointer-events: none;
-  z-index: 2;
-}
+.db-vline{position:absolute;left:calc(var(--lc) * var(--cell-w));top:calc(-1 * var(--v-extend-top));bottom:calc(-1 * var(--v-extend-bottom));width:var(--gap-w);background:var(--pen-blue);border-radius:6px;pointer-events:none;z-index:2;}
+.db-hline{position:absolute;left:calc(var(--lc) * var(--cell-w));top:var(--cell-h);width:calc(var(--rc) * var(--cell-w) + var(--h-extend-right));height:6px;background:var(--pen-blue);border-radius:6px;pointer-events:none;z-index:2;}
 
-.db-cell.checked-correct{
-  background: #d9f2e2 !important; color: #0f5132;
-  outline: 2px solid #22c55e; outline-offset: -2px;
-}
-.db-cell.checked-wrong{
-  background: #ffe4e6 !important; color: #be123c;
-  outline: 2px solid #ef4444; outline-offset: -2px;
-}
-.db-cell.checked-missing{
-  background: #fff3c4 !important; color: #b45309;
-  outline: 2px solid #f59e0b; outline-offset: -2px;
-}
-
-/* ================================================================= */
+.db-cell.checked-correct{background:#d9f2e2 !important;color:#0f5132;outline:2px solid #22c55e;outline-offset:-2px;}
+.db-cell.checked-wrong{background:#ffe4e6 !important;color:#be123c;outline:2px solid #ef4444;outline-offset:-2px;}
+.db-cell.checked-missing{background:#fff3c4 !important;color:#b45309;outline:2px solid #f59e0b;outline-offset:-2px;}
 
 #ink{
   position:absolute;top:0;left:0;right:0;bottom:0;
   width:100%;height:100%;
-  touch-action:none;z-index:2;
-  opacity:0;pointer-events:none;transition:opacity .2s;
+  touch-action:none;-ms-touch-action:none;
+  z-index:2;opacity:0;pointer-events:none;
+  -webkit-transition:opacity .2s;transition:opacity .2s;
 }
 body.started #ink{opacity:1;pointer-events:auto}
 
 .dropped-layer{
   position:absolute;top:0;left:0;right:0;bottom:0;
-  z-index:3;
-  pointer-events:none;
-  overflow:hidden;
+  z-index:3;pointer-events:none;overflow:hidden;
 }
 
 .palette{
-  flex: 0 0 20%;
-  max-width: 20%;
-  min-width:0;
-  height:100%;
+  -webkit-flex:0 0 20%;flex:0 0 20%;
+  max-width:20%;min-width:0;height:100%;
   display:none;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  padding:8px 4px;
-  background:var(--card);
+  -webkit-flex-direction:column;flex-direction:column;
+  -webkit-align-items:center;align-items:center;
+  -webkit-justify-content:center;justify-content:center;
+  padding:8px 4px;background:var(--card);
   border-left:2px solid var(--line);
   box-shadow:-4px 0 16px rgba(20,30,60,.05);
-  overflow-y:auto;
-  overflow-x:hidden;
+  overflow-y:auto;overflow-x:hidden;
   -webkit-overflow-scrolling:touch;
   z-index:5;
 }
-body.started .palette{display:flex}
+body.started .palette{display:-webkit-box;display:-webkit-flex;display:flex}
 
-.num-grid{
-  display:grid;
-  grid-template-columns:repeat(3, 1fr);
-  grid-gap:5px;
-  gap:5px;
-  width:100%;
-  max-width:100%;
-  justify-items:center;
-}
+.num-grid{display:grid;-webkit-display:grid;grid-template-columns:repeat(3,1fr);gap:5px;width:100%;justify-items:center;}
 .pal-btn{
-  width: 50px; /* fallback */
-  height: 50px;
-  width: clamp(30px, 6.5vw, 56px);
-  height: clamp(30px, 6.5vw, 56px);
-  border:0;
-  border-radius:11px;
-  background:#ffffff;
+  width:50px;height:50px;
+  width:clamp(30px,6.5vw,56px);height:clamp(30px,6.5vw,56px);
+  border:0;border-radius:11px;background:#ffffff;
   color:var(--ink);
-  font-size: 24px; /* fallback */
-  font-size: clamp(18px, 3.6vw, 30px);
-  font-weight:400;
-  line-height:1;
-  font-variant-numeric:tabular-nums;
-  display:flex;align-items:center;justify-content:center;
-  box-shadow:0 2px 6px rgba(20,30,60,.12), inset 0 0 0 1px #e2e8f2;
-  touch-action:none;
-  -webkit-user-select:none;user-select:none;
+  font-size:24px;font-size:clamp(18px,3.6vw,30px);
+  font-weight:400;line-height:1;
+  display:-webkit-box;display:-webkit-flex;display:flex;
+  -webkit-align-items:center;align-items:center;
+  -webkit-justify-content:center;justify-content:center;
+  box-shadow:0 2px 6px rgba(20,30,60,.12),inset 0 0 0 1px #e2e8f2;
+  touch-action:none;-ms-touch-action:none;
   cursor:grab;
-  transition:background .12s, transform .12s;
 }
-.pal-btn:active{background:#eef1f7;transform:scale(.95)}
 
-.red-row{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  padding-top:8px;
-  border-top:1.5px dashed #e2e8f2;
-  width:100%;
-  margin-top:8px;
-}
-.red-label{
-  font-size:10px;
-  font-weight:900;
-  color:#dc2626;
-  letter-spacing:.5px;
-  margin-bottom:6px;
-}
-.red-grid{
-  display:grid;
-  grid-template-columns:repeat(3, 1fr);
-  grid-gap:5px;
-  gap:5px;
-  width:100%;
-  justify-items:center;
-}
-.pal-btn.red{
-  background: transparent;
-  box-shadow: none;
-  color:#dc2626;
-  font-weight:900;
-  border:none;
-}
-.pal-btn.red:active{background:transparent;transform:scale(.9)}
+.red-row{display:-webkit-box;display:-webkit-flex;display:flex;-webkit-flex-direction:column;flex-direction:column;-webkit-align-items:center;align-items:center;padding-top:8px;border-top:1.5px dashed #e2e8f2;width:100%;margin-top:8px;}
+.red-label{font-size:10px;font-weight:900;color:#dc2626;margin-bottom:6px;}
+.red-grid{display:grid;-webkit-display:grid;grid-template-columns:repeat(3,1fr);gap:5px;width:100%;justify-items:center;}
+.pal-btn.red{background:transparent;box-shadow:none;color:#dc2626;font-weight:900;border:none;}
 
 .dropped-token{
   position:absolute;
-  -webkit-transform:translate(-50%,-50%);
-  transform:translate(-50%,-50%);
+  -webkit-transform:translate(-50%,-50%);transform:translate(-50%,-50%);
   pointer-events:auto;
-  touch-action:none;
-  -webkit-user-select:none;user-select:none;
-  font-variant-numeric:tabular-nums;
+  touch-action:none;-ms-touch-action:none;
   cursor:grab;
-  background: transparent;
-  border: none;
-  box-shadow: none;
-  color:#dc2626;
-  font-weight:900;
+  background:transparent;border:none;box-shadow:none;
+  color:#dc2626;font-weight:900;
   width:calc(var(--num-size) * .8);
   height:calc(var(--num-size) * .8);
   font-size:calc(var(--num-size) * .68);
-  display:flex;align-items:center;justify-content:center;
+  display:-webkit-box;display:-webkit-flex;display:flex;
+  -webkit-align-items:center;align-items:center;
+  -webkit-justify-content:center;justify-content:center;
   line-height:1;
 }
 .dropped-token.dragging{
   -webkit-transform:translate(-50%,-50%) scale(1.08);
   transform:translate(-50%,-50%) scale(1.08);
   z-index:10;
-  cursor:grabbing;
 }
 
 .del-x{
-  position:absolute;
-  top: -8px;
-  right: -8px;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: #dc2626;
-  color: #fff;
-  font-size: 15px;
-  font-weight: 900;
-  line-height: 1;
-  border: 2px solid #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  box-shadow: 0 2px 6px rgba(220,38,38,.45);
-  cursor: pointer;
-  touch-action: manipulation;
-  pointer-events: auto;
-  z-index: 2;
-}
-.del-x:active{
-  background: #991b1b;
-  transform: scale(.9);
+  position:absolute;top:-8px;right:-8px;
+  width:22px;height:22px;border-radius:50%;
+  background:#dc2626;color:#fff;font-size:15px;font-weight:900;
+  line-height:1;border:2px solid #fff;
+  display:-webkit-box;display:-webkit-flex;display:flex;
+  -webkit-align-items:center;align-items:center;
+  -webkit-justify-content:center;justify-content:center;
+  padding:0;box-shadow:0 2px 6px rgba(220,38,38,.45);
+  touch-action:manipulation;pointer-events:auto;z-index:2;
 }
 
 .ghost-token{
   position:fixed;
-  display:flex;align-items:center;justify-content:center;
-  font-weight:400;line-height:1;
-  color:var(--ink);
-  font-variant-numeric:tabular-nums;
-  z-index:9999;
-  pointer-events:none;
+  display:-webkit-box;display:-webkit-flex;display:flex;
+  -webkit-align-items:center;align-items:center;
+  -webkit-justify-content:center;justify-content:center;
+  font-weight:400;line-height:1;color:var(--ink);
+  z-index:9999;pointer-events:none;
   -webkit-transform:translate(-50%,-50%) scale(1.06);
   transform:translate(-50%,-50%) scale(1.06);
-  opacity:.95;
-  background:rgba(255,255,255,.96);
-  border:2px solid #dbe3ef;
-  border-radius:calc(var(--num-size) * .16);
+  opacity:.95;background:rgba(255,255,255,.96);
+  border:2px solid #dbe3ef;border-radius:calc(var(--num-size) * .16);
   box-shadow:0 14px 34px rgba(20,30,60,.28);
-  width:var(--num-size);
-  height:var(--num-size);
+  width:var(--num-size);height:var(--num-size);
   font-size:var(--num-size);
 }
-.ghost-token.red{
-  color:#dc2626;
-  font-weight:900;
-  background: transparent;
-  border: none;
-  box-shadow: none;
-  width:calc(var(--num-size) * .8);
-  height:calc(var(--num-size) * .8);
-  font-size:calc(var(--num-size) * .68);
-}
+.ghost-token.red{color:#dc2626;font-weight:900;background:transparent;border:none;box-shadow:none;width:calc(var(--num-size) * .8);height:calc(var(--num-size) * .8);font-size:calc(var(--num-size) * .68);}
 
 .floating{
-  position:absolute;
-  z-index:6;
-  left: 40%;
-  -webkit-transform:translateX(-50%);
-  transform:translateX(-50%);
+  position:absolute;z-index:6;
+  left:40%;-webkit-transform:translateX(-50%);transform:translateX(-50%);
   bottom:calc(14px + constant(safe-area-inset-bottom));
   bottom:calc(14px + env(safe-area-inset-bottom));
   display:none;padding:8px;
   background:rgba(255,255,255,.92);
-  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
   border:1px solid var(--line);border-radius:20px;
   box-shadow:0 8px 30px rgba(20,30,60,.18);
 }
-body.started .floating{display:flex}
+body.started .floating{display:-webkit-box;display:-webkit-flex;display:flex}
 .floating button{
   height:58px;min-width:58px;padding:0 16px;border:0;border-radius:15px;background:#eef1f7;
   font-size:16px;font-weight:800;line-height:1;color:#41506e;
-  display:flex;align-items:center;justify-content:center;
+  display:-webkit-box;display:-webkit-flex;display:flex;
+  -webkit-align-items:center;align-items:center;
+  -webkit-justify-content:center;justify-content:center;
   margin-right:10px;
 }
-.floating button:last-child{ margin-right:0; }
-.floating button:active{background:#dfe6f2;transform:scale(.96)}
-.floating .danger{background:#ffe9ec;color:#be123c;font-size:26px;padding:0;width:58px;font-weight:600}
-.floating .undonum{background:#e0f2fe;color:#0369a1;font-size:22px;padding:0;width:58px;font-weight:800}
-.floating .new{font-size:22px;padding:0;width:58px}
+.floating button:last-child{margin-right:0;}
+.floating .danger{background:#ffe9ec;color:#be123c;font-size:26px;padding:0;width:58px;font-weight:600;}
+.floating .undonum{background:#e0f2fe;color:#0369a1;font-size:22px;padding:0;width:58px;font-weight:800;}
+.floating .new{font-size:22px;padding:0;width:58px;}
 
 .check-btn{
   position:fixed;
@@ -556,127 +328,76 @@ body.started .floating{display:flex}
   right:calc(16px + env(safe-area-inset-right));
   bottom:calc(16px + constant(safe-area-inset-bottom));
   bottom:calc(16px + env(safe-area-inset-bottom));
-  width:82px;height:82px;
-  border-radius:50%;
+  width:82px;height:82px;border-radius:50%;
   background:linear-gradient(180deg,#3b82f6,#2563eb);
-  color:#fff;
-  font-size:34px;
-  font-weight:900;
-  line-height:1;
-  border:0;
-  box-shadow:0 8px 24px rgba(37,99,235,.45);
-  z-index:7;
-  display:none;
-  align-items:center;justify-content:center;
-  transition:transform .15s, box-shadow .15s;
+  color:#fff;font-size:34px;font-weight:900;line-height:1;
+  border:0;box-shadow:0 8px 24px rgba(37,99,235,.45);
+  z-index:7;display:none;
+  -webkit-align-items:center;align-items:center;
+  -webkit-justify-content:center;justify-content:center;
 }
-body.started .check-btn{display:flex}
-.check-btn:active{
-  transform:scale(.9);
-  box-shadow:0 4px 14px rgba(37,99,235,.6);
-}
+body.started .check-btn{display:-webkit-box;display:-webkit-flex;display:flex}
 
 .toast{
   position:fixed;
   top:calc(84px + constant(safe-area-inset-top));
   top:calc(84px + env(safe-area-inset-top));
   left:50%;
-  -webkit-transform:translate(-50%,-20px);
-  transform:translate(-50%,-20px);
-  padding:16px 26px;
-  border-radius:18px;
-  font-size:20px;font-weight:900;letter-spacing:.3px;
-  color:#fff;
+  -webkit-transform:translate(-50%,-20px);transform:translate(-50%,-20px);
+  padding:16px 26px;border-radius:18px;
+  font-size:20px;font-weight:900;color:#fff;
   background:linear-gradient(180deg,#22c55e,#16a34a);
   box-shadow:0 10px 30px rgba(22,163,74,.45);
-  z-index:30;
-  opacity:0;pointer-events:none;
-  transition:opacity .25s ease, transform .25s ease;
-  max-width:calc(100% - 40px);
-  text-align:center;
-  white-space:nowrap;
+  z-index:30;opacity:0;pointer-events:none;
+  -webkit-transition:opacity .25s,transform .25s;
+  transition:opacity .25s,transform .25s;
+  max-width:calc(100% - 40px);text-align:center;white-space:nowrap;
 }
-.toast.show{opacity:1;-webkit-transform:translate(-50%,0);transform:translate(-50%,0)}
-.toast.error{
-  background:linear-gradient(180deg,#f87171,#dc2626);
-  box-shadow:0 10px 30px rgba(220,38,38,.45);
-}
+.toast.show{opacity:1;-webkit-transform:translate(-50%,0);transform:translate(-50%,0);}
+.toast.error{background:linear-gradient(180deg,#f87171,#dc2626);box-shadow:0 10px 30px rgba(220,38,38,.45);}
 
-/* ★ 放射状 ピッカー */
-.radial-menu{
-  position: fixed;
-  top:0;left:0;right:0;bottom:0;
-  z-index: 200;
-  display: none;
-  pointer-events: none;
-}
-.radial-menu.open{ display: block; }
-
+/* 放射状 ピッカー */
+.radial-menu{position:fixed;top:0;left:0;right:0;bottom:0;z-index:200;display:none;pointer-events:none;}
+.radial-menu.open{display:block;}
 .radial-menu.open::before{
-  content:'';
-  position:absolute;
-  left: var(--rcx, 50%);
-  top: var(--rcy, 50%);
-  width: 20px; height: 20px;
-  margin: -10px 0 0 -10px;
-  border-radius:50%;
-  background: rgba(59,130,246,.35);
-  box-shadow: 0 0 0 6px rgba(59,130,246,.12);
-  transition: opacity .15s;
+  content:'';position:absolute;
+  left:var(--rcx,50%);top:var(--rcy,50%);
+  width:20px;height:20px;margin:-10px 0 0 -10px;border-radius:50%;
+  background:rgba(59,130,246,.35);
+  box-shadow:0 0 0 6px rgba(59,130,246,.12);
 }
-
 .radial-item{
-  position: absolute;
-  width: 62px; height: 62px;
-  margin-left: -31px; margin-top: -31px;
-  border-radius: 50%;
-  background: #ffffff;
-  border: 3px solid var(--cell-line);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 30px; font-weight: 700;
-  color: var(--ink);
-  font-variant-numeric: tabular-nums;
-  box-shadow: 0 4px 12px rgba(20,30,60,.15);
-  -webkit-transform: scale(.5);
-  transform: scale(.5);
-  opacity: 0;
-  transition: -webkit-transform .22s cubic-bezier(.2,1.4,.5,1), opacity .18s,
-              background .12s, color .12s, border-color .12s, box-shadow .12s;
-  transition: transform .22s cubic-bezier(.2,1.4,.5,1), opacity .18s,
-              background .12s, color .12s, border-color .12s, box-shadow .12s;
+  position:absolute;width:62px;height:62px;
+  margin-left:-31px;margin-top:-31px;border-radius:50%;
+  background:#ffffff;border:3px solid var(--cell-line);
+  display:-webkit-box;display:-webkit-flex;display:flex;
+  -webkit-align-items:center;align-items:center;
+  -webkit-justify-content:center;justify-content:center;
+  font-size:30px;font-weight:700;color:var(--ink);
+  box-shadow:0 4px 12px rgba(20,30,60,.15);
+  -webkit-transform:scale(.5);transform:scale(.5);
+  opacity:0;
+  -webkit-transition:-webkit-transform .22s cubic-bezier(.2,1.4,.5,1),opacity .18s;
+  transition:transform .22s cubic-bezier(.2,1.4,.5,1),opacity .18s;
 }
-.radial-menu.open .radial-item{
-  -webkit-transform: scale(1);
-  transform: scale(1);
-  opacity: 1;
-}
+.radial-menu.open .radial-item{-webkit-transform:scale(1);transform:scale(1);opacity:1;}
 .radial-item.active{
-  background: linear-gradient(180deg,#3b82f6,#2563eb);
-  color: #fff;
-  border-color: #1d4ed8;
-  -webkit-transform: scale(1.22);
-  transform: scale(1.22);
-  box-shadow: 0 8px 22px rgba(37,99,235,.5);
+  background:linear-gradient(180deg,#3b82f6,#2563eb);
+  color:#fff;border-color:#1d4ed8;
+  -webkit-transform:scale(1.22);transform:scale(1.22);
+  box-shadow:0 8px 22px rgba(37,99,235,.5);
 }
-.radial-item.active.current{
-  background: linear-gradient(180deg,#22c55e,#15a34a);
-  border-color: #15803d;
-  box-shadow: 0 8px 22px rgba(22,163,74,.55);
-}
-
+.radial-item.active.current{background:linear-gradient(180deg,#22c55e,#15a34a);border-color:#15803d;box-shadow:0 8px 22px rgba(22,163,74,.55);}
 .radial-center{
-  position: absolute;
-  width: 44px; height: 44px;
-  margin-left: -22px; margin-top: -22px;
-  border-radius: 50%;
-  background: rgba(255,255,255,.95);
-  border: 2px dashed rgba(59,130,246,.5);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 22px; font-weight: 800;
-  color: var(--blue);
-  font-variant-numeric: tabular-nums;
-  pointer-events: none;
-  transition: opacity .15s;
+  position:absolute;width:44px;height:44px;
+  margin-left:-22px;margin-top:-22px;border-radius:50%;
+  background:rgba(255,255,255,.95);
+  border:2px dashed rgba(59,130,246,.5);
+  display:-webkit-box;display:-webkit-flex;display:flex;
+  -webkit-align-items:center;align-items:center;
+  -webkit-justify-content:center;justify-content:center;
+  font-size:22px;font-weight:800;color:var(--blue);
+  pointer-events:none;
 }
 </style>
 </head>
@@ -772,9 +493,150 @@ body.started .check-btn{display:flex}
 (function(){
 'use strict';
 
-var $  = function(s, r){ r = r || document; return r.querySelector(s); };
-var $$ = function(s, r){ r = r || document; return Array.prototype.slice.call(r.querySelectorAll(s)); };
-var rnd = function(a,b){ return Math.floor(Math.random()*(b-a+1))+a; };
+/* =====================================================
+   ★ 古い iOS でも うごく ように Pointer/Touch を 統一
+   ===================================================== */
+var HAS_POINTER = (typeof window.PointerEvent !== 'undefined');
+
+/* マウス ・ タッチ ・ ペン を ひとつ の かたち に そろえる */
+function bindDown(el, cb){
+  if (HAS_POINTER){
+    el.addEventListener('pointerdown', cb);
+  } else {
+    el.addEventListener('touchstart', function(e){
+      if (e.touches.length !== 1) return;
+      var t = e.touches[0];
+      var fake = {
+        clientX: t.clientX, clientY: t.clientY,
+        pointerId: 't' + (t.identifier || 0),
+        pointerType: 'touch',
+        target: e.target,
+        currentTarget: e.currentTarget,
+        preventDefault: function(){ if (e.preventDefault) e.preventDefault(); },
+        stopPropagation: function(){ if (e.stopPropagation) e.stopPropagation(); },
+        _real: e, _isTouch: true
+      };
+      cb(fake);
+    }, {passive: false});
+    el.addEventListener('mousedown', cb);
+  }
+}
+
+function addDocMove(cb){
+  if (HAS_POINTER){
+    document.addEventListener('pointermove', cb, {passive:false});
+  } else {
+    document.addEventListener('touchmove', function(e){
+      if (e.touches.length !== 1) return;
+      var t = e.touches[0];
+      cb({
+        clientX: t.clientX, clientY: t.clientY,
+        pointerId: 't' + (t.identifier || 0),
+        pointerType: 'touch',
+        target: e.target,
+        preventDefault: function(){ if (e.preventDefault) e.preventDefault(); },
+        stopPropagation: function(){ if (e.stopPropagation) e.stopPropagation(); },
+        _real: e, _isTouch: true
+      });
+    }, {passive:false});
+    document.addEventListener('mousemove', cb);
+  }
+}
+
+function addDocUp(cb){
+  if (HAS_POINTER){
+    document.addEventListener('pointerup', cb);
+    document.addEventListener('pointercancel', cb);
+  } else {
+    document.addEventListener('touchend', function(e){
+      var t = (e.changedTouches && e.changedTouches[0]) || {clientX:0,clientY:0,identifier:0};
+      cb({
+        clientX: t.clientX, clientY: t.clientY,
+        pointerId: 't' + (t.identifier || 0),
+        pointerType: 'touch',
+        target: e.target,
+        preventDefault: function(){ if (e.preventDefault) e.preventDefault(); },
+        stopPropagation: function(){ if (e.stopPropagation) e.stopPropagation(); },
+        _real: e, _isTouch: true
+      });
+    });
+    document.addEventListener('touchcancel', function(e){
+      var t = (e.changedTouches && e.changedTouches[0]) || {clientX:0,clientY:0,identifier:0};
+      cb({
+        clientX: t.clientX, clientY: t.clientY,
+        pointerId: 't' + (t.identifier || 0),
+        pointerType: 'touch',
+        target: e.target,
+        preventDefault: function(){ if (e.preventDefault) e.preventDefault(); },
+        stopPropagation: function(){ if (e.stopPropagation) e.stopPropagation(); },
+        _real: e, _isTouch: true
+      });
+    });
+    document.addEventListener('mouseup', cb);
+  }
+}
+
+/* Canvas 内 の タッチ を 追跡 する ため の バインド（キャンバス内 で はなしても 追跡 できる） */
+function bindCanvasMove(cb){
+  if (HAS_POINTER){
+    canvas.addEventListener('pointermove', cb, {passive:false});
+  } else {
+    canvas.addEventListener('touchmove', function(e){
+      if (e.touches.length !== 1) return;
+      var t = e.touches[0];
+      cb({
+        clientX: t.clientX, clientY: t.clientY,
+        pointerId: 't' + (t.identifier || 0),
+        pointerType: 'touch',
+        target: e.target,
+        preventDefault: function(){ if (e.preventDefault) e.preventDefault(); },
+        stopPropagation: function(){ if (e.stopPropagation) e.stopPropagation(); },
+        _real: e, _isTouch: true
+      });
+    }, {passive:false});
+    canvas.addEventListener('mousemove', cb);
+  }
+}
+
+function bindCanvasUp(cb){
+  if (HAS_POINTER){
+    canvas.addEventListener('pointerup', cb);
+    canvas.addEventListener('pointercancel', cb);
+  } else {
+    canvas.addEventListener('touchend', function(e){
+      var t = (e.changedTouches && e.changedTouches[0]) || {clientX:0,clientY:0,identifier:0};
+      cb({
+        clientX: t.clientX, clientY: t.clientY,
+        pointerId: 't' + (t.identifier || 0),
+        pointerType: 'touch',
+        target: e.target,
+        preventDefault: function(){ if (e.preventDefault) e.preventDefault(); },
+        stopPropagation: function(){ if (e.stopPropagation) e.stopPropagation(); },
+        _real: e, _isTouch: true
+      });
+    });
+    canvas.addEventListener('touchcancel', function(e){
+      var t = (e.changedTouches && e.changedTouches[0]) || {clientX:0,clientY:0,identifier:0};
+      cb({
+        clientX: t.clientX, clientY: t.clientY,
+        pointerId: 't' + (t.identifier || 0),
+        pointerType: 'touch',
+        target: e.target,
+        preventDefault: function(){ if (e.preventDefault) e.preventDefault(); },
+        stopPropagation: function(){ if (e.stopPropagation) e.stopPropagation(); },
+        _real: e, _isTouch: true
+      });
+    });
+    canvas.addEventListener('mouseup', cb);
+  }
+}
+
+/* =====================================================
+   きほん ユーティリティ
+   ===================================================== */
+function $(s,r){ r = r || document; return r.querySelector(s); }
+function $$(s,r){ r = r || document; return Array.prototype.slice.call(r.querySelectorAll(s)); }
+function rnd(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
 
 var MIN_DIGITS = 1;
 var MAX_DIGITS = 3;
@@ -792,7 +654,6 @@ var ctx = canvas.getContext('2d');
 var root = document.documentElement;
 var toast = $('#toast');
 
-/* ★ 古い iPad 用 に viewport サイズ を とる */
 function getVP(){
   if (window.visualViewport && window.visualViewport.width){
     return { w: window.visualViewport.width, h: window.visualViewport.height };
@@ -806,7 +667,9 @@ function randomWithDigits(d){
   return rnd(min, max);
 }
 
-/* ===== てがき ===== */
+/* =====================================================
+   てがき
+   ===================================================== */
 var strokes = [], current = null, drawing = false;
 
 function fit(){
@@ -852,7 +715,9 @@ function localPos(e){
   return { x: e.clientX - r.left, y: e.clientY - r.top };
 }
 
-/* ===== UI ===== */
+/* =====================================================
+   UI
+   ===================================================== */
 function render(){
   $('#d1v').textContent = S.d1;
   $('#d2v').textContent = S.d2;
@@ -874,45 +739,29 @@ $$('[data-step]').forEach(function(b){
 });
 
 /* =====================================================
-   ★ フォントサイズ：JS で 直接 px を 計算（古い iOS でも 動く）
+   サイズ ちょうせい
    ===================================================== */
-
-/* かけざん の サイズ を 計算 して 適用 */
 function fitMultiplicationBoard(){
   if (S.op !== '×') return;
-
-  var na = String(S.a).length;
-  var nb = String(S.b).length;
+  var na = String(S.a).length, nb = String(S.b).length;
   var cols = na + nb + 1;
-
-  /* たて の ごうけい（em たんい） */
   var rowsEm = 0.62 + 1.05 + 1.05 + 0.34 + nb * 1.05;
   if (nb > 1) rowsEm += 0.34 + 1.05;
-
-  /* よこ の ごうけい（em たんい） */
-  /* sign れつ (1.05) + cols れつ (1.05 each) */
   var colsEm = (1 + cols) * 1.05;
 
-  /* きゃく の ない ぶ */
   var vp = getVP();
   var areaW = (problemArea.clientWidth || vp.w * 0.8) - 20;
   var areaH = (problemArea.clientHeight || vp.h - 80) - 40;
 
-  var fw = areaW / colsEm;
-  var fh = areaH / rowsEm;
-  var fs = Math.min(fw, fh);
+  var fs = Math.min(areaW / colsEm, areaH / rowsEm);
   fs = Math.max(14, Math.min(fs, 120));
-
   problemEl.style.fontSize = fs + 'px';
 }
 
-/* わりざん の サイズ を 計算 して 適用 */
 function fitDivisionBoard(){
   if (S.op !== '÷') return;
-
   var dbCells = pgrid.querySelector('.db-cells');
   if (!dbCells) return;
-
   var lc = parseInt(dbCells.style.getPropertyValue('--lc'), 10) || 6;
   var rc = parseInt(dbCells.style.getPropertyValue('--rc'), 10) || 4;
   var rows = parseInt(dbCells.style.getPropertyValue('--rows'), 10) || 4;
@@ -921,30 +770,24 @@ function fitDivisionBoard(){
   var areaW = (problemArea.clientWidth || vp.w * 0.8) - 20;
   var areaH = (problemArea.clientHeight || vp.h - 80) - 40;
 
-  /* こてい ぴくせる */
   var fixedW = 12 + 26 + 2;
   var fixedH = 12 + 20 + 2;
-
-  /* セル はば 1.2em */
   var cellEm = 1.2;
 
-  var fsW = (areaW - fixedW) / ((lc + rc) * cellEm);
-  var fsH = (areaH - fixedH) / (rows * cellEm);
-
-  var fs = Math.min(fsW, fsH);
+  var fs = Math.min((areaW - fixedW) / ((lc + rc) * cellEm),
+                    (areaH - fixedH) / (rows * cellEm));
   fs = Math.max(12, Math.min(fs, 60));
-
   pgrid.style.fontSize = fs + 'px';
 }
 
+/* =====================================================
+   かけざん グリッド
+   ===================================================== */
 function renderMultiplicationGrid(a, b){
-  var sa = String(a).split('');
-  var sb = String(b).split('');
+  var sa = String(a).split(''), sb = String(b).split('');
   var na = sa.length, nb = sb.length;
   var cols = na + nb + 1;
-  var offsetA = cols - na;
-  var offsetB = cols - nb;
-
+  var offsetA = cols - na, offsetB = cols - nb;
   var html = '', c, pi;
 
   html += '<div class="cell no-drop"></div>';
@@ -954,15 +797,13 @@ function renderMultiplicationGrid(a, b){
   html += '<div class="cell no-drop"></div>';
   for (c = 0; c < cols; c++){
     var idx = c - offsetA;
-    var d = (idx >= 0 && idx < na) ? sa[idx] : '';
-    html += '<div class="cell digit no-drop" data-col="' + c + '">' + d + '</div>';
+    html += '<div class="cell digit no-drop" data-col="' + c + '">' + ((idx >= 0 && idx < na) ? sa[idx] : '') + '</div>';
   }
 
   html += '<div class="cell sign no-drop">×</div>';
   for (c = 0; c < cols; c++){
     var idx2 = c - offsetB;
-    var d2 = (idx2 >= 0 && idx2 < nb) ? sb[idx2] : '';
-    html += '<div class="cell digit no-drop" data-col="' + c + '">' + d2 + '</div>';
+    html += '<div class="cell digit no-drop" data-col="' + c + '">' + ((idx2 >= 0 && idx2 < nb) ? sb[idx2] : '') + '</div>';
   }
 
   html += '<div class="sep"></div>';
@@ -987,14 +828,12 @@ function renderMultiplicationGrid(a, b){
 
   if (nb > 1){
     html += '<div class="sep"></div>';
-    var finalStr = String(a * b);
-    var finalLen = finalStr.length;
-
+    var finalStr = String(a * b), finalLen = finalStr.length;
     html += '<div class="cell no-drop"></div>';
     for (c = 0; c < cols; c++){
-      var rightOffset2 = cols - 1 - c;
-      if (rightOffset2 < finalLen){
-        var df = finalStr[finalLen - 1 - rightOffset2];
+      var ro2 = cols - 1 - c;
+      if (ro2 < finalLen){
+        var df = finalStr[finalLen - 1 - ro2];
         html += '<div class="cell answer droppable" data-row="f" data-col="' + c + '" data-orig="" data-exp="' + df + '"></div>';
       } else {
         html += '<div class="cell no-drop"></div>';
@@ -1008,20 +847,19 @@ function renderMultiplicationGrid(a, b){
   pgrid.innerHTML = html;
   problemEl.classList.remove('division');
 
-  /* ★ JS で サイズ を 計算 */
   requestAnimationFrame(function(){
     fitMultiplicationBoard();
     syncNumSize();
   });
 }
 
+/* =====================================================
+   わりざん グリッド
+   ===================================================== */
 function renderDivisionGrid(a, b){
-  var dividendStr = String(a);
-  var divisorStr  = String(b);
-  var nc = dividendStr.length;
-  var dc = divisorStr.length;
-
-  var leftCols  = Math.max(nc + 2, 5);
+  var dividendStr = String(a), divisorStr = String(b);
+  var nc = dividendStr.length, dc = divisorStr.length;
+  var leftCols = Math.max(nc + 2, 5);
   var rightCols = Math.max(dc + 2, 4);
   var rows = 4;
   var divOffset = rightCols - dc;
@@ -1038,16 +876,13 @@ function renderDivisionGrid(a, b){
       html += '<div class="' + cls + '" data-row="L' + r + '" data-col="' + c + '" data-orig="' + d + '">' + d + '</div>';
     }
     for (c = 0; c < rightCols; c++){
-      var d2 = '';
-      var isGiven2 = false;
+      var d2 = '', isGiven2 = false;
       if (r === 0 && c >= divOffset){
-        d2 = divisorStr[c - divOffset];
-        isGiven2 = true;
+        d2 = divisorStr[c - divOffset]; isGiven2 = true;
       }
       var isQuotient = (r === 1);
       var cls2 = 'db-cell';
-      if (isGiven2) cls2 += ' given';
-      else cls2 += ' droppable';
+      if (isGiven2) cls2 += ' given'; else cls2 += ' droppable';
       if (isQuotient) cls2 += ' quotient-cell';
       html += '<div class="' + cls2 + '" data-row="R' + r + '" data-col="' + c + '" data-orig="' + d2 + '">' + d2 + '</div>';
     }
@@ -1075,9 +910,7 @@ function syncNumSize(){
 }
 
 function buildProblem(){
-  var realOp = S.op;
-  var a, b;
-
+  var realOp = S.op, a, b;
   if (realOp === '×'){
     a = randomWithDigits(S.d1);
     b = randomWithDigits(S.d2);
@@ -1088,7 +921,6 @@ function buildProblem(){
     var q = Math.max(2, Math.floor(a / b));
     a = b * q;
   }
-
   S.a = a; S.b = b;
   renderProblemGrid(a, b, realOp);
 
@@ -1100,22 +932,17 @@ function buildProblem(){
 
   requestAnimationFrame(function(){
     fit();
-    if (realOp === '×') fitMultiplicationBoard();
-    else fitDivisionBoard();
+    if (realOp === '×') fitMultiplicationBoard(); else fitDivisionBoard();
     syncNumSize();
   });
 }
 
 function findCellAtPoint(clientX, clientY){
-  var cells = $$('#pgrid .cell.droppable, .db-cell.droppable');
-  var i;
+  var cells = $$('#pgrid .cell.droppable, .db-cell.droppable'), i;
   for (i = 0; i < cells.length; i++){
-    var cell = cells[i];
-    var r = cell.getBoundingClientRect();
-    if (clientX >= r.left && clientX <= r.right &&
-        clientY >= r.top  && clientY <= r.bottom){
-      return cell;
-    }
+    var r = cells[i].getBoundingClientRect();
+    if (clientX >= r.left && clientX <= r.right && clientY >= r.top && clientY <= r.bottom)
+      return cells[i];
   }
   return null;
 }
@@ -1129,19 +956,103 @@ function setOverCell(cell){
 }
 
 /* =====================================================
+   ★ キャンバス の イベント（てがき ＋ ながおし）
+   ===================================================== */
+var lpTimer = null, lpStart = null, LP_MS = 480;
+
+function cancelLongPress(){
+  if (lpTimer){ clearTimeout(lpTimer); lpTimer = null; }
+  lpStart = null;
+}
+
+bindDown(canvas, function(e){
+  if (!S.started || drawing) return;
+  if (radialState) return;
+
+  if (e.preventDefault) e.preventDefault();
+  drawing = true;
+  var p = localPos(e);
+  current = { color:'#16305c', w: (e.pointerType === 'pen') ? 3 : 3.5, pts:[p] };
+  strokes.push(current);
+  paint(current);
+
+  cancelLongPress();
+  lpStart = { x: e.clientX, y: e.clientY };
+  lpTimer = setTimeout(function(){
+    if (!lpStart) return;
+    var cell = findCellAtPoint(lpStart.x, lpStart.y);
+    if (cell){
+      if (current && strokes[strokes.length-1] === current){
+        strokes.pop(); current = null; redraw();
+      }
+      drawing = false;
+      cell.classList.remove('longpress');
+      void cell.offsetWidth;
+      cell.classList.add('longpress');
+      openRadial(cell, lpStart.x, lpStart.y);
+    }
+    lpTimer = null; lpStart = null;
+  }, LP_MS);
+});
+
+bindCanvasMove(canvas, function(e){
+  if (radialState){
+    if (e.preventDefault) e.preventDefault();
+    radialState.moved = true;
+    updateRadial(e.clientX, e.clientY);
+    return;
+  }
+  if (!drawing || !current) return;
+  if (e.preventDefault) e.preventDefault();
+
+  if (lpStart && lpTimer){
+    var dx0 = e.clientX - lpStart.x, dy0 = e.clientY - lpStart.y;
+    if (dx0*dx0 + dy0*dy0 > 100) cancelLongPress();
+  }
+
+  var evts = (e.getCoalescedEvents && HAS_POINTER) ? e.getCoalescedEvents() : [e];
+  for (var k = 0; k < evts.length; k++){
+    var p = localPos(evts[k]);
+    var last = current.pts[current.pts.length-1];
+    var dx = p.x-last.x, dy = p.y-last.y;
+    if (dx*dx + dy*dy < 1.2) continue;
+    current.pts.push(p);
+    ctx.beginPath();
+    ctx.moveTo(last.x, last.y);
+    ctx.lineTo(p.x, p.y);
+    ctx.strokeStyle = current.color;
+    ctx.lineWidth = current.w;
+    ctx.stroke();
+  }
+});
+
+function endStroke(){
+  cancelLongPress();
+  drawing = false;
+  current = null;
+}
+
+bindCanvasUp(canvas, function(e){
+  if (radialState){
+    if (e.preventDefault) e.preventDefault();
+    if (radialState.moved) confirmRadial(); else closeRadial();
+    drawing = false; current = null; cancelLongPress();
+    return;
+  }
+  endStroke();
+});
+
+/* =====================================================
    放射状 ピッカー
    ===================================================== */
 var radialMenu = $('#radialMenu');
 var radialState = null;
 
 function openRadial(cell, clientX, clientY){
-  var vp = getVP();
-  var W = vp.w, H = vp.h;
-  var PAD = 46;
+  var vp = getVP(), W = vp.w, H = vp.h, PAD = 46;
   var R = 138;
   R = Math.min(R, (W - 2*PAD) / 2, (H - 2*PAD) / 2);
   R = Math.max(R, 90);
-
   var cx = Math.max(R + PAD, Math.min(W - R - PAD, clientX));
   var cy = Math.max(R + PAD, Math.min(H - R - PAD, clientY));
 
@@ -1177,12 +1088,7 @@ function openRadial(cell, clientX, clientY){
   radialMenu.style.setProperty('--rcx', cx + 'px');
   radialMenu.style.setProperty('--rcy', cy + 'px');
   radialMenu.classList.add('open');
-
-  radialState = {
-    cell: cell, cx: cx, cy: cy, R: R, items: items,
-    activeIdx: -1,
-    moved: false
-  };
+  radialState = { cell: cell, cx: cx, cy: cy, R: R, items: items, activeIdx: -1, moved: false };
 }
 
 function updateRadial(clientX, clientY){
@@ -1190,21 +1096,17 @@ function updateRadial(clientX, clientY){
   var cx = radialState.cx, cy = radialState.cy, items = radialState.items;
   var dx = clientX - cx, dy = clientY - cy;
   var dist = Math.sqrt(dx*dx + dy*dy);
-
   if (dist < radialState.R * 0.42){
     items.forEach(function(it){ it.el.classList.remove('active'); });
     radialState.activeIdx = -1;
     return;
   }
-
   var best = -1, bestD = Infinity;
   for (var i = 0; i < items.length; i++){
-    var ddx = clientX - items[i].x;
-    var ddy = clientY - items[i].y;
+    var ddx = clientX - items[i].x, ddy = clientY - items[i].y;
     var d = ddx*ddx + ddy*ddy;
     if (d < bestD){ bestD = d; best = i; }
   }
-
   items.forEach(function(it, idx){ it.el.classList.toggle('active', idx === best); });
   radialState.activeIdx = best;
 }
@@ -1218,123 +1120,14 @@ function closeRadial(){
 function confirmRadial(){
   if (!radialState) return;
   var cell = radialState.cell, items = radialState.items, activeIdx = radialState.activeIdx;
-  if (activeIdx >= 0){
-    placeNumberInCell(cell, String(items[activeIdx].v));
-  }
+  if (activeIdx >= 0) placeNumberInCell(cell, String(items[activeIdx].v));
   closeRadial();
 }
 
 /* =====================================================
-   ながおし
+   パレット から ドラッグ
    ===================================================== */
-var lpTimer = null;
-var lpStart = null;
-var LP_MS = 480;
-
-function cancelLongPress(){
-  if (lpTimer){ clearTimeout(lpTimer); lpTimer = null; }
-  lpStart = null;
-}
-
-canvas.addEventListener('pointerdown', function(e){
-  if (!S.started || drawing) return;
-  if (radialState) return;
-
-  e.preventDefault();
-  try { canvas.setPointerCapture(e.pointerId); } catch(_){}
-  drawing = true;
-  var p = localPos(e);
-  current = { color:'#16305c', w: e.pointerType === 'pen' ? 3 : 3.5, pts:[p] };
-  strokes.push(current);
-  paint(current);
-
-  cancelLongPress();
-  lpStart = { x: e.clientX, y: e.clientY, pointerId: e.pointerId };
-  lpTimer = setTimeout(function(){
-    if (!lpStart) return;
-    var cell = findCellAtPoint(lpStart.x, lpStart.y);
-    if (cell){
-      if (current && strokes[strokes.length-1] === current){
-        strokes.pop();
-        current = null;
-        redraw();
-      }
-      drawing = false;
-
-      cell.classList.remove('longpress');
-      void cell.offsetWidth;
-      cell.classList.add('longpress');
-
-      openRadial(cell, lpStart.x, lpStart.y);
-    }
-    lpTimer = null;
-    lpStart = null;
-  }, LP_MS);
-});
-
-canvas.addEventListener('pointermove', function(e){
-  if (radialState){
-    e.preventDefault();
-    radialState.moved = true;
-    updateRadial(e.clientX, e.clientY);
-    return;
-  }
-
-  if (!drawing || !current) return;
-  e.preventDefault();
-
-  if (lpStart && lpTimer){
-    var dx0 = e.clientX - lpStart.x, dy0 = e.clientY - lpStart.y;
-    if (dx0*dx0 + dy0*dy0 > 100) cancelLongPress();
-  }
-
-  var evts = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
-  for (var k = 0; k < evts.length; k++){
-    var p = localPos(evts[k]);
-    var last = current.pts[current.pts.length-1];
-    var dx = p.x-last.x, dy = p.y-last.y;
-    if (dx*dx + dy*dy < 1.2) continue;
-    current.pts.push(p);
-    ctx.beginPath();
-    ctx.moveTo(last.x, last.y);
-    ctx.lineTo(p.x, p.y);
-    ctx.strokeStyle = current.color;
-    ctx.lineWidth = current.w;
-    ctx.stroke();
-  }
-});
-
-function endStroke(){
-  cancelLongPress();
-  drawing = false;
-  current = null;
-}
-canvas.addEventListener('pointerup', function(e){
-  if (radialState){
-    e.preventDefault();
-    if (radialState.moved){
-      confirmRadial();
-    } else {
-      closeRadial();
-    }
-    drawing = false;
-    current = null;
-    cancelLongPress();
-    return;
-  }
-  endStroke();
-});
-canvas.addEventListener('pointercancel', function(){
-  if (radialState) closeRadial();
-  endStroke();
-});
-
-/* =====================================================
-   ドラッグ（パレット から）
-   ===================================================== */
-var dragState = null;
-var ghostEl = null;
-var placedHistory = [];
+var dragState = null, ghostEl = null, placedHistory = [];
 
 function makeGhost(token, isRed){
   var g = document.createElement('div');
@@ -1345,8 +1138,8 @@ function makeGhost(token, isRed){
 }
 
 $$('.palette [data-token]').forEach(function(btn){
-  btn.addEventListener('pointerdown', function(e){
-    e.preventDefault();
+  bindDown(btn, function(e){
+    if (e.preventDefault) e.preventDefault();
     var isRed = btn.dataset.red === '1';
     startPaletteDrag(btn.dataset.token, isRed, e);
   });
@@ -1360,15 +1153,13 @@ function startPaletteDrag(token, isRed, e){
   ghostEl.style.left = e.clientX + 'px';
   ghostEl.style.top  = e.clientY + 'px';
   document.body.appendChild(ghostEl);
-
-  document.addEventListener('pointermove', onGlobalMove, { passive:false });
-  document.addEventListener('pointerup', onGlobalUp);
-  document.addEventListener('pointercancel', onGlobalUp);
+  addDocMove(onGlobalMove);
+  addDocUp(onGlobalUp);
 }
 
 function onGlobalMove(e){
   if (!dragState || !ghostEl) return;
-  e.preventDefault();
+  if (e.preventDefault) e.preventDefault();
   dragState.moved = true;
   ghostEl.style.left = e.clientX + 'px';
   ghostEl.style.top  = e.clientY + 'px';
@@ -1377,30 +1168,19 @@ function onGlobalMove(e){
 }
 
 function onGlobalUp(e){
-  document.removeEventListener('pointermove', onGlobalMove);
-  document.removeEventListener('pointerup', onGlobalUp);
-  document.removeEventListener('pointercancel', onGlobalUp);
-
   document.body.classList.remove('dragging');
   setOverCell(null);
-
   if (!dragState){ if (ghostEl){ ghostEl.remove(); ghostEl = null; } return; }
-
-  var token = dragState.token;
-  var isRed = dragState.isRed;
-  var moved = dragState.moved;
+  var token = dragState.token, isRed = dragState.isRed, moved = dragState.moved;
   if (ghostEl){ ghostEl.remove(); ghostEl = null; }
   dragState = null;
-
   if (!moved) return;
 
   var areaRect = problemArea.getBoundingClientRect();
   var palRect  = palette.getBoundingClientRect();
   var x = e.clientX, y = e.clientY;
-  var overPalette = x >= palRect.left && x <= palRect.right &&
-                    y >= palRect.top  && y <= palRect.bottom;
-  var inArea = x >= areaRect.left && x <= areaRect.right &&
-               y >= areaRect.top  && y <= areaRect.bottom;
+  var overPalette = x >= palRect.left && x <= palRect.right && y >= palRect.top && y <= palRect.bottom;
+  var inArea = x >= areaRect.left && x <= areaRect.right && y >= areaRect.top && y <= areaRect.bottom;
 
   if (overPalette) return;
 
@@ -1437,32 +1217,32 @@ function createFloatingRedToken(token, x, y){
   var del = document.createElement('button');
   del.className = 'del-x';
   del.textContent = '×';
-  del.addEventListener('pointerdown', function(ev){ ev.preventDefault(); ev.stopPropagation(); });
-  del.addEventListener('click', function(ev){ ev.preventDefault(); ev.stopPropagation(); el.remove(); });
+  del.addEventListener('click', function(ev){
+    ev.preventDefault(); ev.stopPropagation();
+    el.remove();
+  });
   el.appendChild(del);
 
-  el.addEventListener('pointerdown', onDroppedDown);
+  el.addEventListener('touchstart', function(ev){ ev.stopPropagation(); }, {passive:true});
+  bindDown(el, onDroppedDown);
   droppedLayer.appendChild(el);
   placedHistory.push({ type:'red', el: el });
 }
 
 function onDroppedDown(e){
-  e.preventDefault(); e.stopPropagation();
-  var el = e.currentTarget;
+  if (e.preventDefault) e.preventDefault();
+  if (e.stopPropagation) e.stopPropagation();
+  var el = e.currentTarget || e.target;
   var areaRect = problemArea.getBoundingClientRect();
   el.classList.add('dragging');
 
   function move(ev){
-    ev.preventDefault();
+    if (ev.preventDefault) ev.preventDefault();
     el.style.left = (ev.clientX - areaRect.left) + 'px';
     el.style.top  = (ev.clientY - areaRect.top)  + 'px';
   }
   function up(ev){
     el.classList.remove('dragging');
-    el.removeEventListener('pointermove', move);
-    el.removeEventListener('pointerup', up);
-    el.removeEventListener('pointercancel', up);
-
     var palRect = palette.getBoundingClientRect();
     var overPalette = ev.clientX >= palRect.left && ev.clientX <= palRect.right &&
                       ev.clientY >= palRect.top  && ev.clientY <= palRect.bottom;
@@ -1470,13 +1250,33 @@ function onDroppedDown(e){
                     ev.clientY < areaRect.top  || ev.clientY > areaRect.bottom;
     if (overPalette || outOfArea) el.remove();
   }
-  el.addEventListener('pointermove', move, { passive:false });
-  el.addEventListener('pointerup', up);
-  el.addEventListener('pointercancel', up);
+
+  if (HAS_POINTER){
+    el.addEventListener('pointermove', move, {passive:false});
+    el.addEventListener('pointerup', up);
+    el.addEventListener('pointercancel', up);
+  } else {
+    var docMove = function(ev){
+      if (ev.touches.length !== 1) return;
+      ev.preventDefault();
+      var t = ev.touches[0];
+      move({clientX: t.clientX, clientY: t.clientY, preventDefault:function(){}});
+    };
+    var docUp = function(ev){
+      var t = (ev.changedTouches && ev.changedTouches[0]) || {clientX:0,clientY:0};
+      document.removeEventListener('touchmove', docMove);
+      document.removeEventListener('touchend', docUp);
+      document.removeEventListener('touchcancel', docUp);
+      up({clientX: t.clientX, clientY: t.clientY});
+    };
+    document.addEventListener('touchmove', docMove, {passive:false});
+    document.addEventListener('touchend', docUp);
+    document.addEventListener('touchcancel', docUp);
+  }
 }
 
 /* =====================================================
-   1つずつ けす
+   アンドゥ・リセット・チェック
    ===================================================== */
 function undoLastPlaced(){
   while (placedHistory.length > 0){
@@ -1490,18 +1290,11 @@ function undoLastPlaced(){
       return;
     }
     if (last.type === 'red'){
-      if (last.el && last.el.parentNode){
-        last.el.remove();
-        clearCheckFeedback();
-        return;
-      }
+      if (last.el && last.el.parentNode){ last.el.remove(); clearCheckFeedback(); return; }
     }
   }
 }
 
-/* =====================================================
-   リセット
-   ===================================================== */
 function clearAllTokens(){
   while (droppedLayer.firstChild) droppedLayer.removeChild(droppedLayer.firstChild);
   $$('#pgrid .cell.droppable, #pgrid .db-cell.droppable').forEach(function(cell){
@@ -1514,9 +1307,6 @@ function clearAllTokens(){
   clearCheckFeedback();
 }
 
-/* =====================================================
-   まるつけ
-   ===================================================== */
 function clearCheckFeedback(){
   $$('#pgrid .cell.answer').forEach(function(c){
     c.classList.remove('correct','wrong','missing');
@@ -1541,7 +1331,6 @@ function checkAnswer(){
   if (S.op === '×'){
     var answerCells = $$('#pgrid .cell.answer.droppable');
     var anyInput = false, allCorrect = true;
-
     answerCells.forEach(function(cell){
       cell.classList.remove('correct','wrong','missing');
       var v = (cell.textContent || '').trim();
@@ -1549,11 +1338,9 @@ function checkAnswer(){
       if (v !== '') anyInput = true;
       if (v !== exp){
         allCorrect = false;
-        if (v === '') cell.classList.add('missing');
-        else cell.classList.add('wrong');
+        if (v === '') cell.classList.add('missing'); else cell.classList.add('wrong');
       }
     });
-
     if (!anyInput){ showToast('こたえを いれてね ✏️', false); return; }
     if (allCorrect){
       answerCells.forEach(function(c){ c.classList.add('correct'); });
@@ -1566,19 +1353,13 @@ function checkAnswer(){
 
   var correct = Math.round(S.a / S.b);
   var quotientCells = $$('#pgrid .db-cell.quotient-cell');
-
-  var raw = '';
-  var anyInput2 = false;
+  var raw = '', anyInput2 = false;
   quotientCells.forEach(function(cell){
     var v = (cell.textContent || '').trim();
     if (v !== '') anyInput2 = true;
     raw += (v === '') ? '' : v;
   });
-
-  if (!anyInput2){
-    showToast('こたえを いれてね ✏️', false);
-    return;
-  }
+  if (!anyInput2){ showToast('こたえを いれてね ✏️', false); return; }
 
   var studentNum = parseInt(raw || '0', 10);
   if (studentNum === correct){
@@ -1589,11 +1370,9 @@ function checkAnswer(){
     showToast('🎉 せいかい！ すごい！', true);
     return;
   }
-
   var expected = String(correct).split('');
   var cols = quotientCells.length;
   while (expected.length < cols) expected.unshift('');
-
   quotientCells.forEach(function(cell, i){
     cell.classList.remove('checked-correct','checked-wrong','checked-missing');
     var v = (cell.textContent || '').trim();
@@ -1620,8 +1399,8 @@ $('#checkBtn').addEventListener('click', checkAnswer);
 function boot(){
   render();
   fit();
-  setTimeout(function(){ fit(); }, 200);
-  setTimeout(function(){ fit(); }, 600);
+  setTimeout(fit, 200);
+  setTimeout(fit, 600);
 }
 
 var resizeTimer = null;
@@ -1642,10 +1421,11 @@ window.addEventListener('orientationchange', function(){
   setTimeout(onResize, 700);
 });
 
+/* スクロール・ズーム を ふせぐ */
 document.addEventListener('gesturestart', function(e){ e.preventDefault(); });
 document.addEventListener('touchmove', function(e){
   if (e.target === canvas) e.preventDefault();
-}, { passive:false });
+}, {passive: false});
 
 if (document.readyState === 'complete') boot();
 else window.addEventListener('load', boot);
