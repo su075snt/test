@@ -1,300 +1,1543 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>掛け算・割り算マスター - Multiplication & Division</title>
-    <style>
-        :root { --bg-color: #fdfdfd; --text-color: #2c3e50; --accent-color: #e67e22; }
-        body { margin: 0; font-family: 'Helvetica Neue', 'Hiragino Kaku Gothic Pro', sans-serif; background-color: var(--bg-color); color: var(--text-color); overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
-        
-        #header { 
-            height: 70px; padding: 0 15px; 
-            display: flex; justify-content: space-between; align-items: center; 
-            background: white; border-bottom: 2px solid #eee; z-index: 100;
-        }
-        
-        .controls-group { display: flex; align-items: center; gap: 10px; }
-        .nav-select { padding: 8px 12px; border-radius: 6px; border: 1px solid #ddd; font-size: 0.9rem; font-weight: bold; cursor: pointer; background: #fff; }
-        
-        .stats { font-weight: bold; font-size: 1.1rem; min-width: 160px; }
-        .correct { color: #27ae60; margin: 0 5px; }
-        .wrong { color: #e74c3c; margin: 0 5px; }
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="けいさんボード">
+<meta name="theme-color" content="#f2f5fa">
+<title>けいさんボード</title>
+<style>
+:root{
+  --bg:#f2f5fa; --card:#ffffff; --line:#e2e8f2;
+  --ink:#1b2a4a; --muted:#697690;
+  --blue:#3b82f6; --green:#16a34a;
+  --num-size: 96px;
+  --pen-blue: #1e3a8a;
+  --cell-line: #cbd5e1;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0}
+body{
+  position:fixed;inset:0;display:flex;flex-direction:column;
+  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Maru Gothic ProN","Hiragino Sans","Yu Gothic","SF Pro Rounded",sans-serif;
+  background:var(--bg);color:var(--ink);
+  overflow:hidden;overscroll-behavior:none;
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
+  padding-top:env(safe-area-inset-top);
+  padding-left:env(safe-area-inset-left);
+  padding-right:env(safe-area-inset-right);
+  padding-bottom:env(safe-area-inset-bottom);
+}
 
-        #main-container { display: flex; flex: 1; position: relative; }
-        
-        #quiz-side { width: 50%; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; border-right: 1px solid #ddd; padding: 20px; }
-        #question-area { cursor: pointer; padding: 30px; border-radius: 20px; background: #fff; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border: 2px solid #f0f0f0; margin-bottom: 25px; min-width: 320px; display: flex; justify-content: center; align-items: center; transition: 0.2s; }
-        #question-area:hover { border-color: var(--accent-color); }
-        
-        .mode-horizontal { font-size: 8rem; }
-        .mode-vertical { font-size: 8rem; font-family: 'Courier New', Courier, monospace; }
-        .mode-vertical table { border-collapse: collapse; margin: auto; }
-        .mode-vertical td { padding: 0 15px; line-height: 1.1; text-align: right; }
-        .border-bottom { border-bottom: 5px solid var(--text-color); }
-        .operator-cell { text-align: left !important; width: 50px; }
+.topbar{
+  display:flex;flex-wrap:wrap;align-items:center;gap:8px;
+  padding:8px 12px;background:var(--card);
+  border-bottom:1px solid var(--line);
+  box-shadow:0 2px 14px rgba(20,30,60,.06);
+  z-index:10;
+  flex-shrink:0;
+}
+.group{display:flex;align-items:center;background:#eef1f7;border-radius:14px;padding:4px;gap:3px}
 
-        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 90%; max-width: 400px; }
-        .opt-btn { padding: 20px; font-size: 2.2rem; border: none; border-radius: 15px; background: white; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.08); transition: 0.2s; color: var(--text-color); border: 1px solid #eee; }
-        .opt-btn:hover { background: var(--accent-color); color: white; }
+.ops button{
+  width:56px;height:44px;border:0;border-radius:10px;background:transparent;
+  font-size:26px;font-weight:800;color:#697690;line-height:1;
+  transition:.15s;
+}
+.ops button.on{background:var(--blue);color:#fff;box-shadow:0 3px 10px rgba(59,130,246,.45)}
 
-        #draw-side { width: 50%; position: relative; background: #ffffff; }
-        canvas { width: 100%; height: 100%; touch-action: none; display: block; }
-        .btn-clear { position: absolute; bottom: 20px; right: 20px; padding: 12px 20px; background: #34495e; color: white; border: none; border-radius: 8px; cursor: pointer; z-index: 5; font-weight: bold; }
+.picker .lbl{
+  font-size:14px;font-weight:800;color:var(--muted);
+  padding:0 6px 0 10px;white-space:nowrap;letter-spacing:.2px;line-height:1.1;
+}
+.picker .lbl small{
+  display:block;font-size:10px;font-weight:700;color:#9aa5bc;
+  letter-spacing:.4px;margin-top:1px;
+}
+.picker .val{
+  min-width:46px;text-align:center;font-size:26px;font-weight:800;
+  font-variant-numeric:tabular-nums;color:var(--ink);line-height:1;
+}
+.picker button{
+  width:40px;height:40px;border:0;border-radius:11px;background:#fff;
+  font-size:21px;font-weight:800;color:#41506e;line-height:1;
+  box-shadow:0 1px 3px rgba(20,30,60,.12);
+}
+.picker button:active{background:#dfe6f2}
 
-        #sidebar { position: fixed; right: -320px; top: 0; width: 280px; height: 100%; background: white; box-shadow: -5px 0 15px rgba(0,0,0,0.1); transition: 0.3s; z-index: 1000; padding: 60px 20px 20px; overflow-y: auto; }
-        #sidebar.active { right: 0; }
-        
-        #feedback { position: fixed; top: 45%; left: 25%; transform: translate(-50%, -50%); font-size: 12rem; pointer-events: none; display: none; z-index: 200; }
-        .result-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.98); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; }
-    </style>
+.start{
+  margin-left:auto;height:52px;padding:0 28px;border:0;border-radius:14px;
+  background:linear-gradient(180deg,#22c55e,#15a34a);color:#fff;
+  font-size:18px;font-weight:900;letter-spacing:.6px;
+  box-shadow:0 4px 16px rgba(22,163,74,.38);
+}
+.start:active{transform:translateY(1px)}
+
+.stage{
+  position:relative;
+  flex:1;
+  min-height:0;
+  display:flex;
+  overflow:hidden;
+}
+
+.problem-area{
+  position:relative;
+  flex: 0 0 80%;
+  max-width: 80%;
+  min-width:0;
+  height:100%;
+  display:flex;
+  align-items:flex-start;
+  justify-content:center;
+  overflow:hidden;
+  background:var(--bg);
+  padding: 26px 10px 0;
+}
+
+.hint{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  text-align:center;padding:30px;color:var(--muted);
+  font-size:clamp(15px,1.8vw,20px);font-weight:700;line-height:1.8;
+  pointer-events:none;
+}
+.hint b{color:var(--green)}
+body.started .hint{display:none}
+
+.problem{
+  position:relative;z-index:1;
+  opacity:0;transition:opacity .25s ease;
+  pointer-events:none;
+  padding:0;
+  transform: translateX(-0.5em);
+}
+.problem.division{ transform: none; }
+body.started .problem{opacity:1}
+
+/* =================================================================
+   かけざん
+   ================================================================= */
+.pgrid{
+  display:grid;
+  grid-template-columns: auto repeat(var(--n, 3), 1.05em);
+  justify-content:center;
+  font-size:clamp(2rem,9vh,5.4rem);
+  font-weight:400;
+  line-height:1.05;
+  font-variant-numeric:tabular-nums;
+  color:var(--ink);
+  row-gap:0;
+}
+.pgrid .cell{
+  display:flex;align-items:center;justify-content:center;
+  width:1.05em;height:1.05em;
+  border-radius:6px;
+  transition: background .15s, outline .15s, box-shadow .15s, transform .15s;
+  position:relative;
+  pointer-events:none;
+}
+.pgrid .cell.sign{
+  color:var(--blue);
+  width:auto;padding-right:.15em;
+  justify-content:flex-end;
+}
+.pgrid .cell.carry{
+  height:.62em;
+  font-size:.5em;
+  color:#ef4444;
+  font-weight:900;
+  align-items:flex-end;
+  padding-bottom:1px;
+  justify-content:flex-end;
+  padding-right:.08em;
+}
+.pgrid .sep{
+  grid-column: 1 / -1;
+  height:.055em;
+  background:var(--ink);
+  border-radius:99px;
+  margin:.14em 0 .14em .2em;
+  opacity:.85;
+}
+.pgrid .cell.answer{ color:#0f5132; }
+.pgrid .cell.answer.partial{ color:#1d4ed8; }
+
+.pgrid .cell.droppable{
+  background: #ffffff;
+  box-shadow: inset 0 0 0 1.5px var(--cell-line);
+}
+
+body.dragging .pgrid .cell.droppable{
+  background: rgba(59,130,246,.12);
+  box-shadow: inset 0 0 0 2px rgba(59,130,246,.55);
+}
+body.dragging .pgrid .cell.droppable.over{
+  background: rgba(34,197,94,.25);
+  box-shadow: inset 0 0 0 2.5px #22c55e;
+}
+
+.pgrid .cell.answer.correct{
+  background: #d9f2e2;color:#0f5132;
+  box-shadow: inset 0 0 0 2px #22c55e;
+}
+.pgrid .cell.answer.wrong{
+  background: #ffe4e6;color:#be123c;
+  box-shadow: inset 0 0 0 2px #ef4444;
+}
+.pgrid .cell.answer.missing{
+  background: #fff3c4;color:#b45309;
+  box-shadow: inset 0 0 0 2px #f59e0b;
+}
+
+@keyframes cellPulse{
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.18); }
+  100% { transform: scale(1); }
+}
+.pgrid .cell.longpress, .db-cell.longpress{
+  animation: cellPulse .35s ease;
+}
+
+@keyframes cellPop{
+  0%   { transform: scale(.6); opacity:.4; }
+  60%  { transform: scale(1.18); }
+  100% { transform: scale(1); opacity:1; }
+}
+.pgrid .cell.justFilled, .db-cell.justFilled{
+  animation: cellPop .38s cubic-bezier(.2,1.5,.5,1);
+}
+
+/* =================================================================
+   わりざん
+   ================================================================= */
+.division-board{
+  position: relative;
+  display: inline-block;
+  font-size: clamp(1.8rem, 5.2vh, 3.2rem);
+  --cell-w: 1.35em;
+  --cell-h: 1.35em;
+  --gap-w: 14px;
+  --v-extend-top: 14px;
+  --v-extend-bottom: 22px;
+  --h-extend-right: 22px;
+  padding: var(--v-extend-top) calc(var(--h-extend-right) + 8px) var(--v-extend-bottom) 0;
+}
+
+.db-cells{
+  display: grid;
+  grid-template-columns: repeat(var(--lc), var(--cell-w)) var(--gap-w) repeat(var(--rc), var(--cell-w));
+  grid-template-rows: repeat(var(--rows), var(--cell-h));
+  border-left: 1px solid var(--cell-line);
+  border-top: 1px solid var(--cell-line);
+  background: #fff;
+  width: max-content;
+  position: relative;
+  z-index: 1;
+}
+
+.db-cell{
+  border-right: 1px solid var(--cell-line);
+  border-bottom: 1px solid var(--cell-line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1em;
+  font-weight: 400;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  background: #fff;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+  position: relative;
+  padding: 0 2px;
+  line-height: 1;
+}
+.db-cell.given{ color: var(--ink); }
+.db-cell.droppable{ cursor: default; }
+body.dragging .db-cell.droppable{ background: rgba(59,130,246,.08); }
+body.dragging .db-cell.droppable.over{
+  background: rgba(34,197,94,.22);
+  outline: 2px solid #22c55e;
+  outline-offset: -2px;
+}
+
+.db-vline{
+  position: absolute;
+  left: calc(var(--lc) * var(--cell-w));
+  top: calc(-1 * var(--v-extend-top));
+  bottom: calc(-1 * var(--v-extend-bottom));
+  width: var(--gap-w);
+  background: var(--pen-blue);
+  border-radius: 6px;
+  pointer-events: none;
+  z-index: 2;
+}
+.db-hline{
+  position: absolute;
+  left: calc(var(--lc) * var(--cell-w));
+  top: var(--cell-h);
+  width: calc(var(--rc) * var(--cell-w) + var(--h-extend-right));
+  height: 7px;
+  background: var(--pen-blue);
+  border-radius: 6px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.db-cell.checked-correct{
+  background: #d9f2e2 !important; color: #0f5132;
+  outline: 2px solid #22c55e; outline-offset: -2px;
+}
+.db-cell.checked-wrong{
+  background: #ffe4e6 !important; color: #be123c;
+  outline: 2px solid #ef4444; outline-offset: -2px;
+}
+.db-cell.checked-missing{
+  background: #fff3c4 !important; color: #b45309;
+  outline: 2px solid #f59e0b; outline-offset: -2px;
+}
+
+#ink{
+  position:absolute;inset:0;width:100%;height:100%;
+  touch-action:none;z-index:2;
+  opacity:0;pointer-events:none;transition:opacity .2s;
+}
+body.started #ink{opacity:1;pointer-events:auto}
+
+.dropped-layer{
+  position:absolute;inset:0;z-index:3;
+  pointer-events:none;
+  overflow:hidden;
+}
+
+/* ---- 右20%：パレット ---- */
+.palette{
+  flex: 0 0 20%;
+  max-width: 20%;
+  min-width:0;
+  height:100%;
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  padding:8px 4px;
+  background:var(--card);
+  border-left:2px solid var(--line);
+  box-shadow:-4px 0 16px rgba(20,30,60,.05);
+  overflow-y:auto;
+  overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
+  z-index:5;
+}
+body.started .palette{display:flex}
+
+.num-grid{
+  display:grid;
+  grid-template-columns:repeat(3, 1fr);
+  gap:5px;
+  width:100%;
+  max-width:100%;
+  justify-items:center;
+}
+.pal-btn{
+  width: clamp(30px, 6.5vw, 56px);
+  height: clamp(30px, 6.5vw, 56px);
+  border:0;
+  border-radius:11px;
+  background:#ffffff;
+  color:var(--ink);
+  font-size: clamp(18px, 3.6vw, 30px);
+  font-weight:400;
+  line-height:1;
+  font-variant-numeric:tabular-nums;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 2px 6px rgba(20,30,60,.12), inset 0 0 0 1px #e2e8f2;
+  touch-action:none;
+  user-select:none;-webkit-user-select:none;
+  cursor:grab;
+  transition:background .12s, transform .12s;
+}
+.pal-btn:active{background:#eef1f7;transform:scale(.95)}
+
+.red-row{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:6px;
+  padding-top:8px;
+  border-top:1.5px dashed #e2e8f2;
+  width:100%;
+}
+.red-label{
+  font-size:10px;
+  font-weight:900;
+  color:#dc2626;
+  letter-spacing:.5px;
+}
+.red-grid{
+  display:grid;
+  grid-template-columns:repeat(3, 1fr);
+  gap:5px;
+  width:100%;
+  justify-items:center;
+}
+.pal-btn.red{
+  background: transparent;
+  box-shadow: none;
+  color:#dc2626;
+  font-weight:900;
+  border:none;
+}
+.pal-btn.red:active{background:transparent;transform:scale(.9)}
+
+.dropped-token{
+  position:absolute;
+  transform:translate(-50%,-50%);
+  pointer-events:auto;
+  touch-action:none;
+  user-select:none;-webkit-user-select:none;
+  font-variant-numeric:tabular-nums;
+  cursor:grab;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  color:#dc2626;
+  font-weight:900;
+  width:calc(var(--num-size) * .8);
+  height:calc(var(--num-size) * .8);
+  font-size:calc(var(--num-size) * .68);
+  display:flex;align-items:center;justify-content:center;
+  line-height:1;
+}
+.dropped-token.dragging{
+  transform:translate(-50%,-50%) scale(1.08);
+  z-index:10;
+  cursor:grabbing;
+}
+
+.del-x{
+  position:absolute;
+  top: -8px;
+  right: -8px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #dc2626;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 900;
+  line-height: 1;
+  border: 2px solid #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  box-shadow: 0 2px 6px rgba(220,38,38,.45);
+  cursor: pointer;
+  touch-action: manipulation;
+  pointer-events: auto;
+  z-index: 2;
+}
+.del-x:active{
+  background: #991b1b;
+  transform: scale(.9);
+}
+
+.ghost-token{
+  position:fixed;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:400;line-height:1;
+  color:var(--ink);
+  font-variant-numeric:tabular-nums;
+  z-index:9999;
+  pointer-events:none;
+  transform:translate(-50%,-50%) scale(1.06);
+  opacity:.95;
+  background:rgba(255,255,255,.96);
+  border:2px solid #dbe3ef;
+  border-radius:calc(var(--num-size) * .16);
+  box-shadow:0 14px 34px rgba(20,30,60,.28);
+  width:var(--num-size);
+  height:var(--num-size);
+  font-size:var(--num-size);
+}
+.ghost-token.red{
+  color:#dc2626;
+  font-weight:900;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  width:calc(var(--num-size) * .8);
+  height:calc(var(--num-size) * .8);
+  font-size:calc(var(--num-size) * .68);
+}
+
+.floating{
+  position:absolute;
+  z-index:6;
+  left: 40%;
+  transform:translateX(-50%);
+  bottom:calc(14px + env(safe-area-inset-bottom));
+  display:none;gap:10px;padding:8px;
+  background:rgba(255,255,255,.92);
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+  border:1px solid var(--line);border-radius:20px;
+  box-shadow:0 8px 30px rgba(20,30,60,.18);
+}
+body.started .floating{display:flex}
+.floating button{
+  height:58px;min-width:58px;padding:0 16px;border:0;border-radius:15px;background:#eef1f7;
+  font-size:16px;font-weight:800;line-height:1;color:#41506e;
+  display:flex;align-items:center;justify-content:center;gap:6px;
+}
+.floating button:active{background:#dfe6f2;transform:scale(.96)}
+.floating .danger{background:#ffe9ec;color:#be123c;font-size:26px;padding:0;width:58px;font-weight:600}
+.floating .undonum{background:#e0f2fe;color:#0369a1;font-size:26px;padding:0;width:58px;font-weight:800}
+.floating .new{font-size:24px;padding:0;width:58px}
+
+.check-btn{
+  position:fixed;
+  right:calc(16px + env(safe-area-inset-right));
+  bottom:calc(16px + env(safe-area-inset-bottom));
+  width:82px;height:82px;
+  border-radius:50%;
+  background:linear-gradient(180deg,#3b82f6,#2563eb);
+  color:#fff;
+  font-size:34px;
+  font-weight:900;
+  line-height:1;
+  border:0;
+  box-shadow:0 8px 24px rgba(37,99,235,.45);
+  z-index:7;
+  display:none;
+  align-items:center;justify-content:center;
+  transition:transform .15s, box-shadow .15s;
+}
+body.started .check-btn{display:flex}
+.check-btn:active{
+  transform:scale(.9);
+  box-shadow:0 4px 14px rgba(37,99,235,.6);
+}
+
+.toast{
+  position:fixed;
+  top:calc(84px + env(safe-area-inset-top));
+  left:50%;
+  transform:translate(-50%,-20px);
+  padding:16px 26px;
+  border-radius:18px;
+  font-size:20px;font-weight:900;letter-spacing:.3px;
+  color:#fff;
+  background:linear-gradient(180deg,#22c55e,#16a34a);
+  box-shadow:0 10px 30px rgba(22,163,74,.45);
+  z-index:30;
+  opacity:0;pointer-events:none;
+  transition:opacity .25s ease, transform .25s ease;
+  max-width:calc(100% - 40px);
+  text-align:center;
+  white-space:nowrap;
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.toast.error{
+  background:linear-gradient(180deg,#f87171,#dc2626);
+  box-shadow:0 10px 30px rgba(220,38,38,.45);
+}
+
+/* =================================================================
+   ★ 放射状 すうじ ピッカー（ながおし で まわり に 0〜9）
+   ================================================================= */
+.radial-menu{
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: none;
+  pointer-events: none;
+}
+.radial-menu.open{ display: block; }
+
+/* うすい かげ（まんなか を めだたせる） */
+.radial-menu.open::before{
+  content:'';
+  position:absolute;
+  left: var(--rcx, 50%);
+  top: var(--rcy, 50%);
+  width: 20px; height: 20px;
+  margin: -10px 0 0 -10px;
+  border-radius:50%;
+  background: rgba(59,130,246,.35);
+  box-shadow: 0 0 0 6px rgba(59,130,246,.12);
+  transition: opacity .15s;
+}
+
+.radial-item{
+  position: absolute;
+  width: 62px; height: 62px;
+  margin-left: -31px; margin-top: -31px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 3px solid var(--cell-line);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 30px; font-weight: 700;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  box-shadow: 0 4px 12px rgba(20,30,60,.15);
+  transform: scale(.5);
+  opacity: 0;
+  transition: transform .22s cubic-bezier(.2,1.4,.5,1), opacity .18s,
+              background .12s, color .12s, border-color .12s, box-shadow .12s;
+  will-change: transform, opacity;
+}
+.radial-menu.open .radial-item{
+  transform: scale(1);
+  opacity: 1;
+}
+.radial-item.active{
+  background: linear-gradient(180deg,#3b82f6,#2563eb);
+  color: #fff;
+  border-color: #1d4ed8;
+  transform: scale(1.22);
+  box-shadow: 0 8px 22px rgba(37,99,235,.5);
+}
+.radial-item.active.current{
+  background: linear-gradient(180deg,#22c55e,#15a34a);
+  border-color: #15803d;
+  box-shadow: 0 8px 22px rgba(22,163,74,.55);
+}
+
+/* まんなか の ヒント（いま の すうじ） */
+.radial-center{
+  position: absolute;
+  width: 44px; height: 44px;
+  margin-left: -22px; margin-top: -22px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.95);
+  border: 2px dashed rgba(59,130,246,.5);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; font-weight: 800;
+  color: var(--blue);
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+  transition: opacity .15s;
+}
+</style>
 </head>
 <body>
 
-<div id="header">
-    <div class="stats">
-        <span id="current-count">0</span>/<span id="total-limit">10</span>
-        <span class="correct">⭕ <span id="score-right">0</span></span>
-        <span class="wrong">❌ <span id="score-wrong">0</span></span>
+<header class="topbar">
+  <div class="group ops">
+    <button data-op="×" class="on">×</button>
+    <button data-op="÷">÷</button>
+  </div>
+
+  <div class="group picker">
+    <span class="lbl">かず１<small>けた</small></span>
+    <button data-step="d1" data-d="-1">−</button>
+    <span class="val" id="d1v">2</span>
+    <button data-step="d1" data-d="1">＋</button>
+  </div>
+
+  <div class="group picker">
+    <span class="lbl">かず２<small>けた</small></span>
+    <button data-step="d2" data-d="-1">−</button>
+    <span class="val" id="d2v">2</span>
+    <button data-step="d2" data-d="1">＋</button>
+  </div>
+
+  <button class="start" id="startBtn">スタート</button>
+</header>
+
+<main class="stage" id="stage">
+  <div class="problem-area" id="problemArea">
+    <div class="hint" id="hint">
+      かけざん か わりざん を えらんで、<br>
+      かず１・かず２ の <b>けた</b> を きめて、<br>
+      <b>スタート</b> を おしてね ✏️<br>
+      <span style="font-size:.85em;opacity:.75">
+        こたえ の マス を <b>ながおし</b> すると<br>
+        0〜9 の すうじ が まわり に でるよ
+      </span>
     </div>
 
-    <div class="controls-group">
-        <select id="op-select" class="nav-select" onchange="resetGame()">
-            <option value="mix">× ÷ 混ぜる (Trộn)</option>
-            <option value="*">かけ算 (Nhân ×)</option>
-            <option value="/">わり算 (Chia ÷)</option>
-        </select>
-        <select id="digit-select" class="nav-select" onchange="resetGame()">
-            <option value="1">1桁 (1 chữ số)</option>
-            <option value="2">2桁 (2 chữ số)</option>
-            <option value="3">3桁 (3 chữ số)</option>
-        </select>
-        <select id="limit-select" class="nav-select" onchange="resetGame()">
-            <option value="10">10問</option><option value="20">20問</option><option value="50">50問</option>
-        </select>
-        <select id="calc-layout" class="nav-select" onchange="renderQuestion()">
-            <option value="horizontal">横 (Ngang)</option>
-            <option value="vertical">縦 (Dọc)</option>
-        </select>
-        <button onclick="toggleMenu()" style="padding:8px; border-radius:5px; cursor:pointer;">⚙ 設定</button>
+    <div class="problem" id="problem">
+      <div class="pgrid" id="pgrid"></div>
     </div>
-</div>
 
-<div id="main-container">
-    <div id="quiz-side">
-        <div id="question-area" onclick="speakQuestion()"></div>
-        <div id="vocab-display" style="margin-bottom: 20px; color: #7f8c8d; font-weight: bold; height: 1.2em;"></div>
-        <div class="options-grid" id="options"></div>
-    </div>
-    <div id="draw-side">
-        <canvas id="canvas"></canvas>
-        <button class="btn-clear" onclick="clearCanvas()">❌ 消しゴム (Xóa nháp)</button>
-    </div>
-</div>
+    <canvas id="ink"></canvas>
 
-<div id="feedback">⭕</div>
+    <div class="dropped-layer" id="droppedLayer"></div>
 
-<div id="sidebar">
-    <h3 style="margin-top:0">表示と音声の設定</h3>
-    <div style="margin-bottom:15px">
-        <label style="font-size:0.8rem; font-weight:bold">🎨 色設定:</label><br>
-        背景 <input type="color" id="bg-picker" value="#fdfdfd" onchange="updateColors()">
-        文字 <input type="color" id="text-picker" value="#2c3e50" onchange="updateColors()">
+    <div class="floating">
+      <button id="clearBtn" class="danger" title="てがき を 1ぽん けす">⌫</button>
+      <button id="undoNumBtn" class="undonum" title="さいご の すうじ を 1つ けす">↶</button>
+      <button id="newBtn" class="new" title="あたらしい もんだい">🔄</button>
     </div>
-    <div style="margin-bottom:15px">
-        <label style="font-size:0.8rem; font-weight:bold">⏩ 速度:</label>
-        <input type="range" id="speech-rate" min="0.5" max="1.5" step="0.1" value="1" style="width:100%">
-    </div>
-    <div style="margin-bottom:15px">
-        <label style="font-size:0.8rem; font-weight:bold">🇯🇵 日本語音声:</label>
-        <select id="voice-ja" style="width:100%"></select>
-    </div>
-    <div style="margin-bottom:15px">
-        <label style="font-size:0.8rem; font-weight:bold">🇻🇳 ベトナム語音声:</label>
-        <select id="voice-vi" style="width:100%"></select>
-    </div>
-    <div style="margin-bottom:15px">
-        <label style="font-size:0.8rem; font-weight:bold">📖 読み上げモード:</label>
-        <select id="read-mode" style="width:100%">
-            <option value="ja-vi">日本語 + ベトナム語</option>
-            <option value="ja">日本語のみ</option>
-            <option value="vi">ベトナム語のみ</option>
-        </select>
-    </div>
-    <div style="margin-bottom:15px">
-        <label><input type="checkbox" id="show-vocab" checked> 意味を表示</label>
-    </div>
-    <button onclick="toggleMenu()" style="width:100%; padding:10px; background:#95a5a6; color:white; border:none; border-radius:5px; cursor:pointer;">閉じる</button>
-</div>
+  </div>
 
-<div id="result-overlay" class="result-overlay">
-    <h1 style="font-size: 3rem;">結果発表</h1>
-    <p id="final-score" style="font-size: 1.5rem; text-align: center; line-height: 2;"></p>
-    <button onclick="resetGame()" style="padding:15px 40px; font-size:1.2rem; cursor:pointer; background:var(--accent-color); color:white; border:none; border-radius:10px;">もう一度チャレンジ</button>
-</div>
+  <div class="palette" id="palette">
+    <div class="num-grid">
+      <button class="pal-btn" data-token="0" data-red="0">0</button>
+      <button class="pal-btn" data-token="1" data-red="0">1</button>
+      <button class="pal-btn" data-token="2" data-red="0">2</button>
+      <button class="pal-btn" data-token="3" data-red="0">3</button>
+      <button class="pal-btn" data-token="4" data-red="0">4</button>
+      <button class="pal-btn" data-token="5" data-red="0">5</button>
+      <button class="pal-btn" data-token="6" data-red="0">6</button>
+      <button class="pal-btn" data-token="7" data-red="0">7</button>
+      <button class="pal-btn" data-token="8" data-red="0">8</button>
+      <button class="pal-btn" data-token="9" data-red="0">9</button>
+    </div>
+    <div class="red-row">
+      <div class="red-label">くりあがり</div>
+      <div class="red-grid">
+        <button class="pal-btn red" data-token="1" data-red="1">1</button>
+        <button class="pal-btn red" data-token="2" data-red="1">2</button>
+        <button class="pal-btn red" data-token="3" data-red="1">3</button>
+        <button class="pal-btn red" data-token="4" data-red="1">4</button>
+        <button class="pal-btn red" data-token="5" data-red="1">5</button>
+        <button class="pal-btn red" data-token="6" data-red="1">6</button>
+        <button class="pal-btn red" data-token="7" data-red="1">7</button>
+        <button class="pal-btn red" data-token="8" data-red="1">8</button>
+        <button class="pal-btn red" data-token="9" data-red="1">9</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<button id="checkBtn" class="check-btn" title="まるつけ">✓</button>
+
+<div class="toast" id="toast"></div>
+
+<!-- ★ 放射状 ピッカー -->
+<div class="radial-menu" id="radialMenu"></div>
 
 <script>
-    let currentQuestion = { a: 0, b: 0, op: '*', ans: 0 };
-    let stats = { right: 0, wrong: 0, total: 0 };
-    const complimentsJA = ["正解！素晴らしい", "すごいですね！", "よくできました", "天才ですね！", "その調子！"];
-    const complimentsVI = ["Đúng rồi! Tuyệt vời", "Giỏi quá!", "Làm tốt lắm", "Bạn là thiên tài!", "Cứ tiếp tục nhé!"];
+(function(){
+'use strict';
 
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
-    let isDrawing = false;
+const $  = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => Array.prototype.slice.call(r.querySelectorAll(s));
+const rnd = (a,b) => Math.floor(Math.random()*(b-a+1))+a;
 
-    function resizeCanvas() {
-        const rect = canvas.parentElement.getBoundingClientRect();
-        canvas.width = rect.width; canvas.height = rect.height;
-        ctx.lineWidth = 4; ctx.lineCap = 'round'; ctx.strokeStyle = document.getElementById('text-picker').value;
+const MIN_DIGITS = 1;
+const MAX_DIGITS = 3;
+
+const S = { op:'×', d1:2, d2:2, started:false, a:0, b:0 };
+
+const problemEl = $('#problem');
+const problemArea = $('#problemArea');
+const pgrid = $('#pgrid');
+const stage = $('#stage');
+const palette = $('#palette');
+const droppedLayer = $('#droppedLayer');
+const canvas = $('#ink');
+const ctx = canvas.getContext('2d');
+const root = document.documentElement;
+const toast = $('#toast');
+
+function randomWithDigits(d){
+  const min = (d === 1) ? 2 : Math.pow(10, d - 1);
+  const max = Math.pow(10, d) - 1;
+  return rnd(min, max);
+}
+
+/* =====================================================
+   てがき
+   ===================================================== */
+let strokes = [], current = null, drawing = false;
+
+function fit(){
+  const dpr = Math.min(window.devicePixelRatio || 1, 3);
+  const r = canvas.getBoundingClientRect();
+  if (!r.width || !r.height) return;
+  canvas.width  = Math.round(r.width  * dpr);
+  canvas.height = Math.round(r.height * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  redraw();
+}
+
+function paint(s){
+  const p = s.pts;
+  if (!p.length) return;
+  if (p.length === 1){
+    ctx.beginPath();
+    ctx.arc(p[0].x, p[0].y, s.w/2, 0, Math.PI*2);
+    ctx.fillStyle = s.color; ctx.fill();
+    return;
+  }
+  ctx.beginPath();
+  ctx.moveTo(p[0].x, p[0].y);
+  for (let i=1;i<p.length;i++) ctx.lineTo(p[i].x, p[i].y);
+  ctx.strokeStyle = s.color;
+  ctx.lineWidth = s.w;
+  ctx.stroke();
+}
+
+function redraw(){
+  const r = canvas.getBoundingClientRect();
+  ctx.clearRect(0, 0, r.width, r.height);
+  for (let i=0;i<strokes.length;i++) paint(strokes[i]);
+}
+
+function clearInk(){ strokes = []; current = null; drawing = false; redraw(); }
+function eraseLastStroke(){ if (strokes.length === 0) return; strokes.pop(); current = null; redraw(); }
+
+function localPos(e){
+  const r = canvas.getBoundingClientRect();
+  return { x: e.clientX - r.left, y: e.clientY - r.top };
+}
+
+/* =====================================================
+   UI
+   ===================================================== */
+function render(){
+  $('#d1v').textContent = S.d1;
+  $('#d2v').textContent = S.d2;
+  $$('.ops button').forEach(b => b.classList.toggle('on', b.dataset.op === S.op));
+}
+
+$$('.ops button').forEach(b=>{
+  b.addEventListener('click', ()=>{ S.op = b.dataset.op; render(); });
+});
+
+$$('[data-step]').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    const k = b.dataset.step, d = +b.dataset.d;
+    S[k] = Math.max(MIN_DIGITS, Math.min(MAX_DIGITS, S[k] + d));
+    render();
+  });
+});
+
+/* =====================================================
+   フォント
+   ===================================================== */
+const FONT_SIZES = {
+  1: 'clamp(3.6rem, 18vh, 8rem)',
+  2: 'clamp(2.6rem, 12vh, 5.6rem)',
+  3: 'clamp(2rem, 9vh, 4.4rem)',
+  4: 'clamp(1.6rem, 7vh, 3.6rem)',
+  5: 'clamp(1.3rem, 6vh, 3rem)',
+  6: 'clamp(1.1rem, 5vh, 2.5rem)'
+};
+function setFont(keys){
+  const k = Math.min(Math.max(keys, 1), 6);
+  problemEl.style.fontSize = FONT_SIZES[k] || FONT_SIZES[6];
+}
+
+/* =====================================================
+   かけざん
+   ===================================================== */
+function renderMultiplicationGrid(a, b){
+  const sa = String(a).split('');
+  const sb = String(b).split('');
+  const na = sa.length, nb = sb.length;
+  const cols = na + nb + 1;
+  const offsetA = cols - na;
+  const offsetB = cols - nb;
+
+  let html = '';
+  html += '<div class="cell no-drop"></div>';
+  for (let c = 0; c < cols; c++)
+    html += `<div class="cell carry no-drop" data-col="${c}"></div>`;
+
+  html += '<div class="cell no-drop"></div>';
+  for (let c = 0; c < cols; c++){
+    const idx = c - offsetA;
+    const d = (idx >= 0 && idx < na) ? sa[idx] : '';
+    html += `<div class="cell digit no-drop" data-col="${c}">${d}</div>`;
+  }
+
+  html += '<div class="cell sign no-drop">×</div>';
+  for (let c = 0; c < cols; c++){
+    const idx = c - offsetB;
+    const d = (idx >= 0 && idx < nb) ? sb[idx] : '';
+    html += `<div class="cell digit no-drop" data-col="${c}">${d}</div>`;
+  }
+
+  html += '<div class="sep"></div>';
+
+  for (let pi = 0; pi < nb; pi++){
+    const bDigit = +sb[nb - 1 - pi];
+    const partialStr = String(a * bDigit);
+    const partialLen = partialStr.length;
+
+    html += '<div class="cell no-drop"></div>';
+    for (let c = 0; c < cols; c++){
+      const rightOffset = cols - 1 - c;
+      const partialIdx = rightOffset - pi;
+      if (partialIdx >= 0 && partialIdx < partialLen){
+        const d = partialStr[partialLen - 1 - partialIdx];
+        html += `<div class="cell answer partial droppable" data-row="p${pi}" data-col="${c}" data-orig="" data-exp="${d}"></div>`;
+      } else {
+        html += '<div class="cell no-drop"></div>';
+      }
     }
+  }
 
-    function getCoords(e) {
-        const rect = canvas.getBoundingClientRect();
-        const clientX = e.touches ? e.touches.clientX : e.clientX;
-        const clientY = e.touches ? e.touches.clientY : e.clientY;
-        return { x: clientX - rect.left, y: clientY - rect.top };
+  if (nb > 1){
+    html += '<div class="sep"></div>';
+    const finalStr = String(a * b);
+    const finalLen = finalStr.length;
+
+    html += '<div class="cell no-drop"></div>';
+    for (let c = 0; c < cols; c++){
+      const rightOffset = cols - 1 - c;
+      if (rightOffset < finalLen){
+        const d = finalStr[finalLen - 1 - rightOffset];
+        html += `<div class="cell answer droppable" data-row="f" data-col="${c}" data-orig="" data-exp="${d}"></div>`;
+      } else {
+        html += '<div class="cell no-drop"></div>';
+      }
     }
+  }
 
-    canvas.addEventListener('mousedown', (e) => { isDrawing = true; ctx.beginPath(); const p = getCoords(e); ctx.moveTo(p.x, p.y); });
-    canvas.addEventListener('mousemove', (e) => { if (!isDrawing) return; const p = getCoords(e); ctx.lineTo(p.x, p.y); ctx.stroke(); });
-    canvas.addEventListener('mouseup', () => isDrawing = false);
-    canvas.addEventListener('touchstart', (e) => { e.preventDefault(); isDrawing = true; ctx.beginPath(); const p = getCoords(e); ctx.moveTo(p.x, p.y); });
-    canvas.addEventListener('touchmove', (e) => { e.preventDefault(); if (!isDrawing) return; const p = getCoords(e); ctx.lineTo(p.x, p.y); ctx.stroke(); });
-    function clearCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
+  pgrid.className = 'pgrid';
+  pgrid.style.setProperty('--n', cols);
+  pgrid.innerHTML = html;
+  problemEl.classList.remove('division');
+  setFont(cols);
+}
 
-    const synth = window.speechSynthesis;
-    function loadVoices() {
-        const voices = synth.getVoices();
-        document.getElementById('voice-ja').innerHTML = voices.filter(v => v.lang.includes('ja')).map(v => `<option value="${v.name}">${v.name}</option>`).join('');
-        document.getElementById('voice-vi').innerHTML = voices.filter(v => v.lang.includes('vi')).map(v => `<option value="${v.name}">${v.name}</option>`).join('');
+/* =====================================================
+   わりざん
+   ===================================================== */
+function renderDivisionGrid(a, b){
+  const dividendStr = String(a);
+  const divisorStr  = String(b);
+  const nc = dividendStr.length;
+  const dc = divisorStr.length;
+
+  const leftCols  = Math.max(nc + 3, 6);
+  const rightCols = Math.max(dc + 2, 4);
+  const rows = 4;
+  const divOffset = rightCols - dc;
+
+  let html = '';
+  html += `<div class="db-vline"></div>`;
+  html += `<div class="db-hline"></div>`;
+
+  for (let r = 0; r < rows; r++){
+    for (let c = 0; c < leftCols; c++){
+      const isGiven = (r === 0);
+      const d = (isGiven && c < nc) ? dividendStr[c] : '';
+      const cls = 'db-cell ' + (isGiven ? 'given' : 'droppable');
+      html += `<div class="${cls}" data-row="L${r}" data-col="${c}" data-orig="${d}">${d}</div>`;
     }
-    if (speechSynthesis.onvoiceschanged !== undefined) speechSynthesis.onvoiceschanged = loadVoices;
-
-    function speakQuestion() {
-        synth.cancel();
-        const rate = document.getElementById('speech-rate').value;
-        const mode = document.getElementById('read-mode').value;
-        const vJa = synth.getVoices().find(v => v.name === document.getElementById('voice-ja').value);
-        const vVi = synth.getVoices().find(v => v.name === document.getElementById('voice-vi').value);
-        
-        const utterJa = new SpeechSynthesisUtterance(`${currentQuestion.a} ${currentQuestion.op==='*'?'かける':'わる'} ${currentQuestion.b} は？`);
-        utterJa.voice = vJa; utterJa.rate = rate;
-        const utterVi = new SpeechSynthesisUtterance(`${currentQuestion.a} ${currentQuestion.op==='*'?'nhân':'chia'} ${currentQuestion.b} bằng bao nhiêu?`);
-        utterVi.voice = vVi; utterVi.rate = rate;
-
-        if (mode === 'ja') synth.speak(utterJa);
-        else if (mode === 'vi') synth.speak(utterVi);
-        else { utterJa.onend = () => synth.speak(utterVi); synth.speak(utterJa); }
+    for (let c = 0; c < rightCols; c++){
+      let d = '';
+      let isGiven = false;
+      if (r === 0 && c >= divOffset){
+        d = divisorStr[c - divOffset];
+        isGiven = true;
+      }
+      const isQuotient = (r === 1);
+      let cls = 'db-cell';
+      if (isGiven) cls += ' given';
+      else cls += ' droppable';
+      if (isQuotient) cls += ' quotient-cell';
+      html += `<div class="${cls}" data-row="R${r}" data-col="${c}" data-orig="${d}">${d}</div>`;
     }
+  }
 
-    function speakFeedback(isCorrect) {
-        synth.cancel();
-        const rate = document.getElementById('speech-rate').value;
-        const mode = document.getElementById('read-mode').value;
-        const idx = Math.floor(Math.random() * complimentsJA.length);
-        const utterJa = new SpeechSynthesisUtterance(isCorrect ? complimentsJA[idx] : "残念、違います");
-        utterJa.voice = synth.getVoices().find(v => v.name === document.getElementById('voice-ja').value);
-        utterJa.rate = rate;
-        const utterVi = new SpeechSynthesisUtterance(isCorrect ? complimentsVI[idx] : "Sai rồi, thử lại nhé");
-        utterVi.voice = synth.getVoices().find(v => v.name === document.getElementById('voice-vi').value);
-        utterVi.rate = rate;
+  pgrid.className = 'division-board';
+  pgrid.innerHTML = `<div class="db-cells" style="--lc:${leftCols};--rc:${rightCols};--rows:${rows};">${html}</div>`;
+  problemEl.classList.add('division');
+  problemEl.style.fontSize = '';
+}
 
-        if (mode === 'ja') synth.speak(utterJa);
-        else if (mode === 'vi') synth.speak(utterVi);
-        else { utterJa.onend = () => synth.speak(utterVi); synth.speak(utterJa); }
-    }
+function renderProblemGrid(a, b, op){
+  if (op === '÷'){ renderDivisionGrid(a, b); return; }
+  renderMultiplicationGrid(a, b);
+}
 
-    function renderQuestion() {
-        const area = document.getElementById('question-area');
-        const layout = document.getElementById('calc-layout').value;
-        const visualOp = currentQuestion.op === '*' ? '×' : '÷';
-        if (layout === 'horizontal' || currentQuestion.op === '/') {
-            area.className = 'mode-horizontal';
-            area.innerText = `${currentQuestion.a} ${visualOp} ${currentQuestion.b}`;
-        } else {
-            area.className = 'mode-vertical';
-            area.innerHTML = `<table><tr><td></td><td>${currentQuestion.a}</td></tr><tr><td class="operator-cell">${visualOp}</td><td class="border-bottom">${currentQuestion.b}</td></tr></table>`;
-        }
-    }
+function syncNumSize(){
+  const cs = getComputedStyle(problemEl);
+  const fs = parseFloat(cs.fontSize);
+  if (fs) root.style.setProperty('--num-size', fs + 'px');
+}
 
-    function generateQuestion() {
-        const digits = parseInt(document.getElementById('digit-select').value);
-        let opMode = document.getElementById('op-select').value;
-        let op = opMode === 'mix' ? (Math.random() > 0.5 ? '*' : '/') : opMode;
-        let a, b, ans;
-        const min = Math.pow(10, digits - 1);
-        const max = Math.pow(10, digits) - 1;
+/* =====================================================
+   もんだい を つくる
+   ===================================================== */
+function buildProblem(){
+  const realOp = S.op;
+  let a, b;
 
-        if (op === '/') {
-            b = rand(min === 1 ? 2 : min, max); 
-            ans = rand(1, 12); // Thương số hợp lý cho học tập
-            a = b * ans;
-        } else {
-            a = rand(min, max);
-            b = rand(1, (digits === 1 ? 9 : 12)); // Giới hạn số nhân để không quá tải
-            ans = a * b;
-        }
-        currentQuestion = { a, b, op, ans };
-        renderQuestion();
-        document.getElementById('vocab-display').innerText = document.getElementById('show-vocab').checked ? (op==='*'?"かけ算 (×)":"わり算 (÷)") : "";
-        
-        let opts = [ans];
-        while(opts.length < 4) {
-            let fake = ans + rand(-10, 10);
-            if (fake !== ans && fake >= 0 && !opts.includes(fake)) opts.push(fake);
-        }
-        opts.sort(() => Math.random() - 0.5);
-        const container = document.getElementById('options');
-        container.innerHTML = '';
-        opts.forEach(o => {
-            const btn = document.createElement('button');
-            btn.className = 'opt-btn'; btn.innerText = o;
-            btn.onclick = () => checkAnswer(o);
-            container.appendChild(btn);
-        });
-    }
+  if (realOp === '×'){
+    a = randomWithDigits(S.d1);
+    b = randomWithDigits(S.d2);
+  } else {
+    b = randomWithDigits(S.d2);
+    a = randomWithDigits(S.d1);
+    if (a < b){ const t = a; a = b; b = t; }
+    const q = Math.max(2, Math.floor(a / b));
+    a = b * q;
+  }
 
-    function checkAnswer(val) {
-        const isCorrect = val === currentQuestion.ans;
-        const fb = document.getElementById('feedback');
-        stats.total++;
-        if (isCorrect) { stats.right++; fb.innerText = "⭕"; fb.style.color = "#27ae60"; }
-        else { stats.wrong++; fb.innerText = "❌"; fb.style.color = "#e74c3c"; }
-        fb.style.display = 'block';
-        speakFeedback(isCorrect);
-        setTimeout(() => {
-            fb.style.display = 'none';
-            updateStats();
-            if (stats.total >= parseInt(document.getElementById('limit-select').value)) showResults();
-            else { generateQuestion(); clearCanvas(); }
-        }, 1500);
-    }
+  S.a = a; S.b = b;
+  renderProblemGrid(a, b, realOp);
 
-    function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
-    function toggleMenu() { document.getElementById('sidebar').classList.toggle('active'); }
-    function updateColors() {
-        document.documentElement.style.setProperty('--bg-color', document.getElementById('bg-picker').value);
-        document.documentElement.style.setProperty('--text-color', document.getElementById('text-picker').value);
-        ctx.strokeStyle = document.getElementById('text-picker').value;
+  S.started = true;
+  document.body.classList.add('started');
+  render();
+  clearInk();
+  clearAllTokens();
+
+  requestAnimationFrame(()=>{ syncNumSize(); fit(); });
+}
+
+/* =====================================================
+   ばしょ
+   ===================================================== */
+function findCellAtPoint(clientX, clientY){
+  const cells = $$('#pgrid .cell.droppable, .db-cell.droppable');
+  for (const cell of cells){
+    const r = cell.getBoundingClientRect();
+    if (clientX >= r.left && clientX <= r.right &&
+        clientY >= r.top  && clientY <= r.bottom){
+      return cell;
     }
-    function updateStats() {
-        document.getElementById('score-right').innerText = stats.right;
-        document.getElementById('score-wrong').innerText = stats.wrong;
-        document.getElementById('current-count').innerText = stats.total;
-        document.getElementById('total-limit').innerText = document.getElementById('limit-select').value;
+  }
+  return null;
+}
+
+let lastOverCell = null;
+function setOverCell(cell){
+  if (lastOverCell === cell) return;
+  if (lastOverCell) lastOverCell.classList.remove('over');
+  lastOverCell = cell;
+  if (cell) cell.classList.add('over');
+}
+
+/* =====================================================
+   ★ 放射状 ピッカー
+   ===================================================== */
+const radialMenu = $('#radialMenu');
+let radialState = null;
+
+function openRadial(cell, clientX, clientY){
+  // えがお の サイズ から はんけい を きめる
+  const W = window.innerWidth, H = window.innerHeight;
+  const PAD = 46; // アイテム はんけい + よはく
+  let R = 138;
+  R = Math.min(R, (W - 2*PAD) / 2, (H - 2*PAD) / 2);
+  R = Math.max(R, 92);
+
+  // ちゅうしん を がめん ない に おさめる
+  const cx = Math.max(R + PAD, Math.min(W - R - PAD, clientX));
+  const cy = Math.max(R + PAD, Math.min(H - R - PAD, clientY));
+
+  // そうじ
+  radialMenu.innerHTML = '';
+
+  // ちゅうしん に いま の あたい
+  const curStr = (cell.textContent || '').trim();
+  const curVal = /^[0-9]$/.test(curStr) ? +curStr : -1;
+
+  const center = document.createElement('div');
+  center.className = 'radial-center';
+  center.style.left = cx + 'px';
+  center.style.top  = cy + 'px';
+  center.textContent = curVal >= 0 ? curStr : '';
+  radialMenu.appendChild(center);
+
+  // アイテム を えん じょう に ならべる
+  const items = [];
+  for (let i = 0; i <= 9; i++){
+    const angle = -Math.PI/2 + i * (2*Math.PI/10);
+    const x = cx + R * Math.cos(angle);
+    const y = cy + R * Math.sin(angle);
+    const el = document.createElement('div');
+    el.className = 'radial-item';
+    if (i === curVal) el.classList.add('current');
+    el.textContent = i;
+    el.style.left = x + 'px';
+    el.style.top  = y + 'px';
+    el.style.transitionDelay = (i * 12) + 'ms';
+    radialMenu.appendChild(el);
+    items.push({ el, v: i, x, y });
+  }
+
+  radialMenu.style.setProperty('--rcx', cx + 'px');
+  radialMenu.style.setProperty('--rcy', cy + 'px');
+
+  radialMenu.classList.add('open');
+
+  radialState = {
+    cell, cx, cy, R, items,
+    activeIdx: -1,
+    moved: false
+  };
+}
+
+function updateRadial(clientX, clientY){
+  if (!radialState) return;
+  const { cx, cy, items } = radialState;
+  const dx = clientX - cx;
+  const dy = clientY - cy;
+  const dist = Math.sqrt(dx*dx + dy*dy);
+
+  // ちゅうしん に ちか すぎる → まだ えらばない
+  if (dist < radialState.R * 0.42){
+    items.forEach(it => it.el.classList.remove('active'));
+    radialState.activeIdx = -1;
+    return;
+  }
+
+  // いちばん ちかい アイテム を さがす
+  let best = -1, bestD = Infinity;
+  for (let i = 0; i < items.length; i++){
+    const ddx = clientX - items[i].x;
+    const ddy = clientY - items[i].y;
+    const d = ddx*ddx + ddy*ddy;
+    if (d < bestD){ bestD = d; best = i; }
+  }
+
+  items.forEach((it, idx) => {
+    it.el.classList.toggle('active', idx === best);
+  });
+  radialState.activeIdx = best;
+}
+
+function closeRadial(){
+  radialMenu.classList.remove('open');
+  radialMenu.innerHTML = '';
+  radialState = null;
+}
+
+function confirmRadial(){
+  if (!radialState) return;
+  const { cell, items, activeIdx } = radialState;
+  if (activeIdx >= 0){
+    placeNumberInCell(cell, String(items[activeIdx].v));
+  }
+  closeRadial();
+}
+
+/* =====================================================
+   ながおし けんしゅつ
+   ===================================================== */
+let lpTimer = null;
+let lpStart = null;
+const LP_MS = 480;
+
+function cancelLongPress(){
+  if (lpTimer){ clearTimeout(lpTimer); lpTimer = null; }
+  lpStart = null;
+}
+
+canvas.addEventListener('pointerdown', e=>{
+  if (!S.started || drawing) return;
+  if (radialState) return;
+
+  e.preventDefault();
+  try { canvas.setPointerCapture(e.pointerId); } catch(_){}
+  drawing = true;
+  const p = localPos(e);
+  current = { color:'#16305c', w: e.pointerType === 'pen' ? 3 : 3.5, pts:[p] };
+  strokes.push(current);
+  paint(current);
+
+  cancelLongPress();
+  lpStart = { x: e.clientX, y: e.clientY, pointerId: e.pointerId };
+  lpTimer = setTimeout(()=>{
+    if (!lpStart) return;
+    const cell = findCellAtPoint(lpStart.x, lpStart.y);
+    if (cell){
+      // かいた せん を けす
+      if (current && strokes[strokes.length-1] === current){
+        strokes.pop();
+        current = null;
+        redraw();
+      }
+      drawing = false;
+
+      cell.classList.remove('longpress');
+      void cell.offsetWidth;
+      cell.classList.add('longpress');
+
+      // ピッカー ひらく
+      openRadial(cell, lpStart.x, lpStart.y);
     }
-    function showResults() {
-        document.getElementById('result-overlay').style.display = 'flex';
-        document.getElementById('final-score').innerHTML = `正解 (Đúng): ${stats.right}<br>不正解 (Sai): ${stats.wrong}`;
+    lpTimer = null;
+    lpStart = null;
+  }, LP_MS);
+});
+
+canvas.addEventListener('pointermove', e=>{
+  // ピッカー が ひらいている とき
+  if (radialState){
+    e.preventDefault();
+    radialState.moved = true;
+    updateRadial(e.clientX, e.clientY);
+    return;
+  }
+
+  if (!drawing || !current) return;
+  e.preventDefault();
+
+  // ながおし キャンセル
+  if (lpStart && lpTimer){
+    const dx = e.clientX - lpStart.x, dy = e.clientY - lpStart.y;
+    if (dx*dx + dy*dy > 100) cancelLongPress();
+  }
+
+  const evts = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+  for (let k=0;k<evts.length;k++){
+    const p = localPos(evts[k]);
+    const last = current.pts[current.pts.length-1];
+    const dx = p.x-last.x, dy = p.y-last.y;
+    if (dx*dx + dy*dy < 1.2) continue;
+    current.pts.push(p);
+    ctx.beginPath();
+    ctx.moveTo(last.x, last.y);
+    ctx.lineTo(p.x, p.y);
+    ctx.strokeStyle = current.color;
+    ctx.lineWidth = current.w;
+    ctx.stroke();
+  }
+});
+
+function endStroke(){
+  cancelLongPress();
+  drawing = false;
+  current = null;
+}
+canvas.addEventListener('pointerup', e=>{
+  if (radialState){
+    e.preventDefault();
+    // ちゅうしん から はなれて いれば けってい
+    if (radialState.moved){
+      confirmRadial();
+    } else {
+      closeRadial();
     }
-    function resetGame() {
-        stats = { right: 0, wrong: 0, total: 0 };
-        document.getElementById('result-overlay').style.display = 'none';
-        updateStats(); generateQuestion(); clearCanvas();
+    drawing = false;
+    current = null;
+    cancelLongPress();
+    return;
+  }
+  endStroke();
+});
+canvas.addEventListener('pointercancel', e=>{
+  if (radialState) closeRadial();
+  endStroke();
+});
+
+/* =====================================================
+   ドラッグ（パレット から）
+   ===================================================== */
+let dragState = null;
+let ghostEl = null;
+let placedHistory = [];
+
+function makeGhost(token, isRed){
+  const g = document.createElement('div');
+  g.className = 'ghost-token';
+  if (isRed) g.classList.add('red');
+  g.textContent = token;
+  return g;
+}
+
+$$('.palette [data-token]').forEach(btn => {
+  btn.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    const isRed = btn.dataset.red === '1';
+    startPaletteDrag(btn.dataset.token, isRed, e);
+  });
+});
+
+function startPaletteDrag(token, isRed, e){
+  if (dragState) return;
+  dragState = { token, isRed, moved:false };
+  document.body.classList.add('dragging');
+  ghostEl = makeGhost(token, isRed);
+  ghostEl.style.left = e.clientX + 'px';
+  ghostEl.style.top  = e.clientY + 'px';
+  document.body.appendChild(ghostEl);
+
+  document.addEventListener('pointermove', onGlobalMove, { passive:false });
+  document.addEventListener('pointerup', onGlobalUp);
+  document.addEventListener('pointercancel', onGlobalUp);
+}
+
+function onGlobalMove(e){
+  if (!dragState || !ghostEl) return;
+  e.preventDefault();
+  dragState.moved = true;
+  ghostEl.style.left = e.clientX + 'px';
+  ghostEl.style.top  = e.clientY + 'px';
+  if (!dragState.isRed) setOverCell(findCellAtPoint(e.clientX, e.clientY));
+  else setOverCell(null);
+}
+
+function onGlobalUp(e){
+  document.removeEventListener('pointermove', onGlobalMove);
+  document.removeEventListener('pointerup', onGlobalUp);
+  document.removeEventListener('pointercancel', onGlobalUp);
+
+  document.body.classList.remove('dragging');
+  setOverCell(null);
+
+  if (!dragState){ if (ghostEl){ ghostEl.remove(); ghostEl = null; } return; }
+
+  const token = dragState.token;
+  const isRed = dragState.isRed;
+  const moved = dragState.moved;
+  if (ghostEl){ ghostEl.remove(); ghostEl = null; }
+  dragState = null;
+
+  if (!moved) return;
+
+  const areaRect = problemArea.getBoundingClientRect();
+  const palRect  = palette.getBoundingClientRect();
+  const x = e.clientX, y = e.clientY;
+  const overPalette = x >= palRect.left && x <= palRect.right &&
+                      y >= palRect.top  && y <= palRect.bottom;
+  const inArea = x >= areaRect.left && x <= areaRect.right &&
+                 y >= areaRect.top  && y <= areaRect.bottom;
+
+  if (overPalette) return;
+
+  if (isRed){
+    if (inArea) createFloatingRedToken(token, x - areaRect.left, y - areaRect.top);
+  } else {
+    const cell = findCellAtPoint(x, y);
+    if (cell) placeNumberInCell(cell, token);
+  }
+}
+
+function placeNumberInCell(cell, token){
+  clearCheckFeedback();
+  placedHistory.push({ type:'cell', cell, prev: cell.textContent || '' });
+  cell.textContent = token;
+  cell.dataset.placed = token;
+  cell.classList.remove('justFilled');
+  void cell.offsetWidth;
+  cell.classList.add('justFilled');
+}
+
+function createFloatingRedToken(token, x, y){
+  const el = document.createElement('div');
+  el.className = 'dropped-token';
+  el.dataset.token = token;
+  el.style.left = x + 'px';
+  el.style.top  = y + 'px';
+
+  const num = document.createElement('span');
+  num.textContent = token;
+  num.style.pointerEvents = 'none';
+  el.appendChild(num);
+
+  const del = document.createElement('button');
+  del.className = 'del-x';
+  del.textContent = '×';
+  del.addEventListener('pointerdown', ev=>{ ev.preventDefault(); ev.stopPropagation(); });
+  del.addEventListener('click', ev=>{ ev.preventDefault(); ev.stopPropagation(); el.remove(); });
+  el.appendChild(del);
+
+  el.addEventListener('pointerdown', onDroppedDown);
+  droppedLayer.appendChild(el);
+  placedHistory.push({ type:'red', el });
+}
+
+function onDroppedDown(e){
+  e.preventDefault(); e.stopPropagation();
+  const el = e.currentTarget;
+  const areaRect = problemArea.getBoundingClientRect();
+  el.classList.add('dragging');
+
+  function move(ev){
+    ev.preventDefault();
+    el.style.left = (ev.clientX - areaRect.left) + 'px';
+    el.style.top  = (ev.clientY - areaRect.top)  + 'px';
+  }
+  function up(ev){
+    el.classList.remove('dragging');
+    el.removeEventListener('pointermove', move);
+    el.removeEventListener('pointerup', up);
+    el.removeEventListener('pointercancel', up);
+
+    const palRect = palette.getBoundingClientRect();
+    const overPalette = ev.clientX >= palRect.left && ev.clientX <= palRect.right &&
+                        ev.clientY >= palRect.top  && ev.clientY <= palRect.bottom;
+    const outOfArea = ev.clientX < areaRect.left || ev.clientX > areaRect.right ||
+                      ev.clientY < areaRect.top  || ev.clientY > areaRect.bottom;
+    if (overPalette || outOfArea) el.remove();
+  }
+  el.addEventListener('pointermove', move, { passive:false });
+  el.addEventListener('pointerup', up);
+  el.addEventListener('pointercancel', up);
+}
+
+/* =====================================================
+   1つずつ けす
+   ===================================================== */
+function undoLastPlaced(){
+  while (placedHistory.length > 0){
+    const last = placedHistory.pop();
+    if (last.type === 'cell'){
+      last.cell.textContent = last.prev || '';
+      if (last.prev) last.cell.dataset.placed = last.prev;
+      else delete last.cell.dataset.placed;
+      last.cell.classList.remove('justFilled');
+      clearCheckFeedback();
+      return;
     }
-    window.onload = () => { loadVoices(); resizeCanvas(); resetGame(); };
-    window.onresize = resizeCanvas;
+    if (last.type === 'red'){
+      if (last.el && last.el.parentNode){
+        last.el.remove();
+        clearCheckFeedback();
+        return;
+      }
+    }
+  }
+}
+
+/* =====================================================
+   リセット
+   ===================================================== */
+function clearAllTokens(){
+  while (droppedLayer.firstChild) droppedLayer.removeChild(droppedLayer.firstChild);
+  $$('#pgrid .cell.droppable, #pgrid .db-cell.droppable').forEach(cell=>{
+    const orig = cell.dataset.orig || '';
+    cell.textContent = orig;
+    delete cell.dataset.placed;
+    cell.classList.remove('justFilled');
+  });
+  placedHistory = [];
+  clearCheckFeedback();
+}
+
+/* =====================================================
+   まるつけ
+   ===================================================== */
+function clearCheckFeedback(){
+  $$('#pgrid .cell.answer').forEach(c=>{
+    c.classList.remove('correct','wrong','missing');
+  });
+  $$('#pgrid .db-cell').forEach(c=>{
+    c.classList.remove('checked-correct','checked-wrong','checked-missing');
+  });
+}
+
+let toastTimer = null;
+function showToast(msg, ok){
+  toast.textContent = msg;
+  toast.classList.toggle('error', !ok);
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=> toast.classList.remove('show'), 2200);
+}
+
+function checkAnswer(){
+  if (!S.started) return;
+
+  if (S.op === '×'){
+    const answerCells = $$('#pgrid .cell.answer.droppable');
+    let anyInput = false, allCorrect = true;
+
+    answerCells.forEach(cell => {
+      cell.classList.remove('correct','wrong','missing');
+      const v = (cell.textContent || '').trim();
+      const exp = cell.dataset.exp || '';
+      if (v !== '') anyInput = true;
+      if (v !== exp){
+        allCorrect = false;
+        if (v === '') cell.classList.add('missing');
+        else cell.classList.add('wrong');
+      }
+    });
+
+    if (!anyInput){ showToast('こたえを いれてね ✏️', false); return; }
+    if (allCorrect){
+      answerCells.forEach(c => c.classList.add('correct'));
+      showToast('🎉 せいかい！ すごい！', true);
+    } else {
+      showToast('❌ おしい！ もういちど やってみよう', false);
+    }
+    return;
+  }
+
+  const correct = Math.round(S.a / S.b);
+  const quotientCells = $$('#pgrid .db-cell.quotient-cell');
+
+  let raw = '';
+  let anyInput = false;
+  quotientCells.forEach(cell => {
+    const v = (cell.textContent || '').trim();
+    if (v !== '') anyInput = true;
+    raw += (v === '') ? '' : v;
+  });
+
+  if (!anyInput){
+    showToast('こたえを いれてね ✏️', false);
+    return;
+  }
+
+  const studentNum = parseInt(raw || '0', 10);
+  if (studentNum === correct){
+    quotientCells.forEach(c=>{
+      c.classList.remove('checked-correct','checked-wrong','checked-missing');
+      if ((c.textContent || '').trim() !== '') c.classList.add('checked-correct');
+    });
+    showToast('🎉 せいかい！ すごい！', true);
+    return;
+  }
+
+  const expected = String(correct).split('');
+  const cols = quotientCells.length;
+  while (expected.length < cols) expected.unshift('');
+
+  quotientCells.forEach((cell, i) => {
+    cell.classList.remove('checked-correct','checked-wrong','checked-missing');
+    const v = (cell.textContent || '').trim();
+    const e = expected[i] || '';
+    if (v === e){ /* OK */ }
+    else if (v === '') cell.classList.add('checked-missing');
+    else cell.classList.add('checked-wrong');
+  });
+  showToast('❌ おしい！ もういちど やってみよう', false);
+}
+
+/* =====================================================
+   ボタン
+   ===================================================== */
+$('#startBtn').addEventListener('click', buildProblem);
+$('#newBtn').addEventListener('click', buildProblem);
+$('#clearBtn').addEventListener('click', eraseLastStroke);
+$('#undoNumBtn').addEventListener('click', undoLastPlaced);
+$('#checkBtn').addEventListener('click', checkAnswer);
+
+/* =====================================================
+   さいしょ
+   ===================================================== */
+function boot(){
+  render();
+  syncNumSize();
+  fit();
+  setTimeout(()=>{ syncNumSize(); fit(); }, 120);
+  setTimeout(()=>{ syncNumSize(); fit(); }, 500);
+}
+
+window.addEventListener('resize', ()=> setTimeout(()=>{ syncNumSize(); fit(); }, 80));
+window.addEventListener('orientationchange', ()=> setTimeout(()=>{ syncNumSize(); fit(); }, 250));
+
+document.addEventListener('gesturestart', e => e.preventDefault());
+document.addEventListener('touchmove', e => {
+  if (e.target === canvas) e.preventDefault();
+}, { passive:false });
+
+if (document.readyState === 'complete') boot();
+else window.addEventListener('load', boot);
+
+})();
 </script>
 </body>
 </html>
