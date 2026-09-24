@@ -19,28 +19,40 @@
   --cell-line: #cbd5e1;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;margin:0}
+html{height:100%;margin:0}
 body{
-  position:fixed;inset:0;display:flex;flex-direction:column;
+  height:100%;margin:0;
+  position:fixed;
+  top:0; left:0; right:0; bottom:0;
+  display:flex;flex-direction:column;
   font-family:-apple-system,BlinkMacSystemFont,"Hiragino Maru Gothic ProN","Hiragino Sans","Yu Gothic","SF Pro Rounded",sans-serif;
   background:var(--bg);color:var(--ink);
   overflow:hidden;overscroll-behavior:none;
   -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
+  padding-top:constant(safe-area-inset-top);
   padding-top:env(safe-area-inset-top);
+  padding-left:constant(safe-area-inset-left);
   padding-left:env(safe-area-inset-left);
+  padding-right:constant(safe-area-inset-right);
   padding-right:env(safe-area-inset-right);
+  padding-bottom:constant(safe-area-inset-bottom);
   padding-bottom:env(safe-area-inset-bottom);
 }
 
 .topbar{
-  display:flex;flex-wrap:wrap;align-items:center;gap:8px;
+  display:flex;flex-wrap:wrap;align-items:center;
   padding:8px 12px;background:var(--card);
   border-bottom:1px solid var(--line);
   box-shadow:0 2px 14px rgba(20,30,60,.06);
   z-index:10;
   flex-shrink:0;
 }
-.group{display:flex;align-items:center;background:#eef1f7;border-radius:14px;padding:4px;gap:3px}
+.topbar > *{ margin-right:8px; margin-bottom:4px; }
+.topbar > *:last-child{ margin-right:0; }
+
+.group{display:flex;align-items:center;background:#eef1f7;border-radius:14px;padding:4px}
+.group > *{ margin-right:3px; }
+.group > *:last-child{ margin-right:0; }
 
 .ops button{
   width:56px;height:44px;border:0;border-radius:10px;background:transparent;
@@ -99,9 +111,12 @@ body{
 }
 
 .hint{
-  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  position:absolute;top:0;left:0;right:0;bottom:0;
+  display:flex;align-items:center;justify-content:center;
   text-align:center;padding:30px;color:var(--muted);
-  font-size:clamp(15px,1.8vw,20px);font-weight:700;line-height:1.8;
+  font-size:18px; /* fallback */
+  font-size:clamp(15px,1.8vw,20px);
+  font-weight:700;line-height:1.8;
   pointer-events:none;
 }
 .hint b{color:var(--green)}
@@ -112,9 +127,11 @@ body.started .hint{display:none}
   opacity:0;transition:opacity .25s ease;
   pointer-events:none;
   padding:0;
+  -webkit-transform: translateX(-0.5em);
   transform: translateX(-0.5em);
+  font-size:64px; /* fallback for old iOS */
 }
-.problem.division{ transform: none; }
+.problem.division{ -webkit-transform: none; transform: none; }
 body.started .problem{opacity:1}
 
 /* =================================================================
@@ -123,8 +140,9 @@ body.started .problem{opacity:1}
 .pgrid{
   display:grid;
   grid-template-columns: auto repeat(var(--n, 3), 1.05em);
+  -webkit-justify-content:center;
   justify-content:center;
-  font-size:clamp(2rem,9vh,5.4rem);
+  font-size:64px; /* fallback; JS 上書き */
   font-weight:400;
   line-height:1.05;
   font-variant-numeric:tabular-nums;
@@ -192,32 +210,44 @@ body.dragging .pgrid .cell.droppable.over{
   box-shadow: inset 0 0 0 2px #f59e0b;
 }
 
+@-webkit-keyframes cellPulse{
+  0%   { -webkit-transform: scale(1); }
+  40%  { -webkit-transform: scale(1.18); }
+  100% { -webkit-transform: scale(1); }
+}
 @keyframes cellPulse{
   0%   { transform: scale(1); }
   40%  { transform: scale(1.18); }
   100% { transform: scale(1); }
 }
 .pgrid .cell.longpress, .db-cell.longpress{
+  -webkit-animation: cellPulse .35s ease;
   animation: cellPulse .35s ease;
 }
 
+@-webkit-keyframes cellPop{
+  0%   { -webkit-transform: scale(.6); opacity:.4; }
+  60%  { -webkit-transform: scale(1.18); }
+  100% { -webkit-transform: scale(1); opacity:1; }
+}
 @keyframes cellPop{
   0%   { transform: scale(.6); opacity:.4; }
   60%  { transform: scale(1.18); }
   100% { transform: scale(1); opacity:1; }
 }
 .pgrid .cell.justFilled, .db-cell.justFilled{
+  -webkit-animation: cellPop .38s cubic-bezier(.2,1.5,.5,1);
   animation: cellPop .38s cubic-bezier(.2,1.5,.5,1);
 }
 
 /* =================================================================
-   わりざん ★ 画面 の 向き に あわせて 自動 サイズ ちょうせい
+   わりざん
    ================================================================= */
 .division-board{
   position: relative;
   display: inline-block;
-  /* 基準 の フォント サイズ。JS で 上書き され る */
-  font-size: clamp(0.85rem, min(4vw, 5vh), 2.6rem);
+  font-size: 26px; /* fallback for old iOS */
+  font-size: clamp(0.85rem, 4vw, 2.6rem);
   --cell-w: 1.2em;
   --cell-h: 1.2em;
   --gap-w: 12px;
@@ -230,11 +260,13 @@ body.dragging .pgrid .cell.droppable.over{
 
 .db-cells{
   display: grid;
+  -ms-grid-columns: none;
   grid-template-columns: repeat(var(--lc), var(--cell-w)) var(--gap-w) repeat(var(--rc), var(--cell-w));
   grid-template-rows: repeat(var(--rows), var(--cell-h));
   border-left: 1px solid var(--cell-line);
   border-top: 1px solid var(--cell-line);
   background: #fff;
+  width: -webkit-max-content;
   width: max-content;
   position: relative;
   z-index: 1;
@@ -251,8 +283,8 @@ body.dragging .pgrid .cell.droppable.over{
   color: var(--ink);
   font-variant-numeric: tabular-nums;
   background: #fff;
-  user-select: none;
   -webkit-user-select: none;
+  user-select: none;
   touch-action: none;
   position: relative;
   padding: 0 1px;
@@ -307,14 +339,16 @@ body.dragging .db-cell.droppable.over{
 /* ================================================================= */
 
 #ink{
-  position:absolute;inset:0;width:100%;height:100%;
+  position:absolute;top:0;left:0;right:0;bottom:0;
+  width:100%;height:100%;
   touch-action:none;z-index:2;
   opacity:0;pointer-events:none;transition:opacity .2s;
 }
 body.started #ink{opacity:1;pointer-events:auto}
 
 .dropped-layer{
-  position:absolute;inset:0;z-index:3;
+  position:absolute;top:0;left:0;right:0;bottom:0;
+  z-index:3;
   pointer-events:none;
   overflow:hidden;
 }
@@ -328,7 +362,6 @@ body.started #ink{opacity:1;pointer-events:auto}
   flex-direction:column;
   align-items:center;
   justify-content:center;
-  gap:8px;
   padding:8px 4px;
   background:var(--card);
   border-left:2px solid var(--line);
@@ -343,18 +376,22 @@ body.started .palette{display:flex}
 .num-grid{
   display:grid;
   grid-template-columns:repeat(3, 1fr);
+  grid-gap:5px;
   gap:5px;
   width:100%;
   max-width:100%;
   justify-items:center;
 }
 .pal-btn{
+  width: 50px; /* fallback */
+  height: 50px;
   width: clamp(30px, 6.5vw, 56px);
   height: clamp(30px, 6.5vw, 56px);
   border:0;
   border-radius:11px;
   background:#ffffff;
   color:var(--ink);
+  font-size: 24px; /* fallback */
   font-size: clamp(18px, 3.6vw, 30px);
   font-weight:400;
   line-height:1;
@@ -362,7 +399,7 @@ body.started .palette{display:flex}
   display:flex;align-items:center;justify-content:center;
   box-shadow:0 2px 6px rgba(20,30,60,.12), inset 0 0 0 1px #e2e8f2;
   touch-action:none;
-  user-select:none;-webkit-user-select:none;
+  -webkit-user-select:none;user-select:none;
   cursor:grab;
   transition:background .12s, transform .12s;
 }
@@ -372,20 +409,22 @@ body.started .palette{display:flex}
   display:flex;
   flex-direction:column;
   align-items:center;
-  gap:6px;
   padding-top:8px;
   border-top:1.5px dashed #e2e8f2;
   width:100%;
+  margin-top:8px;
 }
 .red-label{
   font-size:10px;
   font-weight:900;
   color:#dc2626;
   letter-spacing:.5px;
+  margin-bottom:6px;
 }
 .red-grid{
   display:grid;
   grid-template-columns:repeat(3, 1fr);
+  grid-gap:5px;
   gap:5px;
   width:100%;
   justify-items:center;
@@ -401,10 +440,11 @@ body.started .palette{display:flex}
 
 .dropped-token{
   position:absolute;
+  -webkit-transform:translate(-50%,-50%);
   transform:translate(-50%,-50%);
   pointer-events:auto;
   touch-action:none;
-  user-select:none;-webkit-user-select:none;
+  -webkit-user-select:none;user-select:none;
   font-variant-numeric:tabular-nums;
   cursor:grab;
   background: transparent;
@@ -419,6 +459,7 @@ body.started .palette{display:flex}
   line-height:1;
 }
 .dropped-token.dragging{
+  -webkit-transform:translate(-50%,-50%) scale(1.08);
   transform:translate(-50%,-50%) scale(1.08);
   z-index:10;
   cursor:grabbing;
@@ -460,6 +501,7 @@ body.started .palette{display:flex}
   font-variant-numeric:tabular-nums;
   z-index:9999;
   pointer-events:none;
+  -webkit-transform:translate(-50%,-50%) scale(1.06);
   transform:translate(-50%,-50%) scale(1.06);
   opacity:.95;
   background:rgba(255,255,255,.96);
@@ -485,9 +527,11 @@ body.started .palette{display:flex}
   position:absolute;
   z-index:6;
   left: 40%;
+  -webkit-transform:translateX(-50%);
   transform:translateX(-50%);
+  bottom:calc(14px + constant(safe-area-inset-bottom));
   bottom:calc(14px + env(safe-area-inset-bottom));
-  display:none;gap:10px;padding:8px;
+  display:none;padding:8px;
   background:rgba(255,255,255,.92);
   -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
   border:1px solid var(--line);border-radius:20px;
@@ -497,16 +541,20 @@ body.started .floating{display:flex}
 .floating button{
   height:58px;min-width:58px;padding:0 16px;border:0;border-radius:15px;background:#eef1f7;
   font-size:16px;font-weight:800;line-height:1;color:#41506e;
-  display:flex;align-items:center;justify-content:center;gap:6px;
+  display:flex;align-items:center;justify-content:center;
+  margin-right:10px;
 }
+.floating button:last-child{ margin-right:0; }
 .floating button:active{background:#dfe6f2;transform:scale(.96)}
 .floating .danger{background:#ffe9ec;color:#be123c;font-size:26px;padding:0;width:58px;font-weight:600}
-.floating .undonum{background:#e0f2fe;color:#0369a1;font-size:26px;padding:0;width:58px;font-weight:800}
-.floating .new{font-size:24px;padding:0;width:58px}
+.floating .undonum{background:#e0f2fe;color:#0369a1;font-size:22px;padding:0;width:58px;font-weight:800}
+.floating .new{font-size:22px;padding:0;width:58px}
 
 .check-btn{
   position:fixed;
+  right:calc(16px + constant(safe-area-inset-right));
   right:calc(16px + env(safe-area-inset-right));
+  bottom:calc(16px + constant(safe-area-inset-bottom));
   bottom:calc(16px + env(safe-area-inset-bottom));
   width:82px;height:82px;
   border-radius:50%;
@@ -530,8 +578,10 @@ body.started .check-btn{display:flex}
 
 .toast{
   position:fixed;
+  top:calc(84px + constant(safe-area-inset-top));
   top:calc(84px + env(safe-area-inset-top));
   left:50%;
+  -webkit-transform:translate(-50%,-20px);
   transform:translate(-50%,-20px);
   padding:16px 26px;
   border-radius:18px;
@@ -546,18 +596,16 @@ body.started .check-btn{display:flex}
   text-align:center;
   white-space:nowrap;
 }
-.toast.show{opacity:1;transform:translate(-50%,0)}
+.toast.show{opacity:1;-webkit-transform:translate(-50%,0);transform:translate(-50%,0)}
 .toast.error{
   background:linear-gradient(180deg,#f87171,#dc2626);
   box-shadow:0 10px 30px rgba(220,38,38,.45);
 }
 
-/* =================================================================
-   ★ 放射状 すうじ ピッカー
-   ================================================================= */
+/* ★ 放射状 ピッカー */
 .radial-menu{
   position: fixed;
-  inset: 0;
+  top:0;left:0;right:0;bottom:0;
   z-index: 200;
   display: none;
   pointer-events: none;
@@ -589,13 +637,16 @@ body.started .check-btn{display:flex}
   color: var(--ink);
   font-variant-numeric: tabular-nums;
   box-shadow: 0 4px 12px rgba(20,30,60,.15);
+  -webkit-transform: scale(.5);
   transform: scale(.5);
   opacity: 0;
+  transition: -webkit-transform .22s cubic-bezier(.2,1.4,.5,1), opacity .18s,
+              background .12s, color .12s, border-color .12s, box-shadow .12s;
   transition: transform .22s cubic-bezier(.2,1.4,.5,1), opacity .18s,
               background .12s, color .12s, border-color .12s, box-shadow .12s;
-  will-change: transform, opacity;
 }
 .radial-menu.open .radial-item{
+  -webkit-transform: scale(1);
   transform: scale(1);
   opacity: 1;
 }
@@ -603,6 +654,7 @@ body.started .check-btn{display:flex}
   background: linear-gradient(180deg,#3b82f6,#2563eb);
   color: #fff;
   border-color: #1d4ed8;
+  -webkit-transform: scale(1.22);
   transform: scale(1.22);
   box-shadow: 0 8px 22px rgba(37,99,235,.5);
 }
@@ -720,40 +772,46 @@ body.started .check-btn{display:flex}
 (function(){
 'use strict';
 
-const $  = (s, r=document) => r.querySelector(s);
-const $$ = (s, r=document) => Array.prototype.slice.call(r.querySelectorAll(s));
-const rnd = (a,b) => Math.floor(Math.random()*(b-a+1))+a;
+var $  = function(s, r){ r = r || document; return r.querySelector(s); };
+var $$ = function(s, r){ r = r || document; return Array.prototype.slice.call(r.querySelectorAll(s)); };
+var rnd = function(a,b){ return Math.floor(Math.random()*(b-a+1))+a; };
 
-const MIN_DIGITS = 1;
-const MAX_DIGITS = 3;
+var MIN_DIGITS = 1;
+var MAX_DIGITS = 3;
 
-const S = { op:'×', d1:2, d2:2, started:false, a:0, b:0 };
+var S = { op:'×', d1:2, d2:2, started:false, a:0, b:0 };
 
-const problemEl = $('#problem');
-const problemArea = $('#problemArea');
-const pgrid = $('#pgrid');
-const stage = $('#stage');
-const palette = $('#palette');
-const droppedLayer = $('#droppedLayer');
-const canvas = $('#ink');
-const ctx = canvas.getContext('2d');
-const root = document.documentElement;
-const toast = $('#toast');
+var problemEl = $('#problem');
+var problemArea = $('#problemArea');
+var pgrid = $('#pgrid');
+var stage = $('#stage');
+var palette = $('#palette');
+var droppedLayer = $('#droppedLayer');
+var canvas = $('#ink');
+var ctx = canvas.getContext('2d');
+var root = document.documentElement;
+var toast = $('#toast');
+
+/* ★ 古い iPad 用 に viewport サイズ を とる */
+function getVP(){
+  if (window.visualViewport && window.visualViewport.width){
+    return { w: window.visualViewport.width, h: window.visualViewport.height };
+  }
+  return { w: window.innerWidth, h: window.innerHeight };
+}
 
 function randomWithDigits(d){
-  const min = (d === 1) ? 2 : Math.pow(10, d - 1);
-  const max = Math.pow(10, d) - 1;
+  var min = (d === 1) ? 2 : Math.pow(10, d - 1);
+  var max = Math.pow(10, d) - 1;
   return rnd(min, max);
 }
 
-/* =====================================================
-   てがき
-   ===================================================== */
-let strokes = [], current = null, drawing = false;
+/* ===== てがき ===== */
+var strokes = [], current = null, drawing = false;
 
 function fit(){
-  const dpr = Math.min(window.devicePixelRatio || 1, 3);
-  const r = canvas.getBoundingClientRect();
+  var dpr = Math.min(window.devicePixelRatio || 1, 2);
+  var r = canvas.getBoundingClientRect();
   if (!r.width || !r.height) return;
   canvas.width  = Math.round(r.width  * dpr);
   canvas.height = Math.round(r.height * dpr);
@@ -764,7 +822,7 @@ function fit(){
 }
 
 function paint(s){
-  const p = s.pts;
+  var p = s.pts, i;
   if (!p.length) return;
   if (p.length === 1){
     ctx.beginPath();
@@ -774,107 +832,153 @@ function paint(s){
   }
   ctx.beginPath();
   ctx.moveTo(p[0].x, p[0].y);
-  for (let i=1;i<p.length;i++) ctx.lineTo(p[i].x, p[i].y);
+  for (i=1;i<p.length;i++) ctx.lineTo(p[i].x, p[i].y);
   ctx.strokeStyle = s.color;
   ctx.lineWidth = s.w;
   ctx.stroke();
 }
 
 function redraw(){
-  const r = canvas.getBoundingClientRect();
+  var r = canvas.getBoundingClientRect(), i;
   ctx.clearRect(0, 0, r.width, r.height);
-  for (let i=0;i<strokes.length;i++) paint(strokes[i]);
+  for (i=0;i<strokes.length;i++) paint(strokes[i]);
 }
 
 function clearInk(){ strokes = []; current = null; drawing = false; redraw(); }
 function eraseLastStroke(){ if (strokes.length === 0) return; strokes.pop(); current = null; redraw(); }
 
 function localPos(e){
-  const r = canvas.getBoundingClientRect();
+  var r = canvas.getBoundingClientRect();
   return { x: e.clientX - r.left, y: e.clientY - r.top };
 }
 
-/* =====================================================
-   UI
-   ===================================================== */
+/* ===== UI ===== */
 function render(){
   $('#d1v').textContent = S.d1;
   $('#d2v').textContent = S.d2;
-  $$('.ops button').forEach(b => b.classList.toggle('on', b.dataset.op === S.op));
+  $$('.ops button').forEach(function(b){
+    b.classList.toggle('on', b.dataset.op === S.op);
+  });
 }
 
-$$('.ops button').forEach(b=>{
-  b.addEventListener('click', ()=>{ S.op = b.dataset.op; render(); });
+$$('.ops button').forEach(function(b){
+  b.addEventListener('click', function(){ S.op = b.dataset.op; render(); });
 });
 
-$$('[data-step]').forEach(b=>{
-  b.addEventListener('click', ()=>{
-    const k = b.dataset.step, d = +b.dataset.d;
+$$('[data-step]').forEach(function(b){
+  b.addEventListener('click', function(){
+    var k = b.dataset.step, d = +b.dataset.d;
     S[k] = Math.max(MIN_DIGITS, Math.min(MAX_DIGITS, S[k] + d));
     render();
   });
 });
 
 /* =====================================================
-   フォント
+   ★ フォントサイズ：JS で 直接 px を 計算（古い iOS でも 動く）
    ===================================================== */
-const FONT_SIZES = {
-  1: 'clamp(3.6rem, 18vh, 8rem)',
-  2: 'clamp(2.6rem, 12vh, 5.6rem)',
-  3: 'clamp(2rem, 9vh, 4.4rem)',
-  4: 'clamp(1.6rem, 7vh, 3.6rem)',
-  5: 'clamp(1.3rem, 6vh, 3rem)',
-  6: 'clamp(1.1rem, 5vh, 2.5rem)'
-};
-function setFont(keys){
-  const k = Math.min(Math.max(keys, 1), 6);
-  problemEl.style.fontSize = FONT_SIZES[k] || FONT_SIZES[6];
+
+/* かけざん の サイズ を 計算 して 適用 */
+function fitMultiplicationBoard(){
+  if (S.op !== '×') return;
+
+  var na = String(S.a).length;
+  var nb = String(S.b).length;
+  var cols = na + nb + 1;
+
+  /* たて の ごうけい（em たんい） */
+  var rowsEm = 0.62 + 1.05 + 1.05 + 0.34 + nb * 1.05;
+  if (nb > 1) rowsEm += 0.34 + 1.05;
+
+  /* よこ の ごうけい（em たんい） */
+  /* sign れつ (1.05) + cols れつ (1.05 each) */
+  var colsEm = (1 + cols) * 1.05;
+
+  /* きゃく の ない ぶ */
+  var vp = getVP();
+  var areaW = (problemArea.clientWidth || vp.w * 0.8) - 20;
+  var areaH = (problemArea.clientHeight || vp.h - 80) - 40;
+
+  var fw = areaW / colsEm;
+  var fh = areaH / rowsEm;
+  var fs = Math.min(fw, fh);
+  fs = Math.max(14, Math.min(fs, 120));
+
+  problemEl.style.fontSize = fs + 'px';
 }
 
-/* =====================================================
-   かけざん
-   ===================================================== */
+/* わりざん の サイズ を 計算 して 適用 */
+function fitDivisionBoard(){
+  if (S.op !== '÷') return;
+
+  var dbCells = pgrid.querySelector('.db-cells');
+  if (!dbCells) return;
+
+  var lc = parseInt(dbCells.style.getPropertyValue('--lc'), 10) || 6;
+  var rc = parseInt(dbCells.style.getPropertyValue('--rc'), 10) || 4;
+  var rows = parseInt(dbCells.style.getPropertyValue('--rows'), 10) || 4;
+
+  var vp = getVP();
+  var areaW = (problemArea.clientWidth || vp.w * 0.8) - 20;
+  var areaH = (problemArea.clientHeight || vp.h - 80) - 40;
+
+  /* こてい ぴくせる */
+  var fixedW = 12 + 26 + 2;
+  var fixedH = 12 + 20 + 2;
+
+  /* セル はば 1.2em */
+  var cellEm = 1.2;
+
+  var fsW = (areaW - fixedW) / ((lc + rc) * cellEm);
+  var fsH = (areaH - fixedH) / (rows * cellEm);
+
+  var fs = Math.min(fsW, fsH);
+  fs = Math.max(12, Math.min(fs, 60));
+
+  pgrid.style.fontSize = fs + 'px';
+}
+
 function renderMultiplicationGrid(a, b){
-  const sa = String(a).split('');
-  const sb = String(b).split('');
-  const na = sa.length, nb = sb.length;
-  const cols = na + nb + 1;
-  const offsetA = cols - na;
-  const offsetB = cols - nb;
+  var sa = String(a).split('');
+  var sb = String(b).split('');
+  var na = sa.length, nb = sb.length;
+  var cols = na + nb + 1;
+  var offsetA = cols - na;
+  var offsetB = cols - nb;
 
-  let html = '';
-  html += '<div class="cell no-drop"></div>';
-  for (let c = 0; c < cols; c++)
-    html += `<div class="cell carry no-drop" data-col="${c}"></div>`;
+  var html = '', c, pi;
 
   html += '<div class="cell no-drop"></div>';
-  for (let c = 0; c < cols; c++){
-    const idx = c - offsetA;
-    const d = (idx >= 0 && idx < na) ? sa[idx] : '';
-    html += `<div class="cell digit no-drop" data-col="${c}">${d}</div>`;
+  for (c = 0; c < cols; c++)
+    html += '<div class="cell carry no-drop" data-col="' + c + '"></div>';
+
+  html += '<div class="cell no-drop"></div>';
+  for (c = 0; c < cols; c++){
+    var idx = c - offsetA;
+    var d = (idx >= 0 && idx < na) ? sa[idx] : '';
+    html += '<div class="cell digit no-drop" data-col="' + c + '">' + d + '</div>';
   }
 
   html += '<div class="cell sign no-drop">×</div>';
-  for (let c = 0; c < cols; c++){
-    const idx = c - offsetB;
-    const d = (idx >= 0 && idx < nb) ? sb[idx] : '';
-    html += `<div class="cell digit no-drop" data-col="${c}">${d}</div>`;
+  for (c = 0; c < cols; c++){
+    var idx2 = c - offsetB;
+    var d2 = (idx2 >= 0 && idx2 < nb) ? sb[idx2] : '';
+    html += '<div class="cell digit no-drop" data-col="' + c + '">' + d2 + '</div>';
   }
 
   html += '<div class="sep"></div>';
 
-  for (let pi = 0; pi < nb; pi++){
-    const bDigit = +sb[nb - 1 - pi];
-    const partialStr = String(a * bDigit);
-    const partialLen = partialStr.length;
+  for (pi = 0; pi < nb; pi++){
+    var bDigit = +sb[nb - 1 - pi];
+    var partialStr = String(a * bDigit);
+    var partialLen = partialStr.length;
 
     html += '<div class="cell no-drop"></div>';
-    for (let c = 0; c < cols; c++){
-      const rightOffset = cols - 1 - c;
-      const partialIdx = rightOffset - pi;
+    for (c = 0; c < cols; c++){
+      var rightOffset = cols - 1 - c;
+      var partialIdx = rightOffset - pi;
       if (partialIdx >= 0 && partialIdx < partialLen){
-        const d = partialStr[partialLen - 1 - partialIdx];
-        html += `<div class="cell answer partial droppable" data-row="p${pi}" data-col="${c}" data-orig="" data-exp="${d}"></div>`;
+        var dp = partialStr[partialLen - 1 - partialIdx];
+        html += '<div class="cell answer partial droppable" data-row="p' + pi + '" data-col="' + c + '" data-orig="" data-exp="' + dp + '"></div>';
       } else {
         html += '<div class="cell no-drop"></div>';
       }
@@ -883,15 +987,15 @@ function renderMultiplicationGrid(a, b){
 
   if (nb > 1){
     html += '<div class="sep"></div>';
-    const finalStr = String(a * b);
-    const finalLen = finalStr.length;
+    var finalStr = String(a * b);
+    var finalLen = finalStr.length;
 
     html += '<div class="cell no-drop"></div>';
-    for (let c = 0; c < cols; c++){
-      const rightOffset = cols - 1 - c;
-      if (rightOffset < finalLen){
-        const d = finalStr[finalLen - 1 - rightOffset];
-        html += `<div class="cell answer droppable" data-row="f" data-col="${c}" data-orig="" data-exp="${d}"></div>`;
+    for (c = 0; c < cols; c++){
+      var rightOffset2 = cols - 1 - c;
+      if (rightOffset2 < finalLen){
+        var df = finalStr[finalLen - 1 - rightOffset2];
+        html += '<div class="cell answer droppable" data-row="f" data-col="' + c + '" data-orig="" data-exp="' + df + '"></div>';
       } else {
         html += '<div class="cell no-drop"></div>';
       }
@@ -903,98 +1007,61 @@ function renderMultiplicationGrid(a, b){
   pgrid.style.setProperty('--n', cols);
   pgrid.innerHTML = html;
   problemEl.classList.remove('division');
-  setFont(cols);
+
+  /* ★ JS で サイズ を 計算 */
+  requestAnimationFrame(function(){
+    fitMultiplicationBoard();
+    syncNumSize();
+  });
 }
 
-/* =====================================================
-   わりざん
-   ===================================================== */
 function renderDivisionGrid(a, b){
-  const dividendStr = String(a);
-  const divisorStr  = String(b);
-  const nc = dividendStr.length;
-  const dc = divisorStr.length;
+  var dividendStr = String(a);
+  var divisorStr  = String(b);
+  var nc = dividendStr.length;
+  var dc = divisorStr.length;
 
-  const leftCols  = Math.max(nc + 2, 5);
-  const rightCols = Math.max(dc + 2, 4);
-  const rows = 4;
-  const divOffset = rightCols - dc;
+  var leftCols  = Math.max(nc + 2, 5);
+  var rightCols = Math.max(dc + 2, 4);
+  var rows = 4;
+  var divOffset = rightCols - dc;
 
-  let html = '';
-  html += `<div class="db-vline"></div>`;
-  html += `<div class="db-hline"></div>`;
+  var html = '', r, c;
+  html += '<div class="db-vline"></div>';
+  html += '<div class="db-hline"></div>';
 
-  for (let r = 0; r < rows; r++){
-    for (let c = 0; c < leftCols; c++){
-      const isGiven = (r === 0);
-      const d = (isGiven && c < nc) ? dividendStr[c] : '';
-      const cls = 'db-cell ' + (isGiven ? 'given' : 'droppable');
-      html += `<div class="${cls}" data-row="L${r}" data-col="${c}" data-orig="${d}">${d}</div>`;
+  for (r = 0; r < rows; r++){
+    for (c = 0; c < leftCols; c++){
+      var isGiven = (r === 0);
+      var d = (isGiven && c < nc) ? dividendStr[c] : '';
+      var cls = 'db-cell ' + (isGiven ? 'given' : 'droppable');
+      html += '<div class="' + cls + '" data-row="L' + r + '" data-col="' + c + '" data-orig="' + d + '">' + d + '</div>';
     }
-    for (let c = 0; c < rightCols; c++){
-      let d = '';
-      let isGiven = false;
+    for (c = 0; c < rightCols; c++){
+      var d2 = '';
+      var isGiven2 = false;
       if (r === 0 && c >= divOffset){
-        d = divisorStr[c - divOffset];
-        isGiven = true;
+        d2 = divisorStr[c - divOffset];
+        isGiven2 = true;
       }
-      const isQuotient = (r === 1);
-      let cls = 'db-cell';
-      if (isGiven) cls += ' given';
-      else cls += ' droppable';
-      if (isQuotient) cls += ' quotient-cell';
-      html += `<div class="${cls}" data-row="R${r}" data-col="${c}" data-orig="${d}">${d}</div>`;
+      var isQuotient = (r === 1);
+      var cls2 = 'db-cell';
+      if (isGiven2) cls2 += ' given';
+      else cls2 += ' droppable';
+      if (isQuotient) cls2 += ' quotient-cell';
+      html += '<div class="' + cls2 + '" data-row="R' + r + '" data-col="' + c + '" data-orig="' + d2 + '">' + d2 + '</div>';
     }
   }
 
   pgrid.className = 'division-board';
   pgrid.style.fontSize = '';
-  pgrid.innerHTML = `<div class="db-cells" style="--lc:${leftCols};--rc:${rightCols};--rows:${rows};">${html}</div>`;
+  pgrid.innerHTML = '<div class="db-cells" style="--lc:' + leftCols + ';--rc:' + rightCols + ';--rows:' + rows + ';">' + html + '</div>';
   problemEl.classList.add('division');
-  problemEl.style.fontSize = '';
 
-  // ★ レイアウト ご に 自動 サイズ ちょうせい
-  requestAnimationFrame(() => fitDivisionBoard());
-}
-
-/* ★ わりざん ボード が きゃく に おさまる よう に font-size を ちょうせい */
-function fitDivisionBoard(){
-  if (S.op !== '÷') return;
-
-  const dbCells = pgrid.querySelector('.db-cells');
-  if (!dbCells) return;
-
-  // グリッド の れつ すう を よみとる
-  const lc = parseInt(dbCells.style.getPropertyValue('--lc'), 10) || 6;
-  const rc = parseInt(dbCells.style.getPropertyValue('--rc'), 10) || 4;
-  const rows = parseInt(dbCells.style.getPropertyValue('--rows'), 10) || 4;
-
-  // いちど リセット して から はかる
-  pgrid.style.fontSize = '';
-
-  // きゃく の ない ぶ の はば ・ たか さ
-  const areaW = problemArea.clientWidth - 20;
-  const areaH = problemArea.clientHeight - 60;
-
-  // こてい ぴくせる： よこ せん よう gap 12 + ボード の みぎ ぱ で ぃ ん ぐ 20+6 + border 2
-  const fixedW = 12 + 26 + 2;
-  // たて： うえ ぱ で ぃ ん ぐ 12 + した 20 + border 2
-  const fixedH = 12 + 20 + 2;
-
-  // セル はば は 1.2em。 em は font-size に ひれい
-  const cellEm = 1.2;
-
-  // はば から の せいげん
-  const fsW = (areaW - fixedW) / ((lc + rc) * cellEm);
-  // たか さ から の せいげん
-  const fsH = (areaH - fixedH) / (rows * cellEm);
-
-  let fs = Math.min(fsW, fsH);
-  // じょうげん ・ かげん
-  fs = Math.min(fs, 56);
-  fs = Math.max(fs, 13);
-
-  pgrid.style.fontSize = fs + 'px';
+  requestAnimationFrame(function(){
+    fitDivisionBoard();
+    syncNumSize();
+  });
 }
 
 function renderProblemGrid(a, b, op){
@@ -1003,17 +1070,13 @@ function renderProblemGrid(a, b, op){
 }
 
 function syncNumSize(){
-  const cs = getComputedStyle(problemEl);
-  const fs = parseFloat(cs.fontSize);
-  if (fs) root.style.setProperty('--num-size', fs + 'px');
+  var fs = parseFloat(problemEl.style.fontSize) || parseFloat(getComputedStyle(problemEl).fontSize) || 64;
+  root.style.setProperty('--num-size', fs + 'px');
 }
 
-/* =====================================================
-   もんだい を つくる
-   ===================================================== */
 function buildProblem(){
-  const realOp = S.op;
-  let a, b;
+  var realOp = S.op;
+  var a, b;
 
   if (realOp === '×'){
     a = randomWithDigits(S.d1);
@@ -1021,8 +1084,8 @@ function buildProblem(){
   } else {
     b = randomWithDigits(S.d2);
     a = randomWithDigits(S.d1);
-    if (a < b){ const t = a; a = b; b = t; }
-    const q = Math.max(2, Math.floor(a / b));
+    if (a < b){ var t = a; a = b; b = t; }
+    var q = Math.max(2, Math.floor(a / b));
     a = b * q;
   }
 
@@ -1035,16 +1098,20 @@ function buildProblem(){
   clearInk();
   clearAllTokens();
 
-  requestAnimationFrame(()=>{ syncNumSize(); fit(); });
+  requestAnimationFrame(function(){
+    fit();
+    if (realOp === '×') fitMultiplicationBoard();
+    else fitDivisionBoard();
+    syncNumSize();
+  });
 }
 
-/* =====================================================
-   ばしょ
-   ===================================================== */
 function findCellAtPoint(clientX, clientY){
-  const cells = $$('#pgrid .cell.droppable, .db-cell.droppable');
-  for (const cell of cells){
-    const r = cell.getBoundingClientRect();
+  var cells = $$('#pgrid .cell.droppable, .db-cell.droppable');
+  var i;
+  for (i = 0; i < cells.length; i++){
+    var cell = cells[i];
+    var r = cell.getBoundingClientRect();
     if (clientX >= r.left && clientX <= r.right &&
         clientY >= r.top  && clientY <= r.bottom){
       return cell;
@@ -1053,7 +1120,7 @@ function findCellAtPoint(clientX, clientY){
   return null;
 }
 
-let lastOverCell = null;
+var lastOverCell = null;
 function setOverCell(cell){
   if (lastOverCell === cell) return;
   if (lastOverCell) lastOverCell.classList.remove('over');
@@ -1064,54 +1131,55 @@ function setOverCell(cell){
 /* =====================================================
    放射状 ピッカー
    ===================================================== */
-const radialMenu = $('#radialMenu');
-let radialState = null;
+var radialMenu = $('#radialMenu');
+var radialState = null;
 
 function openRadial(cell, clientX, clientY){
-  const W = window.innerWidth, H = window.innerHeight;
-  const PAD = 46;
-  let R = 138;
+  var vp = getVP();
+  var W = vp.w, H = vp.h;
+  var PAD = 46;
+  var R = 138;
   R = Math.min(R, (W - 2*PAD) / 2, (H - 2*PAD) / 2);
-  R = Math.max(R, 92);
+  R = Math.max(R, 90);
 
-  const cx = Math.max(R + PAD, Math.min(W - R - PAD, clientX));
-  const cy = Math.max(R + PAD, Math.min(H - R - PAD, clientY));
+  var cx = Math.max(R + PAD, Math.min(W - R - PAD, clientX));
+  var cy = Math.max(R + PAD, Math.min(H - R - PAD, clientY));
 
   radialMenu.innerHTML = '';
 
-  const curStr = (cell.textContent || '').trim();
-  const curVal = /^[0-9]$/.test(curStr) ? +curStr : -1;
+  var curStr = (cell.textContent || '').trim();
+  var curVal = /^[0-9]$/.test(curStr) ? +curStr : -1;
 
-  const center = document.createElement('div');
+  var center = document.createElement('div');
   center.className = 'radial-center';
   center.style.left = cx + 'px';
   center.style.top  = cy + 'px';
   center.textContent = curVal >= 0 ? curStr : '';
   radialMenu.appendChild(center);
 
-  const items = [];
-  for (let i = 0; i <= 9; i++){
-    const angle = -Math.PI/2 + i * (2*Math.PI/10);
-    const x = cx + R * Math.cos(angle);
-    const y = cy + R * Math.sin(angle);
-    const el = document.createElement('div');
+  var items = [];
+  for (var i = 0; i <= 9; i++){
+    var angle = -Math.PI/2 + i * (2*Math.PI/10);
+    var x = cx + R * Math.cos(angle);
+    var y = cy + R * Math.sin(angle);
+    var el = document.createElement('div');
     el.className = 'radial-item';
     if (i === curVal) el.classList.add('current');
     el.textContent = i;
     el.style.left = x + 'px';
     el.style.top  = y + 'px';
+    el.style.webkitTransitionDelay = (i * 12) + 'ms';
     el.style.transitionDelay = (i * 12) + 'ms';
     radialMenu.appendChild(el);
-    items.push({ el, v: i, x, y });
+    items.push({ el: el, v: i, x: x, y: y });
   }
 
   radialMenu.style.setProperty('--rcx', cx + 'px');
   radialMenu.style.setProperty('--rcy', cy + 'px');
-
   radialMenu.classList.add('open');
 
   radialState = {
-    cell, cx, cy, R, items,
+    cell: cell, cx: cx, cy: cy, R: R, items: items,
     activeIdx: -1,
     moved: false
   };
@@ -1119,28 +1187,25 @@ function openRadial(cell, clientX, clientY){
 
 function updateRadial(clientX, clientY){
   if (!radialState) return;
-  const { cx, cy, items } = radialState;
-  const dx = clientX - cx;
-  const dy = clientY - cy;
-  const dist = Math.sqrt(dx*dx + dy*dy);
+  var cx = radialState.cx, cy = radialState.cy, items = radialState.items;
+  var dx = clientX - cx, dy = clientY - cy;
+  var dist = Math.sqrt(dx*dx + dy*dy);
 
   if (dist < radialState.R * 0.42){
-    items.forEach(it => it.el.classList.remove('active'));
+    items.forEach(function(it){ it.el.classList.remove('active'); });
     radialState.activeIdx = -1;
     return;
   }
 
-  let best = -1, bestD = Infinity;
-  for (let i = 0; i < items.length; i++){
-    const ddx = clientX - items[i].x;
-    const ddy = clientY - items[i].y;
-    const d = ddx*ddx + ddy*ddy;
+  var best = -1, bestD = Infinity;
+  for (var i = 0; i < items.length; i++){
+    var ddx = clientX - items[i].x;
+    var ddy = clientY - items[i].y;
+    var d = ddx*ddx + ddy*ddy;
     if (d < bestD){ bestD = d; best = i; }
   }
 
-  items.forEach((it, idx) => {
-    it.el.classList.toggle('active', idx === best);
-  });
+  items.forEach(function(it, idx){ it.el.classList.toggle('active', idx === best); });
   radialState.activeIdx = best;
 }
 
@@ -1152,7 +1217,7 @@ function closeRadial(){
 
 function confirmRadial(){
   if (!radialState) return;
-  const { cell, items, activeIdx } = radialState;
+  var cell = radialState.cell, items = radialState.items, activeIdx = radialState.activeIdx;
   if (activeIdx >= 0){
     placeNumberInCell(cell, String(items[activeIdx].v));
   }
@@ -1162,32 +1227,32 @@ function confirmRadial(){
 /* =====================================================
    ながおし
    ===================================================== */
-let lpTimer = null;
-let lpStart = null;
-const LP_MS = 480;
+var lpTimer = null;
+var lpStart = null;
+var LP_MS = 480;
 
 function cancelLongPress(){
   if (lpTimer){ clearTimeout(lpTimer); lpTimer = null; }
   lpStart = null;
 }
 
-canvas.addEventListener('pointerdown', e=>{
+canvas.addEventListener('pointerdown', function(e){
   if (!S.started || drawing) return;
   if (radialState) return;
 
   e.preventDefault();
   try { canvas.setPointerCapture(e.pointerId); } catch(_){}
   drawing = true;
-  const p = localPos(e);
+  var p = localPos(e);
   current = { color:'#16305c', w: e.pointerType === 'pen' ? 3 : 3.5, pts:[p] };
   strokes.push(current);
   paint(current);
 
   cancelLongPress();
   lpStart = { x: e.clientX, y: e.clientY, pointerId: e.pointerId };
-  lpTimer = setTimeout(()=>{
+  lpTimer = setTimeout(function(){
     if (!lpStart) return;
-    const cell = findCellAtPoint(lpStart.x, lpStart.y);
+    var cell = findCellAtPoint(lpStart.x, lpStart.y);
     if (cell){
       if (current && strokes[strokes.length-1] === current){
         strokes.pop();
@@ -1207,7 +1272,7 @@ canvas.addEventListener('pointerdown', e=>{
   }, LP_MS);
 });
 
-canvas.addEventListener('pointermove', e=>{
+canvas.addEventListener('pointermove', function(e){
   if (radialState){
     e.preventDefault();
     radialState.moved = true;
@@ -1219,15 +1284,15 @@ canvas.addEventListener('pointermove', e=>{
   e.preventDefault();
 
   if (lpStart && lpTimer){
-    const dx = e.clientX - lpStart.x, dy = e.clientY - lpStart.y;
-    if (dx*dx + dy*dy > 100) cancelLongPress();
+    var dx0 = e.clientX - lpStart.x, dy0 = e.clientY - lpStart.y;
+    if (dx0*dx0 + dy0*dy0 > 100) cancelLongPress();
   }
 
-  const evts = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
-  for (let k=0;k<evts.length;k++){
-    const p = localPos(evts[k]);
-    const last = current.pts[current.pts.length-1];
-    const dx = p.x-last.x, dy = p.y-last.y;
+  var evts = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+  for (var k = 0; k < evts.length; k++){
+    var p = localPos(evts[k]);
+    var last = current.pts[current.pts.length-1];
+    var dx = p.x-last.x, dy = p.y-last.y;
     if (dx*dx + dy*dy < 1.2) continue;
     current.pts.push(p);
     ctx.beginPath();
@@ -1244,7 +1309,7 @@ function endStroke(){
   drawing = false;
   current = null;
 }
-canvas.addEventListener('pointerup', e=>{
+canvas.addEventListener('pointerup', function(e){
   if (radialState){
     e.preventDefault();
     if (radialState.moved){
@@ -1259,7 +1324,7 @@ canvas.addEventListener('pointerup', e=>{
   }
   endStroke();
 });
-canvas.addEventListener('pointercancel', e=>{
+canvas.addEventListener('pointercancel', function(){
   if (radialState) closeRadial();
   endStroke();
 });
@@ -1267,29 +1332,29 @@ canvas.addEventListener('pointercancel', e=>{
 /* =====================================================
    ドラッグ（パレット から）
    ===================================================== */
-let dragState = null;
-let ghostEl = null;
-let placedHistory = [];
+var dragState = null;
+var ghostEl = null;
+var placedHistory = [];
 
 function makeGhost(token, isRed){
-  const g = document.createElement('div');
+  var g = document.createElement('div');
   g.className = 'ghost-token';
   if (isRed) g.classList.add('red');
   g.textContent = token;
   return g;
 }
 
-$$('.palette [data-token]').forEach(btn => {
-  btn.addEventListener('pointerdown', e => {
+$$('.palette [data-token]').forEach(function(btn){
+  btn.addEventListener('pointerdown', function(e){
     e.preventDefault();
-    const isRed = btn.dataset.red === '1';
+    var isRed = btn.dataset.red === '1';
     startPaletteDrag(btn.dataset.token, isRed, e);
   });
 });
 
 function startPaletteDrag(token, isRed, e){
   if (dragState) return;
-  dragState = { token, isRed, moved:false };
+  dragState = { token: token, isRed: isRed, moved: false };
   document.body.classList.add('dragging');
   ghostEl = makeGhost(token, isRed);
   ghostEl.style.left = e.clientX + 'px';
@@ -1321,35 +1386,35 @@ function onGlobalUp(e){
 
   if (!dragState){ if (ghostEl){ ghostEl.remove(); ghostEl = null; } return; }
 
-  const token = dragState.token;
-  const isRed = dragState.isRed;
-  const moved = dragState.moved;
+  var token = dragState.token;
+  var isRed = dragState.isRed;
+  var moved = dragState.moved;
   if (ghostEl){ ghostEl.remove(); ghostEl = null; }
   dragState = null;
 
   if (!moved) return;
 
-  const areaRect = problemArea.getBoundingClientRect();
-  const palRect  = palette.getBoundingClientRect();
-  const x = e.clientX, y = e.clientY;
-  const overPalette = x >= palRect.left && x <= palRect.right &&
-                      y >= palRect.top  && y <= palRect.bottom;
-  const inArea = x >= areaRect.left && x <= areaRect.right &&
-                 y >= areaRect.top  && y <= areaRect.bottom;
+  var areaRect = problemArea.getBoundingClientRect();
+  var palRect  = palette.getBoundingClientRect();
+  var x = e.clientX, y = e.clientY;
+  var overPalette = x >= palRect.left && x <= palRect.right &&
+                    y >= palRect.top  && y <= palRect.bottom;
+  var inArea = x >= areaRect.left && x <= areaRect.right &&
+               y >= areaRect.top  && y <= areaRect.bottom;
 
   if (overPalette) return;
 
   if (isRed){
     if (inArea) createFloatingRedToken(token, x - areaRect.left, y - areaRect.top);
   } else {
-    const cell = findCellAtPoint(x, y);
+    var cell = findCellAtPoint(x, y);
     if (cell) placeNumberInCell(cell, token);
   }
 }
 
 function placeNumberInCell(cell, token){
   clearCheckFeedback();
-  placedHistory.push({ type:'cell', cell, prev: cell.textContent || '' });
+  placedHistory.push({ type:'cell', cell: cell, prev: cell.textContent || '' });
   cell.textContent = token;
   cell.dataset.placed = token;
   cell.classList.remove('justFilled');
@@ -1358,33 +1423,33 @@ function placeNumberInCell(cell, token){
 }
 
 function createFloatingRedToken(token, x, y){
-  const el = document.createElement('div');
+  var el = document.createElement('div');
   el.className = 'dropped-token';
   el.dataset.token = token;
   el.style.left = x + 'px';
   el.style.top  = y + 'px';
 
-  const num = document.createElement('span');
+  var num = document.createElement('span');
   num.textContent = token;
   num.style.pointerEvents = 'none';
   el.appendChild(num);
 
-  const del = document.createElement('button');
+  var del = document.createElement('button');
   del.className = 'del-x';
   del.textContent = '×';
-  del.addEventListener('pointerdown', ev=>{ ev.preventDefault(); ev.stopPropagation(); });
-  del.addEventListener('click', ev=>{ ev.preventDefault(); ev.stopPropagation(); el.remove(); });
+  del.addEventListener('pointerdown', function(ev){ ev.preventDefault(); ev.stopPropagation(); });
+  del.addEventListener('click', function(ev){ ev.preventDefault(); ev.stopPropagation(); el.remove(); });
   el.appendChild(del);
 
   el.addEventListener('pointerdown', onDroppedDown);
   droppedLayer.appendChild(el);
-  placedHistory.push({ type:'red', el });
+  placedHistory.push({ type:'red', el: el });
 }
 
 function onDroppedDown(e){
   e.preventDefault(); e.stopPropagation();
-  const el = e.currentTarget;
-  const areaRect = problemArea.getBoundingClientRect();
+  var el = e.currentTarget;
+  var areaRect = problemArea.getBoundingClientRect();
   el.classList.add('dragging');
 
   function move(ev){
@@ -1398,11 +1463,11 @@ function onDroppedDown(e){
     el.removeEventListener('pointerup', up);
     el.removeEventListener('pointercancel', up);
 
-    const palRect = palette.getBoundingClientRect();
-    const overPalette = ev.clientX >= palRect.left && ev.clientX <= palRect.right &&
-                        ev.clientY >= palRect.top  && ev.clientY <= palRect.bottom;
-    const outOfArea = ev.clientX < areaRect.left || ev.clientX > areaRect.right ||
-                      ev.clientY < areaRect.top  || ev.clientY > areaRect.bottom;
+    var palRect = palette.getBoundingClientRect();
+    var overPalette = ev.clientX >= palRect.left && ev.clientX <= palRect.right &&
+                      ev.clientY >= palRect.top  && ev.clientY <= palRect.bottom;
+    var outOfArea = ev.clientX < areaRect.left || ev.clientX > areaRect.right ||
+                    ev.clientY < areaRect.top  || ev.clientY > areaRect.bottom;
     if (overPalette || outOfArea) el.remove();
   }
   el.addEventListener('pointermove', move, { passive:false });
@@ -1415,7 +1480,7 @@ function onDroppedDown(e){
    ===================================================== */
 function undoLastPlaced(){
   while (placedHistory.length > 0){
-    const last = placedHistory.pop();
+    var last = placedHistory.pop();
     if (last.type === 'cell'){
       last.cell.textContent = last.prev || '';
       if (last.prev) last.cell.dataset.placed = last.prev;
@@ -1439,8 +1504,8 @@ function undoLastPlaced(){
    ===================================================== */
 function clearAllTokens(){
   while (droppedLayer.firstChild) droppedLayer.removeChild(droppedLayer.firstChild);
-  $$('#pgrid .cell.droppable, #pgrid .db-cell.droppable').forEach(cell=>{
-    const orig = cell.dataset.orig || '';
+  $$('#pgrid .cell.droppable, #pgrid .db-cell.droppable').forEach(function(cell){
+    var orig = cell.dataset.orig || '';
     cell.textContent = orig;
     delete cell.dataset.placed;
     cell.classList.remove('justFilled');
@@ -1453,34 +1518,34 @@ function clearAllTokens(){
    まるつけ
    ===================================================== */
 function clearCheckFeedback(){
-  $$('#pgrid .cell.answer').forEach(c=>{
+  $$('#pgrid .cell.answer').forEach(function(c){
     c.classList.remove('correct','wrong','missing');
   });
-  $$('#pgrid .db-cell').forEach(c=>{
+  $$('#pgrid .db-cell').forEach(function(c){
     c.classList.remove('checked-correct','checked-wrong','checked-missing');
   });
 }
 
-let toastTimer = null;
+var toastTimer = null;
 function showToast(msg, ok){
   toast.textContent = msg;
   toast.classList.toggle('error', !ok);
   toast.classList.add('show');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(()=> toast.classList.remove('show'), 2200);
+  toastTimer = setTimeout(function(){ toast.classList.remove('show'); }, 2200);
 }
 
 function checkAnswer(){
   if (!S.started) return;
 
   if (S.op === '×'){
-    const answerCells = $$('#pgrid .cell.answer.droppable');
-    let anyInput = false, allCorrect = true;
+    var answerCells = $$('#pgrid .cell.answer.droppable');
+    var anyInput = false, allCorrect = true;
 
-    answerCells.forEach(cell => {
+    answerCells.forEach(function(cell){
       cell.classList.remove('correct','wrong','missing');
-      const v = (cell.textContent || '').trim();
-      const exp = cell.dataset.exp || '';
+      var v = (cell.textContent || '').trim();
+      var exp = cell.dataset.exp || '';
       if (v !== '') anyInput = true;
       if (v !== exp){
         allCorrect = false;
@@ -1491,7 +1556,7 @@ function checkAnswer(){
 
     if (!anyInput){ showToast('こたえを いれてね ✏️', false); return; }
     if (allCorrect){
-      answerCells.forEach(c => c.classList.add('correct'));
+      answerCells.forEach(function(c){ c.classList.add('correct'); });
       showToast('🎉 せいかい！ すごい！', true);
     } else {
       showToast('❌ おしい！ もういちど やってみよう', false);
@@ -1499,25 +1564,25 @@ function checkAnswer(){
     return;
   }
 
-  const correct = Math.round(S.a / S.b);
-  const quotientCells = $$('#pgrid .db-cell.quotient-cell');
+  var correct = Math.round(S.a / S.b);
+  var quotientCells = $$('#pgrid .db-cell.quotient-cell');
 
-  let raw = '';
-  let anyInput = false;
-  quotientCells.forEach(cell => {
-    const v = (cell.textContent || '').trim();
-    if (v !== '') anyInput = true;
+  var raw = '';
+  var anyInput2 = false;
+  quotientCells.forEach(function(cell){
+    var v = (cell.textContent || '').trim();
+    if (v !== '') anyInput2 = true;
     raw += (v === '') ? '' : v;
   });
 
-  if (!anyInput){
+  if (!anyInput2){
     showToast('こたえを いれてね ✏️', false);
     return;
   }
 
-  const studentNum = parseInt(raw || '0', 10);
+  var studentNum = parseInt(raw || '0', 10);
   if (studentNum === correct){
-    quotientCells.forEach(c=>{
+    quotientCells.forEach(function(c){
       c.classList.remove('checked-correct','checked-wrong','checked-missing');
       if ((c.textContent || '').trim() !== '') c.classList.add('checked-correct');
     });
@@ -1525,14 +1590,14 @@ function checkAnswer(){
     return;
   }
 
-  const expected = String(correct).split('');
-  const cols = quotientCells.length;
+  var expected = String(correct).split('');
+  var cols = quotientCells.length;
   while (expected.length < cols) expected.unshift('');
 
-  quotientCells.forEach((cell, i) => {
+  quotientCells.forEach(function(cell, i){
     cell.classList.remove('checked-correct','checked-wrong','checked-missing');
-    const v = (cell.textContent || '').trim();
-    const e = expected[i] || '';
+    var v = (cell.textContent || '').trim();
+    var e = expected[i] || '';
     if (v === e){ /* OK */ }
     else if (v === '') cell.classList.add('checked-missing');
     else cell.classList.add('checked-wrong');
@@ -1554,25 +1619,31 @@ $('#checkBtn').addEventListener('click', checkAnswer);
    ===================================================== */
 function boot(){
   render();
-  syncNumSize();
   fit();
-  setTimeout(()=>{ syncNumSize(); fit(); }, 120);
-  setTimeout(()=>{ syncNumSize(); fit(); }, 500);
+  setTimeout(function(){ fit(); }, 200);
+  setTimeout(function(){ fit(); }, 600);
 }
 
+var resizeTimer = null;
 function onResize(){
-  setTimeout(()=>{
-    syncNumSize();
+  if (resizeTimer) clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(function(){
     fit();
-    fitDivisionBoard();
-  }, 80);
+    if (S.op === '×') fitMultiplicationBoard();
+    else if (S.op === '÷') fitDivisionBoard();
+    syncNumSize();
+    resizeTimer = null;
+  }, 150);
 }
 
 window.addEventListener('resize', onResize);
-window.addEventListener('orientationchange', ()=> setTimeout(onResize, 250));
+window.addEventListener('orientationchange', function(){
+  setTimeout(onResize, 350);
+  setTimeout(onResize, 700);
+});
 
-document.addEventListener('gesturestart', e => e.preventDefault());
-document.addEventListener('touchmove', e => {
+document.addEventListener('gesturestart', function(e){ e.preventDefault(); });
+document.addEventListener('touchmove', function(e){
   if (e.target === canvas) e.preventDefault();
 }, { passive:false });
 
