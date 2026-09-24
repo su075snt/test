@@ -37,6 +37,7 @@ body{
   border-bottom:1px solid var(--line);
   box-shadow:0 2px 14px rgba(20,30,60,.06);
   z-index:10;
+  flex-shrink:0;
 }
 .group{display:flex;align-items:center;background:#eef1f7;border-radius:14px;padding:4px;gap:3px}
 
@@ -74,16 +75,33 @@ body{
 }
 .start:active{transform:translateY(1px)}
 
-/* ================= ステージ ================= */
+/* ================= ステージ =================
+   左80%：けいさん / 右20%：すうじ パレット
+   ================================================ */
 .stage{
-  position:relative;flex:1;min-height:0;overflow:hidden;
+  position:relative;
+  flex:1;
+  min-height:0;
+  display:flex;
+  overflow:hidden;
+}
+
+/* ---- 左80%：けいさんエリア ---- */
+.problem-area{
+  position:relative;
+  flex: 0 0 80%;
+  max-width: 80%;
+  min-width:0;
+  height:100%;
   display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+  background:var(--bg);
 }
 
 .hint{
   position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
   text-align:center;padding:30px;color:var(--muted);
-  font-size:clamp(15px,2.2vw,20px);font-weight:700;line-height:1.8;
+  font-size:clamp(15px,1.8vw,20px);font-weight:700;line-height:1.8;
   pointer-events:none;
 }
 .hint b{color:var(--green)}
@@ -100,7 +118,7 @@ body.started .problem{opacity:1}
   display:grid;
   grid-template-columns: auto repeat(var(--n, 3), 1.05em);
   justify-content:center;
-  font-size:clamp(3.4rem,16vh,8.5rem);
+  font-size:clamp(2.4rem,11vh,7rem);
   font-weight:400;
   line-height:1.05;
   font-variant-numeric:tabular-nums;
@@ -187,12 +205,87 @@ body.dragging .pgrid .cell.droppable.over{
 }
 body.started #ink{opacity:1;pointer-events:auto}
 
-/* ===== 自由に動かせる赤い数字 ===== */
+/* ドロップ した もの を のせる レイヤー */
 .dropped-layer{
   position:absolute;inset:0;z-index:3;
   pointer-events:none;
   overflow:hidden;
 }
+
+/* ---- 右20%：すうじ パレット ---- */
+.palette{
+  flex: 0 0 20%;
+  max-width: 20%;
+  min-width:0;
+  height:100%;
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  padding:8px 6px;
+  background:var(--card);
+  border-left:2px solid var(--line);
+  box-shadow:-4px 0 16px rgba(20,30,60,.05);
+  overflow-y:auto;
+  overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
+  z-index:5;
+}
+body.started .palette{display:flex}
+
+.num-grid{
+  display:grid;
+  grid-template-columns:repeat(2, 1fr);
+  gap:6px;
+  width:100%;
+  max-width:100%;
+  justify-items:center;
+}
+.pal-btn{
+  width: clamp(34px, 8vw, 64px);
+  height: clamp(34px, 8vw, 64px);
+  border:0;
+  border-radius:12px;
+  background:#ffffff;
+  color:var(--ink);
+  font-size: clamp(20px, 4.5vw, 34px);
+  font-weight:400;
+  line-height:1;
+  font-variant-numeric:tabular-nums;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 2px 6px rgba(20,30,60,.12), inset 0 0 0 1px #e2e8f2;
+  touch-action:none;
+  user-select:none;-webkit-user-select:none;
+  cursor:grab;
+  transition:background .12s, transform .12s;
+}
+.pal-btn:active{background:#eef1f7;transform:scale(.95)}
+
+.red-row{
+  display:flex;
+  flex-direction:row;
+  gap:8px;
+  justify-content:center;
+  align-items:center;
+  padding-top:8px;
+  border-top:1.5px dashed #e2e8f2;
+  width:100%;
+}
+/* 赤い すうじ は わく なし ・ シンプル */
+.pal-btn.red{
+  background: transparent;
+  box-shadow: none;
+  color:#dc2626;
+  font-weight:900;
+  border:none;
+  width: clamp(30px, 7vw, 54px);
+  height: clamp(30px, 7vw, 54px);
+  font-size: clamp(18px, 4vw, 30px);
+}
+.pal-btn.red:active{background:transparent;transform:scale(.9)}
+
+/* ===== 自由に動かせる赤い数字 ===== */
 .dropped-token{
   position:absolute;
   transform:translate(-50%,-50%);
@@ -201,13 +294,11 @@ body.started #ink{opacity:1;pointer-events:auto}
   user-select:none;-webkit-user-select:none;
   font-variant-numeric:tabular-nums;
   cursor:grab;
-  /* 枠なし、背景なし */
   background: transparent;
   border: none;
   box-shadow: none;
   color:#dc2626;
   font-weight:900;
-  /* 赤は黒の80%のサイズ */
   width:calc(var(--num-size) * .8);
   height:calc(var(--num-size) * .8);
   font-size:calc(var(--num-size) * .68);
@@ -223,14 +314,14 @@ body.started #ink{opacity:1;pointer-events:auto}
 /* 小さな × ボタン（数字の上） */
 .del-x{
   position:absolute;
-  top: -6px;
-  right: -6px;
-  width: 20px;
-  height: 20px;
+  top: -8px;
+  right: -8px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   background: #dc2626;
   color: #fff;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 900;
   line-height: 1;
   border: 2px solid #fff;
@@ -268,7 +359,6 @@ body.started #ink{opacity:1;pointer-events:auto}
   height:var(--num-size);
   font-size:var(--num-size);
 }
-/* 赤いゴーストは枠なし */
 .ghost-token.red{
   color:#dc2626;
   font-weight:900;
@@ -280,70 +370,13 @@ body.started #ink{opacity:1;pointer-events:auto}
   font-size:calc(var(--num-size) * .68);
 }
 
-/* ===== 右側の数字パレット ===== */
-.palette{
-  position:fixed;
-  right:10px;
-  top:50%;
-  transform:translateY(-50%);
-  display:none;
-  flex-direction:column;
-  align-items:flex-end;
-  gap:8px;
-  z-index:5;
-  max-height:calc(100% - 180px);
-  padding:6px;
-}
-body.started .palette{display:flex}
-
-.num-grid{
-  display:grid;
-  grid-template-columns:repeat(5, auto);
-  gap:5px;
-}
-.pal-btn{
-  width:clamp(38px, calc(var(--num-size) * .5), 64px);
-  height:clamp(38px, calc(var(--num-size) * .5), 64px);
-  border:0;
-  border-radius:calc(var(--num-size) * .12);
-  background:#ffffff;
-  color:var(--ink);
-  font-size:clamp(22px, calc(var(--num-size) * .5), 38px);
-  font-weight:400;
-  line-height:1;
-  font-variant-numeric:tabular-nums;
-  display:flex;align-items:center;justify-content:center;
-  box-shadow:0 2px 6px rgba(20,30,60,.12), inset 0 0 0 1px #e2e8f2;
-  touch-action:none;
-  user-select:none;-webkit-user-select:none;
-  cursor:grab;
-  transition:background .12s, transform .12s;
-}
-.pal-btn:active{background:#eef1f7;transform:scale(.95)}
-
-.red-row{
-  display:flex;
-  gap:6px;
-  justify-content:flex-end;
-  padding-top:6px;
-  border-top:1.5px dashed #e2e8f2;
-  width:100%;
-}
-/* 赤いパレットボタンも 枠なし の シンプル な 数字 に */
-.pal-btn.red{
-  background: transparent;
-  box-shadow: none;
-  color:#dc2626;
-  font-weight:900;
-  width:clamp(30px, calc(var(--num-size) * .4), 52px);
-  height:clamp(30px, calc(var(--num-size) * .4), 52px);
-  font-size:clamp(18px, calc(var(--num-size) * .34), 30px);
-}
-.pal-btn.red:active{background:transparent;transform:scale(.9)}
-
 /* ===== 中央のツールバー ===== */
 .floating{
-  position:absolute;z-index:5;left:50%;transform:translateX(-50%);
+  position:absolute;
+  z-index:6;
+  /* 左80% エリア の 中央 に おく */
+  left: 40%;
+  transform:translateX(-50%);
   bottom:calc(14px + env(safe-area-inset-bottom));
   display:none;gap:10px;padding:8px;
   background:rgba(255,255,255,.92);
@@ -439,23 +472,33 @@ body.started .check-btn{display:flex}
 </header>
 
 <main class="stage" id="stage">
-  <div class="hint" id="hint">
-  
-    かず１・かず２ の <b>けた</b> を きめて、<br>
-    <b>スタート</b> を おしてね ✏️<br>
-    <span style="font-size:.85em;opacity:.75">
-      みぎの すうじ を けいさん の わく に はこんでね
-    </span>
+  <!-- 左80%：けいさん -->
+  <div class="problem-area" id="problemArea">
+    <div class="hint" id="hint">
+      たしざん か ひきざん を えらんで、<br>
+      かず１・かず２ の <b>けた</b> を きめて、<br>
+      <b>スタート</b> を おしてね ✏️<br>
+      <span style="font-size:.85em;opacity:.75">
+        みぎの すうじ を けいさん の わく に はこんでね
+      </span>
+    </div>
+
+    <div class="problem" id="problem">
+      <div class="pgrid" id="pgrid"></div>
+    </div>
+
+    <canvas id="ink"></canvas>
+
+    <div class="dropped-layer" id="droppedLayer"></div>
+
+    <div class="floating">
+      <button id="clearBtn" class="danger" title="いちばん さいご の せん を けす">⌫</button>
+      <button id="cleanTokensBtn" class="clean" title="もとの もんだい に もどす">🧹</button>
+      <button id="newBtn" class="new" title="あたらしい もんだい">🔄</button>
+    </div>
   </div>
 
-  <div class="problem" id="problem">
-    <div class="pgrid" id="pgrid"></div>
-  </div>
-
-  <canvas id="ink"></canvas>
-
-  <div class="dropped-layer" id="droppedLayer"></div>
-
+  <!-- 右20%：すうじ パレット -->
   <div class="palette" id="palette">
     <div class="num-grid">
       <button class="pal-btn" data-token="0">0</button>
@@ -474,15 +517,9 @@ body.started .check-btn{display:flex}
       <button class="pal-btn red" data-token="-1" title="くりさがり">-1</button>
     </div>
   </div>
-
-  <div class="floating">
-    <button id="clearBtn" class="danger" title="いちばん さいご の せん を けす">⟲</button>
-    <button id="cleanTokensBtn" class="clean" title="もとの もんだい に もどす">けす🧹</button>
-    <button id="newBtn" class="new" title="あたらしい もんだい">🔄</button>
-  </div>
-
-  <button id="checkBtn" class="check-btn" title="まるつけ">✓</button>
 </main>
+
+<button id="checkBtn" class="check-btn" title="まるつけ">✓</button>
 
 <div class="toast" id="toast"></div>
 
@@ -500,6 +537,7 @@ const MAX_DIGITS = 4;
 const S = { op:'+', d1:2, d2:2, started:false, a:0, b:0 };
 
 const problemEl = $('#problem');
+const problemArea = $('#problemArea');
 const pgrid = $('#pgrid');
 const stage = $('#stage');
 const palette = $('#palette');
@@ -625,11 +663,11 @@ $$('[data-step]').forEach(b=>{
    けいさん の わく を かく
    ===================================================== */
 const FONT_SIZES = {
-  1: 'clamp(4rem, 22vh, 11rem)',
-  2: 'clamp(3.4rem, 16vh, 8.5rem)',
-  3: 'clamp(2.6rem, 12vh, 6.5rem)',
-  4: 'clamp(1.9rem, 8.5vh, 5rem)',
-  5: 'clamp(1.55rem, 7vh, 4.2rem)'
+  1: 'clamp(3.6rem, 20vh, 9rem)',
+  2: 'clamp(3rem, 15vh, 7rem)',
+  3: 'clamp(2.2rem, 11vh, 5.4rem)',
+  4: 'clamp(1.6rem, 8vh, 4rem)',
+  5: 'clamp(1.3rem, 6.5vh, 3.4rem)'
 };
 
 function renderProblemGrid(a, b, op){
@@ -800,19 +838,19 @@ function onGlobalUp(e){
 
   if (!moved) return;
 
-  const stageRect = stage.getBoundingClientRect();
-  const palRect   = palette.getBoundingClientRect();
+  const areaRect = problemArea.getBoundingClientRect();
+  const palRect  = palette.getBoundingClientRect();
   const x = e.clientX, y = e.clientY;
 
   const overPalette = x >= palRect.left && x <= palRect.right &&
                       y >= palRect.top  && y <= palRect.bottom;
-  const inStage = x >= stageRect.left && x <= stageRect.right &&
-                  y >= stageRect.top  && y <= stageRect.bottom;
+  const inArea = x >= areaRect.left && x <= areaRect.right &&
+                 y >= areaRect.top  && y <= areaRect.bottom;
 
   if (overPalette) return;
 
   if (isRedToken(token)){
-    if (inStage) createFloatingRedToken(token, x - stageRect.left, y - stageRect.top);
+    if (inArea) createFloatingRedToken(token, x - areaRect.left, y - areaRect.top);
   } else {
     const cell = findCellAtPoint(x, y);
     if (cell) placeNumberInCell(cell, token);
@@ -837,20 +875,17 @@ function createFloatingRedToken(token, x, y){
   el.style.left = x + 'px';
   el.style.top  = y + 'px';
 
-  // 数字 の 部分
   const num = document.createElement('span');
   num.className = 'token-num';
   num.textContent = displayToken(token);
   num.style.pointerEvents = 'none';
   el.appendChild(num);
 
-  // 小さな × ボタン（うえ に つく）
   const del = document.createElement('button');
   del.className = 'del-x';
   del.textContent = '×';
   del.setAttribute('aria-label','けす');
 
-  // × を タップ した とき は ドラッグ を はじまらない
   del.addEventListener('pointerdown', ev=>{
     ev.preventDefault();
     ev.stopPropagation();
@@ -872,14 +907,14 @@ function onDroppedDown(e){
   e.stopPropagation();
 
   const el = e.currentTarget;
-  const stageRect = stage.getBoundingClientRect();
+  const areaRect = problemArea.getBoundingClientRect();
 
   el.classList.add('dragging');
 
   function move(ev){
     ev.preventDefault();
-    el.style.left = (ev.clientX - stageRect.left) + 'px';
-    el.style.top  = (ev.clientY - stageRect.top)  + 'px';
+    el.style.left = (ev.clientX - areaRect.left) + 'px';
+    el.style.top  = (ev.clientY - areaRect.top)  + 'px';
   }
 
   function up(ev){
@@ -891,10 +926,10 @@ function onDroppedDown(e){
     const palRect = palette.getBoundingClientRect();
     const overPalette = ev.clientX >= palRect.left && ev.clientX <= palRect.right &&
                         ev.clientY >= palRect.top  && ev.clientY <= palRect.bottom;
-    const outOfStage = ev.clientX < stageRect.left || ev.clientX > stageRect.right ||
-                       ev.clientY < stageRect.top  || ev.clientY > stageRect.bottom;
+    const outOfArea = ev.clientX < areaRect.left || ev.clientX > areaRect.right ||
+                      ev.clientY < areaRect.top  || ev.clientY > areaRect.bottom;
 
-    if (overPalette || outOfStage) el.remove();
+    if (overPalette || outOfArea) el.remove();
   }
 
   el.addEventListener('pointermove', move, { passive:false });
